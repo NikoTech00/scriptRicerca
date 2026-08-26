@@ -1,22 +1,31 @@
 from __future__ import annotations
 
 import argparse
+import io
+import ipaddress
 import json
 import logging
 import os
 import random
+import re
 import shutil
+import socket
 import tempfile
 import time
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
+import requests
+from bs4 import BeautifulSoup
+from ddgs import DDGS
 from dotenv import load_dotenv
 from google import genai
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
+from pypdf import PdfReader
 
 
 # ============================================================
@@ -52,7 +61,22 @@ TERMINAL_STATUSES = {
 
 DEFAULT_ROLE = "farmacista ospedaliero/a"
 
-DEFAULT_MODEL = "gemini-3.7-flash"
+DEFAULT_MODEL = "gemini-3.6-flash"
+
+DEFAULT_SEARCH_RESULTS = 8
+DEFAULT_MAX_PAGES = 6
+DEFAULT_MAX_CHARS_PER_PAGE = 7000
+DEFAULT_MAX_CONTEXT_CHARS = 35000
+
+HTTP_TIMEOUT = 12
+
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/151.0 Safari/537.36"
+)
+
+LOG_DIR = Path("logs")
 
 
 # ============================================================
@@ -67,8 +91,16 @@ class Person:
     birth_date: str
 
 
+@dataclass
+class SearchResult:
+    title: str
+    url: str
+    snippet: str
+    content: str = ""
+
+
 # ============================================================
-# SCHEMA JSON RISPOSTA GEMINI
+# SCHEMA RISPOSTA GEMINI
 # ============================================================
 
 RESULT_SCHEMA: dict[str, Any] = {
@@ -107,6 +139,12 @@ RESULT_SCHEMA: dict[str, Any] = {
         "notes": {
             "type": "string"
         },
+        "source_indexes": {
+            "type": "array",
+            "items": {
+                "type": "integer"
+            },
+        },
     },
     "required": [
         "found",
@@ -118,20 +156,21 @@ RESULT_SCHEMA: dict[str, Any] = {
         "role_found",
         "confidence",
         "notes",
+        "source_indexes",
     ],
 }
 
 
 # ============================================================
-# ARGOMENTI CLI
+# CLI
 # ============================================================
 
 def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Ricerca automatizzata di struttura e contatti "
-            "professionali pubblici di farmacisti ospedalieri."
+            "Ricerca gratuita sul web e analisi tramite Gemini "
+            "di farmacisti ospedalieri."
         )
     )
 
@@ -144,16 +183,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         type=Path,
-        help=(
-            "File Excel di output. "
-            "Default: <input>_risultati.xlsx"
-        ),
+        help="File output. Default: <input>_risultati.xlsx",
     )
 
     parser.add_argument(
         "--sheet",
         default="Dati",
-        help="Nome del foglio Excel da elaborare (default: Dati)",
+        help="Foglio da elaborare (default: Dati)",
     )
 
     parser.add_argument(
@@ -165,65 +201,64 @@ def parse_args() -> argparse.Namespace:
         help=f"Modello Gemini (default: {DEFAULT_MODEL})",
     )
 
-    # --limit è il comando che userai normalmente.
-    # --max-rows rimane come alias per compatibilità.
     parser.add_argument(
         "--limit",
         "--max-rows",
         dest="max_rows",
         type=int,
         default=None,
-        help=(
-            "Numero massimo di persone da elaborare "
-            "in questa esecuzione. Es: --limit 5"
-        ),
+        help="Numero massimo di persone da elaborare",
     )
 
     parser.add_argument(
         "--start-row",
         type=int,
         default=2,
-        help=(
-            "Prima riga Excel da considerare. "
-            "La riga 1 contiene le intestazioni. "
-            "Default: 2"
-        ),
+        help="Prima riga Excel da considerare",
     )
 
     parser.add_argument(
         "--max-retries",
         type=int,
-        default=4,
-        help=(
-            "Numero massimo di tentativi per persona "
-            "(default: 4)"
-        ),
+        default=3,
+        help="Retry Gemini per persona",
     )
 
     parser.add_argument(
         "--delay",
         type=float,
         default=2.0,
-        help=(
-            "Secondi di pausa tra una persona e la successiva "
-            "(default: 2)"
-        ),
+        help="Pausa tra persone",
     )
 
     parser.add_argument(
         "--retry-errors",
         action="store_true",
-        help=(
-            "Riprova anche le righe che nel file di output "
-            "hanno Stato ricerca=ERRORE"
-        ),
+        help="Riprova righe con Stato ricerca=ERRORE",
+    )
+
+    parser.add_argument(
+        "--search-results",
+        type=int,
+        default=DEFAULT_SEARCH_RESULTS,
+        help="Risultati massimi raccolti dal motore di ricerca",
+    )
+
+    parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=DEFAULT_MAX_PAGES,
+        help="Numero massimo di pagine da scaricare per persona",
+    )
+
+    parser.add_argument(
+        "--log-dir",
+        type=Path,
+        default=LOG_DIR,
+        help="Cartella log",
     )
 
     args = parser.parse_args()
-
-    # --------------------------------------------------------
-    # Validazione parametri
-    # --------------------------------------------------------
 
     if args.max_rows is not None and args.max_rows <= 0:
         parser.error("--limit deve essere maggiore di 0")
@@ -237,29 +272,90 @@ def parse_args() -> argparse.Namespace:
     if args.delay < 0:
         parser.error("--delay non può essere negativo")
 
+    if args.search_results <= 0:
+        parser.error("--search-results deve essere maggiore di 0")
+
+    if args.max_pages <= 0:
+        parser.error("--max-pages deve essere maggiore di 0")
+
     return args
 
 
 # ============================================================
-# FUNZIONI GENERALI
+# LOG
+# ============================================================
+
+def configure_logging(log_dir: Path) -> Path:
+
+    log_dir = log_dir.expanduser().resolve()
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    log_file = log_dir / f"run_{timestamp}.log"
+
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+    logger.handlers.clear()
+
+    formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    file_handler = logging.FileHandler(
+        log_file,
+        encoding="utf-8",
+    )
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+
+    logging.info("Log: %s", log_file)
+
+    return log_file
+
+
+# ============================================================
+# UTILITY
 # ============================================================
 
 def clean(value: Any) -> str:
+
     if value is None:
         return ""
 
     return str(value).strip()
 
 
+def clean_text(text: str) -> str:
+
+    text = re.sub(
+        r"\s+",
+        " ",
+        text or "",
+    )
+
+    return text.strip()
+
+
 def format_birth_date(value: Any) -> str:
 
-    if isinstance(value, (datetime, date)):
+    if isinstance(
+        value,
+        (datetime, date),
+    ):
         return value.strftime("%d/%m/%Y")
 
     return clean(value)
 
 
 def utc_now() -> str:
+
     return datetime.now(
         timezone.utc
     ).isoformat(
@@ -268,7 +364,7 @@ def utc_now() -> str:
 
 
 # ============================================================
-# EXCEL - HEADERS
+# EXCEL
 # ============================================================
 
 def normalized_headers(ws) -> dict[str, int]:
@@ -290,9 +386,9 @@ def require_input_columns(
 ) -> None:
 
     missing = [
-        name
-        for name in INPUT_COLUMNS
-        if name.casefold() not in headers
+        column
+        for column in INPUT_COLUMNS
+        if column.casefold() not in headers
     ]
 
     if missing:
@@ -346,16 +442,12 @@ def ensure_result_columns(
     return headers
 
 
-# ============================================================
-# FILE OUTPUT
-# ============================================================
-
 def output_path_for(
     input_path: Path,
     requested: Path | None,
 ) -> Path:
 
-    if requested is not None:
+    if requested:
         return requested
 
     return input_path.with_name(
@@ -369,13 +461,15 @@ def prepare_output(
 ) -> None:
 
     if not input_path.exists():
+
         raise FileNotFoundError(
-            f"File di input non trovato: {input_path}"
+            f"File input non trovato: {input_path}"
         )
 
     if input_path.suffix.lower() != ".xlsx":
+
         raise ValueError(
-            "Il file di input deve essere .xlsx"
+            "Il file deve essere .xlsx"
         )
 
     output_path.parent.mkdir(
@@ -383,12 +477,10 @@ def prepare_output(
         exist_ok=True,
     )
 
-    # Se esiste già NON viene sovrascritto.
-    # Questo permette il resume.
     if output_path.exists():
 
         logging.info(
-            "Riprendo file di output esistente: %s",
+            "Riprendo output esistente: %s",
             output_path,
         )
 
@@ -403,26 +495,15 @@ def prepare_output(
     )
 
     logging.info(
-        "Creata copia di lavoro: %s",
+        "Creata copia: %s",
         output_path,
     )
 
-
-# ============================================================
-# SALVATAGGIO ATOMICO
-# ============================================================
 
 def atomic_save(
     workbook,
     output_path: Path,
 ) -> None:
-    """
-    Salva prima in un file temporaneo e poi sostituisce
-    l'output.
-
-    In questo modo riduciamo il rischio di corrompere
-    l'Excel se lo script viene interrotto durante il save.
-    """
 
     fd, temp_name = tempfile.mkstemp(
         prefix=f".{output_path.stem}_",
@@ -436,9 +517,7 @@ def atomic_save(
 
     try:
 
-        workbook.save(
-            temp_path
-        )
+        workbook.save(temp_path)
 
         os.replace(
             temp_path,
@@ -452,10 +531,6 @@ def atomic_save(
         )
 
 
-# ============================================================
-# LETTURA PERSONA DA EXCEL
-# ============================================================
-
 def person_from_row(
     ws,
     row: int,
@@ -463,23 +538,19 @@ def person_from_row(
 ) -> Person:
 
     return Person(
-
         row=row,
-
         surname=clean(
             ws.cell(
                 row,
                 headers["cognome"],
             ).value
         ),
-
         name=clean(
             ws.cell(
                 row,
                 headers["nome"],
             ).value
         ),
-
         birth_date=format_birth_date(
             ws.cell(
                 row,
@@ -490,226 +561,588 @@ def person_from_row(
 
 
 # ============================================================
-# PROMPT
+# QUERY DI RICERCA
 # ============================================================
 
-def build_prompt(
+def build_search_queries(
+    person: Person
+) -> list[str]:
+
+    full_name = (
+        f'"{person.name} {person.surname}"'
+    )
+
+    queries = [
+        f'{full_name} "farmacista ospedaliero"',
+        f'{full_name} "farmacia ospedaliera"',
+        f'{full_name} farmacista ospedale',
+        f'{full_name} farmacista ASL',
+        f'{full_name} farmacista ASST',
+        f'{full_name} dirigente farmacista',
+    ]
+
+    return queries
+
+
+# ============================================================
+# RICERCA WEB GRATUITA
+# ============================================================
+
+def search_web(
     person: Person,
+    max_results: int,
+) -> list[SearchResult]:
+
+    queries = build_search_queries(
+        person
+    )
+
+    unique: dict[str, SearchResult] = {}
+
+    # Distribuiamo il numero massimo di risultati
+    # fra diverse query.
+    per_query = max(
+        2,
+        min(
+            5,
+            max_results,
+        ),
+    )
+
+    for query in queries:
+
+        if len(unique) >= max_results:
+            break
+
+        logging.info(
+            "Web search: %s",
+            query,
+        )
+
+        try:
+
+            results = DDGS().text(
+                query,
+                region="it-it",
+                safesearch="moderate",
+                max_results=per_query,
+            )
+
+            for item in results or []:
+
+                url = clean(
+                    item.get("href")
+                    or item.get("url")
+                )
+
+                if not url:
+                    continue
+
+                if url in unique:
+                    continue
+
+                unique[url] = SearchResult(
+                    title=clean(
+                        item.get("title")
+                    ),
+                    url=url,
+                    snippet=clean(
+                        item.get("body")
+                        or item.get("snippet")
+                    ),
+                )
+
+                if len(unique) >= max_results:
+                    break
+
+        except Exception as exc:
+
+            logging.warning(
+                "Ricerca fallita per query '%s': %s",
+                query,
+                exc,
+            )
+
+        # Evita troppe richieste ravvicinate
+        time.sleep(
+            random.uniform(
+                0.4,
+                0.9,
+            )
+        )
+
+    results = list(
+        unique.values()
+    )
+
+    logging.info(
+        "Risultati web unici trovati: %s",
+        len(results),
+    )
+
+    return results
+
+
+# ============================================================
+# SICUREZZA URL
+# ============================================================
+
+def is_public_http_url(
+    url: str
+) -> bool:
+
+    try:
+
+        parsed = urlparse(url)
+
+        if parsed.scheme not in {
+            "http",
+            "https",
+        }:
+            return False
+
+        hostname = parsed.hostname
+
+        if not hostname:
+            return False
+
+        # Protezione basilare contro URL locali.
+        try:
+
+            addresses = socket.getaddrinfo(
+                hostname,
+                None,
+            )
+
+            for address in addresses:
+
+                ip = ipaddress.ip_address(
+                    address[4][0]
+                )
+
+                if (
+                    ip.is_private
+                    or ip.is_loopback
+                    or ip.is_link_local
+                    or ip.is_reserved
+                ):
+                    return False
+
+        except socket.gaierror:
+            return False
+
+        return True
+
+    except Exception:
+        return False
+
+
+# ============================================================
+# DOWNLOAD PAGINE
+# ============================================================
+
+def extract_html_text(
+    content: bytes
+) -> str:
+
+    soup = BeautifulSoup(
+        content,
+        "html.parser",
+    )
+
+    # Elimina parti inutili.
+    for tag in soup(
+        [
+            "script",
+            "style",
+            "noscript",
+            "svg",
+            "nav",
+            "footer",
+        ]
+    ):
+        tag.decompose()
+
+    text = soup.get_text(
+        " ",
+        strip=True,
+    )
+
+    return clean_text(text)
+
+
+def extract_pdf_text(
+    content: bytes
+) -> str:
+
+    try:
+
+        reader = PdfReader(
+            io.BytesIO(content)
+        )
+
+        parts: list[str] = []
+
+        # Per evitare PDF enormi prendiamo le prime 15 pagine.
+        for page in reader.pages[:15]:
+
+            text = page.extract_text()
+
+            if text:
+                parts.append(text)
+
+        return clean_text(
+            "\n".join(parts)
+        )
+
+    except Exception as exc:
+
+        logging.warning(
+            "PDF non leggibile: %s",
+            exc,
+        )
+
+        return ""
+
+
+def fetch_page_text(
+    session: requests.Session,
+    url: str,
+) -> str:
+
+    if not is_public_http_url(url):
+
+        logging.warning(
+            "URL scartato: %s",
+            url,
+        )
+
+        return ""
+
+    try:
+
+        response = session.get(
+            url,
+            timeout=HTTP_TIMEOUT,
+            allow_redirects=True,
+        )
+
+        response.raise_for_status()
+
+        # Limite dimensione ~8 MB
+        content = response.content[
+            :8 * 1024 * 1024
+        ]
+
+        content_type = (
+            response.headers
+            .get(
+                "Content-Type",
+                "",
+            )
+            .lower()
+        )
+
+        if (
+            "application/pdf"
+            in content_type
+            or url.lower().endswith(".pdf")
+        ):
+
+            return extract_pdf_text(
+                content
+            )
+
+        if (
+            "text/html"
+            in content_type
+            or not content_type
+        ):
+
+            return extract_html_text(
+                content
+            )
+
+        return ""
+
+    except requests.RequestException as exc:
+
+        logging.warning(
+            "Download fallito %s | %s",
+            url,
+            exc,
+        )
+
+        return ""
+
+    except Exception as exc:
+
+        logging.warning(
+            "Errore lettura %s | %s",
+            url,
+            exc,
+        )
+
+        return ""
+
+
+# ============================================================
+# SCARICA RISULTATI
+# ============================================================
+
+def enrich_search_results(
+    results: list[SearchResult],
+    max_pages: int,
+) -> list[SearchResult]:
+
+    session = requests.Session()
+
+    session.headers.update(
+        {
+            "User-Agent": USER_AGENT,
+            "Accept-Language": "it-IT,it;q=0.9,en;q=0.6",
+        }
+    )
+
+    pages_read = 0
+
+    for result in results:
+
+        if pages_read >= max_pages:
+            break
+
+        logging.info(
+            "Leggo: %s",
+            result.url,
+        )
+
+        text = fetch_page_text(
+            session,
+            result.url,
+        )
+
+        if text:
+
+            result.content = text[
+                :DEFAULT_MAX_CHARS_PER_PAGE
+            ]
+
+            pages_read += 1
+
+            logging.info(
+                "Pagina acquisita: %s caratteri",
+                len(result.content),
+            )
+
+        else:
+
+            logging.info(
+                "Uso solo snippet per: %s",
+                result.url,
+            )
+
+        time.sleep(
+            random.uniform(
+                0.3,
+                0.7,
+            )
+        )
+
+    logging.info(
+        "Pagine lette: %s",
+        pages_read,
+    )
+
+    return results
+
+
+# ============================================================
+# COSTRUZIONE CONTESTO
+# ============================================================
+
+def build_sources_context(
+    results: list[SearchResult],
+) -> tuple[str, list[str]]:
+
+    blocks: list[str] = []
+    urls: list[str] = []
+
+    total_chars = 0
+
+    for index, result in enumerate(
+        results,
+        start=1,
+    ):
+
+        text = (
+            result.content
+            if result.content
+            else result.snippet
+        )
+
+        text = clean_text(text)
+
+        if not text:
+            continue
+
+        block = f"""
+[FONTE {index}]
+Titolo: {result.title}
+URL: {result.url}
+
+Contenuto:
+{text}
+""".strip()
+
+        if (
+            total_chars
+            + len(block)
+            > DEFAULT_MAX_CONTEXT_CHARS
+        ):
+            break
+
+        blocks.append(block)
+        urls.append(result.url)
+
+        total_chars += len(block)
+
+    return (
+        "\n\n".join(blocks),
+        urls,
+    )
+
+
+# ============================================================
+# PROMPT GEMINI
+# ============================================================
+
+def build_analysis_prompt(
+    person: Person,
+    sources_context: str,
 ) -> str:
 
     return f"""
-Devi effettuare una ricerca web accurata su una persona che
-lavora o ha lavorato come farmacista ospedaliero.
+Sei un analista di informazioni professionali.
 
-DATI DISPONIBILI
+NON hai accesso al web.
 
-Cognome: {person.surname}
+Devi utilizzare ESCLUSIVAMENTE le fonti che Python ha già
+raccolto e che trovi in fondo a questo messaggio.
+
+PERSONA
+
 Nome: {person.name}
+Cognome: {person.surname}
 Data di nascita: {person.birth_date or "non disponibile"}
 Professione attesa: {DEFAULT_ROLE}
 
 OBIETTIVO
 
-Identifica, se possibile, la struttura sanitaria presso cui
-questa persona lavora attualmente.
-
-Se non è possibile determinare quella attuale, individua la
-struttura professionale più recente verificabile.
-
-Cerca in particolare:
-
-- ospedali;
-- aziende ospedaliere;
-- ASST;
-- ATS;
-- ASL;
-- AUSL;
-- aziende sanitarie;
-- IRCCS;
-- policlinici;
-- farmacie ospedaliere;
-- università;
-- servizi sanitari regionali;
-- enti sanitari pubblici o privati.
-
-INFORMAZIONI RICHIESTE
+Determina se le fonti identificano ragionevolmente questa
+persona come farmacista ospedaliero/a e trova:
 
 - struttura sanitaria;
-- reparto, UO o farmacia ospedaliera;
+- reparto / UO / farmacia ospedaliera;
 - città;
-- ruolo professionale trovato;
-- email professionale pubblicamente disponibile;
-- telefono professionale pubblicamente disponibile.
+- ruolo professionale;
+- email professionale pubblicamente pubblicata;
+- telefono professionale pubblicamente pubblicato.
 
-FONTI
+REGOLE
 
-Dai priorità assoluta a:
+1. Non utilizzare conoscenze esterne alle fonti fornite.
 
-1. siti ufficiali di ospedali e aziende sanitarie;
-2. ASL / AUSL / ATS / ASST;
-3. Regioni e Servizi Sanitari Regionali;
-4. amministrazione trasparente;
-5. documenti e PDF istituzionali;
-6. Ordine dei Farmacisti;
-7. università;
-8. società scientifiche;
-9. documenti ufficiali relativi a concorsi, incarichi,
-   nomine o delibere.
+2. Non inventare dati.
 
-REGOLE IMPORTANTI
+3. Non dedurre email da nome, cognome o dominio.
 
-1. Non inventare informazioni.
+4. Un'email può essere restituita SOLO se compare
+letteralmente nelle fonti.
 
-2. Non dedurre indirizzi email utilizzando pattern aziendali.
+5. Un telefono può essere restituito SOLO se compare
+letteralmente nelle fonti.
 
-Ad esempio, NON generare:
+6. Sono consentiti:
+   - recapiti professionali nominativi;
+   - farmacia ospedaliera;
+   - reparto/UO;
+   - centralino o struttura sanitaria.
 
-nome.cognome@ospedale.it
+7. Non restituire:
+   - email personali;
+   - telefoni personali;
+   - indirizzi di abitazione.
 
-a meno che quell'indirizzo non sia realmente pubblicato
-in una fonte.
+8. La data di nascita serve solo per disambiguare omonimi.
 
-3. Non cercare o restituire:
+9. found=true solo se le fonti collegano ragionevolmente
+la persona alla professione o alla struttura sanitaria.
 
-- email personali;
-- numeri telefonici personali;
-- indirizzi di abitazione;
-- altri recapiti privati.
-
-4. Sono ammessi esclusivamente contatti professionali
-pubblicamente disponibili.
-
-5. Se non esiste un contatto nominativo ma è pubblicato
-il contatto della farmacia ospedaliera, del reparto o della
-struttura, puoi restituire quello.
-
-6. Utilizza la data di nascita esclusivamente per
-disambiguare eventuali omonimi.
-
-7. Non riportare la data di nascita nelle note.
-
-8. found=true soltanto quando esistono evidenze
-ragionevoli che colleghino quella specifica persona alla
-struttura o alla professione.
-
-9. Se esistono omonimi o dubbi sull'identità, abbassa
-la confidenza e spiegalo brevemente nelle note.
+10. source_indexes deve contenere gli indici delle sole fonti
+che supportano concretamente il risultato.
 
 CONFIDENZA
 
 alta:
-identità e struttura supportate chiaramente da fonti
-affidabili.
+identificazione molto solida e supportata da fonte
+istituzionale o più fonti coerenti.
 
 media:
-evidenze forti ma non completamente definitive.
+corrispondenza probabile ma non completamente definitiva.
 
 bassa:
-possibile corrispondenza, ma esistono dubbi.
+possibile corrispondenza con dubbi significativi.
 
 nessuna:
-nessun risultato sufficientemente verificabile.
+nessun collegamento sufficientemente affidabile.
 
-Se un'informazione non è verificabile, restituisci il relativo
-campo come stringa vuota.
+========================
+FONTI RACCOLTE DA PYTHON
+========================
+
+{sources_context}
 """.strip()
 
 
 # ============================================================
-# ESTRAZIONE FONTI GEMINI
+# GEMINI - SOLO ANALISI
 # ============================================================
 
-def extract_source_urls(
-    interaction: Any
-) -> list[str]:
-
-    urls: list[str] = []
-
-    for step in (
-        getattr(
-            interaction,
-            "steps",
-            None,
-        )
-        or []
-    ):
-
-        if getattr(
-            step,
-            "type",
-            None,
-        ) != "model_output":
-            continue
-
-        for block in (
-            getattr(
-                step,
-                "content",
-                None,
-            )
-            or []
-        ):
-
-            for annotation in (
-                getattr(
-                    block,
-                    "annotations",
-                    None,
-                )
-                or []
-            ):
-
-                if getattr(
-                    annotation,
-                    "type",
-                    None,
-                ) != "url_citation":
-                    continue
-
-                url = clean(
-                    getattr(
-                        annotation,
-                        "url",
-                        "",
-                    )
-                )
-
-                if url and url not in urls:
-                    urls.append(url)
-
-    return urls
-
-
-# ============================================================
-# RICERCA GEMINI
-# ============================================================
-
-def research_person(
+def analyze_with_gemini(
     client: genai.Client,
     model: str,
     person: Person,
+    search_results: list[SearchResult],
 ) -> dict[str, Any]:
-    """
-    Non accede direttamente all'Excel.
 
-    Questo è intenzionale: in futuro questa funzione
-    potrà essere eseguita tranquillamente da worker paralleli.
-    """
+    context, _ = build_sources_context(
+        search_results
+    )
+
+    if not context:
+
+        return {
+            "found": False,
+            "facility": "",
+            "department": "",
+            "city": "",
+            "professional_email": "",
+            "professional_phone": "",
+            "role_found": "",
+            "confidence": "nessuna",
+            "notes": (
+                "Nessuna fonte web utilizzabile trovata."
+            ),
+            "source_indexes": [],
+            "sources": [],
+        }
 
     interaction = client.interactions.create(
-
         model=model,
-
-        input=build_prompt(
-            person
+        input=build_analysis_prompt(
+            person,
+            context,
         ),
-
-        tools=[
-            {
-                "type": "google_search"
-            }
-        ],
-
         response_format={
             "type": "text",
             "mime_type": "application/json",
@@ -726,6 +1159,7 @@ def research_person(
     )
 
     if not output_text:
+
         raise ValueError(
             "Gemini ha restituito una risposta vuota."
         )
@@ -739,7 +1173,8 @@ def research_person(
     except json.JSONDecodeError as exc:
 
         raise ValueError(
-            "Gemini non ha restituito JSON valido."
+            "Gemini non ha restituito JSON valido. "
+            f"Output: {output_text[:1000]}"
         ) from exc
 
     if not isinstance(
@@ -747,22 +1182,110 @@ def research_person(
         dict,
     ):
         raise ValueError(
-            "La risposta Gemini non è un oggetto JSON."
+            "Risposta Gemini non valida."
         )
 
     # --------------------------------------------------------
-    # Fonti reali citate dal grounding Google
+    # TRADUCE GLI INDICI DELLE FONTI IN URL
     # --------------------------------------------------------
 
-    result["sources"] = extract_source_urls(
-        interaction
+    source_indexes = (
+        result.get(
+            "source_indexes"
+        )
+        or []
+    )
+
+    selected_urls: list[str] = []
+
+    for index in source_indexes:
+
+        try:
+
+            source_index = int(index) - 1
+
+            if (
+                0 <= source_index
+                < len(search_results)
+            ):
+
+                url = search_results[
+                    source_index
+                ].url
+
+                if url not in selected_urls:
+                    selected_urls.append(url)
+
+        except (TypeError, ValueError):
+            continue
+
+    result["sources"] = selected_urls
+
+    return result
+
+
+# ============================================================
+# PIPELINE COMPLETA PERSONA
+# ============================================================
+
+def research_person(
+    client: genai.Client,
+    model: str,
+    person: Person,
+    search_results_limit: int,
+    max_pages: int,
+) -> dict[str, Any]:
+
+    logging.info(
+        "FASE 1 | ricerca web gratuita"
+    )
+
+    results = search_web(
+        person,
+        search_results_limit,
+    )
+
+    if not results:
+
+        return {
+            "found": False,
+            "facility": "",
+            "department": "",
+            "city": "",
+            "professional_email": "",
+            "professional_phone": "",
+            "role_found": "",
+            "confidence": "nessuna",
+            "notes": "Nessun risultato trovato sul web.",
+            "source_indexes": [],
+            "sources": [],
+        }
+
+    logging.info(
+        "FASE 2 | acquisizione pagine"
+    )
+
+    results = enrich_search_results(
+        results,
+        max_pages,
+    )
+
+    logging.info(
+        "FASE 3 | analisi Gemini"
+    )
+
+    result = analyze_with_gemini(
+        client,
+        model,
+        person,
+        results,
     )
 
     return result
 
 
 # ============================================================
-# RETRY
+# RETRY GEMINI / PIPELINE
 # ============================================================
 
 def research_with_retry(
@@ -770,6 +1293,8 @@ def research_with_retry(
     model: str,
     person: Person,
     max_retries: int,
+    search_results_limit: int,
+    max_pages: int,
 ) -> tuple[dict[str, Any], int]:
 
     last_error: Exception | None = None
@@ -781,10 +1306,18 @@ def research_with_retry(
 
         try:
 
+            logging.info(
+                "Tentativo %s/%s",
+                attempt,
+                max_retries,
+            )
+
             result = research_person(
-                client,
-                model,
-                person,
+                client=client,
+                model=model,
+                person=person,
+                search_results_limit=search_results_limit,
+                max_pages=max_pages,
             )
 
             return (
@@ -802,21 +1335,21 @@ def research_with_retry(
 
             last_error = exc
 
-            logging.warning(
-                "Riga %s | tentativo %s/%s fallito: %s",
-                person.row,
+            logging.exception(
+                "Tentativo %s/%s fallito per riga %s",
                 attempt,
                 max_retries,
-                exc,
+                person.row,
             )
 
-            if attempt == max_retries:
+            if attempt >= max_retries:
                 break
 
-            # exponential backoff + jitter
             wait = min(
-                60.0,
-                (2 ** (attempt - 1))
+                30.0,
+                (
+                    2 ** (attempt - 1)
+                )
                 + random.uniform(
                     0.0,
                     1.0,
@@ -824,13 +1357,11 @@ def research_with_retry(
             )
 
             logging.info(
-                "Nuovo tentativo tra %.1f secondi...",
+                "Retry tra %.1f secondi",
                 wait,
             )
 
-            time.sleep(
-                wait
-            )
+            time.sleep(wait)
 
     raise RuntimeError(
         str(last_error)
@@ -840,7 +1371,7 @@ def research_with_retry(
 
 
 # ============================================================
-# SCRITTURA EXCEL
+# SCRITTURA RISULTATI
 # ============================================================
 
 def set_cell(
@@ -881,74 +1412,54 @@ def write_result(
         else "NESSUN_RISULTATO"
     )
 
-    sources = result.get(
-        "sources"
-    ) or []
-
     values = {
-
         "Stato ricerca":
             status,
 
         "Struttura":
             clean(
-                result.get(
-                    "facility"
-                )
+                result.get("facility")
             ),
 
         "Reparto/UO":
             clean(
-                result.get(
-                    "department"
-                )
+                result.get("department")
             ),
 
         "Citta":
             clean(
-                result.get(
-                    "city"
-                )
+                result.get("city")
             ),
 
         "Email professionale":
             clean(
-                result.get(
-                    "professional_email"
-                )
+                result.get("professional_email")
             ),
 
         "Telefono professionale":
             clean(
-                result.get(
-                    "professional_phone"
-                )
+                result.get("professional_phone")
             ),
 
         "Ruolo trovato":
             clean(
-                result.get(
-                    "role_found"
-                )
+                result.get("role_found")
             ),
 
         "Confidenza":
             clean(
-                result.get(
-                    "confidence"
-                )
+                result.get("confidence")
             ),
 
         "Note":
             clean(
-                result.get(
-                    "notes"
-                )
+                result.get("notes")
             ),
 
         "Fonti":
             "\n".join(
-                sources
+                result.get("sources")
+                or []
             ),
 
         "Tentativi":
@@ -1009,7 +1520,7 @@ def write_error(
         row,
         headers,
         "Errore",
-        clean(error)[:2000],
+        clean(error)[:5000],
     )
 
 
@@ -1019,40 +1530,23 @@ def write_error(
 
 def main() -> int:
 
-    # Prima dotenv, poi parse_args:
-    # in questo modo GEMINI_MODEL può essere letto dal .env.
     load_dotenv()
 
     args = parse_args()
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format=(
-            "%(asctime)s | "
-            "%(levelname)s | "
-            "%(message)s"
-        ),
-        datefmt="%H:%M:%S",
+    log_file = configure_logging(
+        args.log_dir
     )
-
-    # --------------------------------------------------------
-    # API KEY
-    # --------------------------------------------------------
 
     api_key = os.getenv(
         "GEMINI_API_KEY"
     )
 
     if not api_key:
-        raise RuntimeError(
-            "GEMINI_API_KEY non trovata.\n"
-            "Inseriscila nel file .env:\n"
-            "GEMINI_API_KEY=xxxxxxxx"
-        )
 
-    # --------------------------------------------------------
-    # PATH
-    # --------------------------------------------------------
+        raise RuntimeError(
+            "GEMINI_API_KEY non trovata nel file .env"
+        )
 
     input_path = (
         args.input
@@ -1076,10 +1570,6 @@ def main() -> int:
         output_path,
     )
 
-    # --------------------------------------------------------
-    # APERTURA EXCEL
-    # --------------------------------------------------------
-
     workbook = load_workbook(
         output_path
     )
@@ -1087,17 +1577,13 @@ def main() -> int:
     if args.sheet not in workbook.sheetnames:
 
         raise ValueError(
-            f"Foglio '{args.sheet}' non trovato.\n"
-            f"Fogli disponibili: {workbook.sheetnames}"
+            f"Foglio '{args.sheet}' non trovato. "
+            f"Disponibili: {workbook.sheetnames}"
         )
 
     ws = workbook[
         args.sheet
     ]
-
-    # --------------------------------------------------------
-    # COLONNE
-    # --------------------------------------------------------
 
     headers = normalized_headers(
         ws
@@ -1111,21 +1597,18 @@ def main() -> int:
         ws
     )
 
-    # Salviamo immediatamente le nuove colonne.
     atomic_save(
         workbook,
         output_path,
     )
-
-    # --------------------------------------------------------
-    # GEMINI
-    # --------------------------------------------------------
 
     client = genai.Client(
         api_key=api_key
     )
 
     processed = 0
+    successful = 0
+    errors = 0
     skipped = 0
 
     logging.info(
@@ -1133,11 +1616,11 @@ def main() -> int:
     )
 
     logging.info(
-        "Avvio ricerca farmacisti"
+        "RICERCA FARMACISTI - MODALITA GRATUITA"
     )
 
     logging.info(
-        "Input : %s",
+        "Input: %s",
         input_path,
     )
 
@@ -1147,35 +1630,32 @@ def main() -> int:
     )
 
     logging.info(
-        "Foglio: %s",
-        args.sheet,
+        "Log: %s",
+        log_file,
     )
 
     logging.info(
-        "Modello: %s",
+        "Modello Gemini: %s",
         args.model,
     )
 
-    if args.max_rows is not None:
+    logging.info(
+        "Ricerca web: DDGS"
+    )
 
-        logging.info(
-            "Limite esecuzione: %s persone",
-            args.max_rows,
-        )
+    logging.info(
+        "Risultati ricerca/persona: %s",
+        args.search_results,
+    )
 
-    else:
-
-        logging.info(
-            "Limite esecuzione: nessuno"
-        )
+    logging.info(
+        "Pagine lette/persona: %s",
+        args.max_pages,
+    )
 
     logging.info(
         "============================================"
     )
-
-    # --------------------------------------------------------
-    # CICLO SEQUENZIALE
-    # --------------------------------------------------------
 
     start_row = max(
         2,
@@ -1187,19 +1667,11 @@ def main() -> int:
         ws.max_row + 1,
     ):
 
-        # ----------------------------------------------------
-        # Limite richiesto da CLI
-        # ----------------------------------------------------
-
         if (
             args.max_rows is not None
             and processed >= args.max_rows
         ):
             break
-
-        # ----------------------------------------------------
-        # Stato precedente
-        # ----------------------------------------------------
 
         status = clean(
             ws.cell(
@@ -1210,27 +1682,18 @@ def main() -> int:
             ).value
         ).upper()
 
-        # Già completato -> salta
         if status in TERMINAL_STATUSES:
 
             skipped += 1
-
             continue
 
-        # Riga in errore precedente:
-        # viene riprovata solo con --retry-errors
         if (
             status == "ERRORE"
             and not args.retry_errors
         ):
 
             skipped += 1
-
             continue
-
-        # ----------------------------------------------------
-        # DATI PERSONA
-        # ----------------------------------------------------
 
         person = person_from_row(
             ws,
@@ -1238,10 +1701,9 @@ def main() -> int:
             headers,
         )
 
-        # Riga completamente vuota
         if (
-            not person.surname
-            and not person.name
+            not person.name
+            and not person.surname
         ):
             continue
 
@@ -1250,7 +1712,7 @@ def main() -> int:
         )
 
         logging.info(
-            "[%s] Riga Excel %s | %s %s | nascita: %s",
+            "[%s] Riga %s | %s %s | nascita: %s",
             processed + 1,
             row,
             person.name,
@@ -1258,24 +1720,15 @@ def main() -> int:
             person.birth_date or "N/D",
         )
 
-        # ----------------------------------------------------
-        # RICERCA
-        # ----------------------------------------------------
-
         try:
 
             result, attempts = research_with_retry(
-
                 client=client,
-
                 model=args.model,
-
                 person=person,
-
-                max_retries=max(
-                    1,
-                    args.max_retries,
-                ),
+                max_retries=args.max_retries,
+                search_results_limit=args.search_results,
+                max_pages=args.max_pages,
             )
 
             write_result(
@@ -1286,8 +1739,10 @@ def main() -> int:
                 attempts,
             )
 
+            successful += 1
+
             logging.info(
-                "RISULTATO | %s",
+                "RISULTATO: %s",
                 (
                     "TROVATO"
                     if result.get("found")
@@ -1298,9 +1753,7 @@ def main() -> int:
             logging.info(
                 "Struttura: %s",
                 clean(
-                    result.get(
-                        "facility"
-                    )
+                    result.get("facility")
                 )
                 or "N/D",
             )
@@ -1308,9 +1761,7 @@ def main() -> int:
             logging.info(
                 "Reparto/UO: %s",
                 clean(
-                    result.get(
-                        "department"
-                    )
+                    result.get("department")
                 )
                 or "N/D",
             )
@@ -1318,9 +1769,7 @@ def main() -> int:
             logging.info(
                 "Email: %s",
                 clean(
-                    result.get(
-                        "professional_email"
-                    )
+                    result.get("professional_email")
                 )
                 or "N/D",
             )
@@ -1328,9 +1777,7 @@ def main() -> int:
             logging.info(
                 "Telefono: %s",
                 clean(
-                    result.get(
-                        "professional_phone"
-                    )
+                    result.get("professional_phone")
                 )
                 or "N/D",
             )
@@ -1338,19 +1785,15 @@ def main() -> int:
             logging.info(
                 "Confidenza: %s",
                 clean(
-                    result.get(
-                        "confidence"
-                    )
+                    result.get("confidence")
                 )
                 or "N/D",
             )
 
             logging.info(
-                "Fonti trovate: %s",
+                "Fonti usate: %s",
                 len(
-                    result.get(
-                        "sources"
-                    )
+                    result.get("sources")
                     or []
                 ),
             )
@@ -1361,8 +1804,8 @@ def main() -> int:
         ):
 
             logging.warning(
-                "Interruzione richiesta. "
-                "Salvataggio checkpoint..."
+                "Interruzione manuale. "
+                "Salvataggio checkpoint."
             )
 
             atomic_save(
@@ -1374,26 +1817,20 @@ def main() -> int:
 
         except Exception as exc:
 
+            errors += 1
+
             write_error(
                 ws,
                 row,
                 headers,
                 exc,
-                max(
-                    1,
-                    args.max_retries,
-                ),
+                args.max_retries,
             )
 
-            logging.error(
-                "Riga %s non completata: %s",
+            logging.exception(
+                "Riga %s non completata",
                 row,
-                exc,
             )
-
-        # ----------------------------------------------------
-        # CHECKPOINT
-        # ----------------------------------------------------
 
         atomic_save(
             workbook,
@@ -1406,10 +1843,6 @@ def main() -> int:
             "Checkpoint salvato."
         )
 
-        # ----------------------------------------------------
-        # DELAY
-        # ----------------------------------------------------
-
         if (
             args.delay > 0
             and (
@@ -1417,20 +1850,17 @@ def main() -> int:
                 or processed < args.max_rows
             )
         ):
+
             time.sleep(
                 args.delay
             )
-
-    # --------------------------------------------------------
-    # FINE
-    # --------------------------------------------------------
 
     logging.info(
         "============================================"
     )
 
     logging.info(
-        "ESECUZIONE COMPLETATA"
+        "ESECUZIONE TERMINATA"
     )
 
     logging.info(
@@ -1439,13 +1869,28 @@ def main() -> int:
     )
 
     logging.info(
-        "Righe già elaborate saltate: %s",
+        "Ricerche concluse: %s",
+        successful,
+    )
+
+    logging.info(
+        "Errori: %s",
+        errors,
+    )
+
+    logging.info(
+        "Righe saltate: %s",
         skipped,
     )
 
     logging.info(
-        "File risultati: %s",
+        "Output: %s",
         output_path,
+    )
+
+    logging.info(
+        "Log: %s",
+        log_file,
     )
 
     logging.info(
@@ -1456,6 +1901,17 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(
-        main()
-    )
+
+    try:
+
+        raise SystemExit(
+            main()
+        )
+
+    except KeyboardInterrupt:
+
+        print(
+            "\nEsecuzione interrotta."
+        )
+
+        raise SystemExit(130)
