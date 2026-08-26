@@ -1,3 +1,4 @@
+#python main.py input/Cognome_Nome_Data_di_Nascita.xlsx --output output/risultati.xlsx --limit 1 --retry-errors
 from __future__ import annotations
 
 import argparse

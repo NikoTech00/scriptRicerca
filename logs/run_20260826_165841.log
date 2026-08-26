@@ -1,0 +1,74 @@
+2026-08-26 16:58:41 | INFO | Log: /Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/logs/run_20260826_165841.log
+2026-08-26 16:58:41 | INFO | Creata copia: /Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/output/risultati.xlsx
+2026-08-26 16:58:41 | INFO | ============================================
+2026-08-26 16:58:41 | INFO | RICERCA FARMACISTI - MODALITA GRATUITA
+2026-08-26 16:58:41 | INFO | Input: /Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/input/Cognome_Nome_Data_di_Nascita.xlsx
+2026-08-26 16:58:41 | INFO | Output: /Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/output/risultati.xlsx
+2026-08-26 16:58:41 | INFO | Log: /Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/logs/run_20260826_165841.log
+2026-08-26 16:58:41 | INFO | Modello Gemini: gemini-3.6-flash
+2026-08-26 16:58:41 | INFO | Ricerca web: DDGS
+2026-08-26 16:58:41 | INFO | Risultati ricerca/persona: 8
+2026-08-26 16:58:41 | INFO | Pagine lette/persona: 6
+2026-08-26 16:58:41 | INFO | ============================================
+2026-08-26 16:58:41 | INFO | --------------------------------------------
+2026-08-26 16:58:41 | INFO | [1] Riga 2 | SHPETIME ABAZI | nascita: 31/08/1996
+2026-08-26 16:58:41 | INFO | Tentativo 1/3
+2026-08-26 16:58:41 | INFO | FASE 1 | ricerca web gratuita
+2026-08-26 16:58:41 | INFO | Web search: "SHPETIME ABAZI" "farmacista ospedaliero"
+2026-08-26 16:58:42 | INFO | response: https://it.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=%22SHPETIME%20ABAZI%22%20%22farmacista%20ospedaliero%22 200
+2026-08-26 16:58:42 | INFO | response: https://grokipedia.com/api/typeahead?query=%22SHPETIME+ABAZI%22+%22farmacista+ospedaliero%22&limit=1 200
+2026-08-26 16:58:42 | INFO | response: https://www.startpage.com/ 200
+2026-08-26 16:58:42 | INFO | response: https://www.startpage.com/sp/search 200
+2026-08-26 16:58:43 | INFO | response: https://www.mojeek.com/search?q=%22SHPETIME+ABAZI%22+%22farmacista+ospedaliero%22 200
+2026-08-26 16:58:43 | INFO | Error in engine duckduckgo: DDGSException("ConnectError: ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')")
+2026-08-26 16:58:43 | INFO | response: https://search.brave.com/search?q=%22SHPETIME+ABAZI%22+%22farmacista+ospedaliero%22&source=web 200
+2026-08-26 16:58:43 | INFO | Web search: "SHPETIME ABAZI" "farmacia ospedaliera"
+2026-08-26 16:58:44 | INFO | response: https://it.wikipedia.org/w/api.php?action=opensearch&profile=fuzzy&limit=1&search=%22SHPETIME%20ABAZI%22%20%22farmacia%20ospedaliera%22 200
+2026-08-26 16:58:44 | INFO | response: https://grokipedia.com/api/typeahead?query=%22SHPETIME+ABAZI%22+%22farmacia+ospedaliera%22&limit=1 200
+2026-08-26 16:58:44 | INFO | response: https://www.startpage.com/ 200
+2026-08-26 16:58:44 | INFO | response: https://www.startpage.com/sp/search 200
+2026-08-26 16:58:44 | INFO | Error in engine duckduckgo: DDGSException("ConnectError: ConnectError('[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain (_ssl.c:1010)')")
+2026-08-26 16:58:44 | INFO | response: https://search.yahoo.com/search;_ylt=tcHPUZWxd-LOPi94-e_5coMY;_ylu=93j0o1W2cr-AAITWAqAfWq38B3hOL1tBzls-Gp1uudEY59o?p=%22SHPETIME+ABAZI%22+%22farmacia+ospedaliera%22 200
+2026-08-26 16:58:45 | INFO | response: https://search.brave.com/search?q=%22SHPETIME+ABAZI%22+%22farmacia+ospedaliera%22&source=web 200
+2026-08-26 16:58:46 | INFO | Risultati web unici trovati: 8
+2026-08-26 16:58:46 | INFO | FASE 2 | acquisizione pagine
+2026-08-26 16:58:46 | INFO | Leggo: https://it.indeed.com/guida-alla-carriera/trovare-lavoro/come-diventare-farmacista-ospedaliero
+2026-08-26 16:58:46 | WARNING | Download fallito https://it.indeed.com/guida-alla-carriera/trovare-lavoro/come-diventare-farmacista-ospedaliero | 403 Client Error: Forbidden for url: https://it.indeed.com/guida-alla-carriera/trovare-lavoro/come-diventare-farmacista-ospedaliero
+2026-08-26 16:58:46 | INFO | Uso solo snippet per: https://it.indeed.com/guida-alla-carriera/trovare-lavoro/come-diventare-farmacista-ospedaliero
+2026-08-26 16:58:47 | INFO | Leggo: https://it.indeed.com/guida-alla-carriera/trovare-lavoro/cosa-fa-farmacista-ospedaliero
+2026-08-26 16:58:47 | WARNING | Download fallito https://it.indeed.com/guida-alla-carriera/trovare-lavoro/cosa-fa-farmacista-ospedaliero | 403 Client Error: Forbidden for url: https://it.indeed.com/guida-alla-carriera/trovare-lavoro/cosa-fa-farmacista-ospedaliero
+2026-08-26 16:58:47 | INFO | Uso solo snippet per: https://it.indeed.com/guida-alla-carriera/trovare-lavoro/cosa-fa-farmacista-ospedaliero
+2026-08-26 16:58:47 | INFO | Leggo: https://it.quora.com/Come-diventare-un-farmacista-ospedaliero
+2026-08-26 16:58:47 | WARNING | Download fallito https://it.quora.com/Come-diventare-un-farmacista-ospedaliero | 403 Client Error: Forbidden for url: https://it.quora.com/Come-diventare-un-farmacista-ospedaliero
+2026-08-26 16:58:47 | INFO | Uso solo snippet per: https://it.quora.com/Come-diventare-un-farmacista-ospedaliero
+2026-08-26 16:58:48 | INFO | Leggo: https://www.tecnicaospedaliera.it/il-farmacista-ospedaliero-al-centro-del-processo-di-governo-del-dato/
+2026-08-26 16:58:48 | INFO | Pagina acquisita: 5113 caratteri
+2026-08-26 16:58:49 | INFO | Leggo: https://it.indeed.com/guida-alla-carriera/retribuzione-stipendio/quanto-guadagna-farmacista-ospedaliero
+2026-08-26 16:58:49 | WARNING | Download fallito https://it.indeed.com/guida-alla-carriera/retribuzione-stipendio/quanto-guadagna-farmacista-ospedaliero | 403 Client Error: Forbidden for url: https://it.indeed.com/guida-alla-carriera/retribuzione-stipendio/quanto-guadagna-farmacista-ospedaliero
+2026-08-26 16:58:49 | INFO | Uso solo snippet per: https://it.indeed.com/guida-alla-carriera/retribuzione-stipendio/quanto-guadagna-farmacista-ospedaliero
+2026-08-26 16:58:49 | INFO | Leggo: https://www.uniba.it/it/scuole-specializzazione/area-medica-e-sanitaria/scuole-di-specializzazione-dell-area-sanitaria-non-medici/farmacia-ospedaliera
+2026-08-26 16:58:50 | INFO | Pagina acquisita: 6745 caratteri
+2026-08-26 16:58:50 | INFO | Leggo: http://farmaco.unicam.it/corsi/farmacia-ospedaliera
+2026-08-26 16:58:51 | INFO | Pagina acquisita: 3503 caratteri
+2026-08-26 16:58:51 | INFO | Leggo: https://www.unipd.it/farmacia-ospedaliera
+2026-08-26 16:58:52 | INFO | Pagina acquisita: 3333 caratteri
+2026-08-26 16:58:53 | INFO | Pagine lette: 4
+2026-08-26 16:58:53 | INFO | FASE 3 | analisi Gemini
+2026-08-26 16:59:01 | INFO | HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/interactions "HTTP/1.1 200 OK"
+2026-08-26 16:59:01 | INFO | RISULTATO: NESSUN RISULTATO
+2026-08-26 16:59:01 | INFO | Struttura: N/D
+2026-08-26 16:59:01 | INFO | Reparto/UO: N/D
+2026-08-26 16:59:01 | INFO | Email: N/D
+2026-08-26 16:59:01 | INFO | Telefono: N/D
+2026-08-26 16:59:01 | INFO | Confidenza: nessuna
+2026-08-26 16:59:01 | INFO | Fonti usate: 0
+2026-08-26 16:59:01 | INFO | Checkpoint salvato.
+2026-08-26 16:59:01 | INFO | ============================================
+2026-08-26 16:59:01 | INFO | ESECUZIONE TERMINATA
+2026-08-26 16:59:01 | INFO | Persone elaborate: 1
+2026-08-26 16:59:01 | INFO | Ricerche concluse: 1
+2026-08-26 16:59:01 | INFO | Errori: 0
+2026-08-26 16:59:01 | INFO | Righe saltate: 0
+2026-08-26 16:59:01 | INFO | Output: /Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/output/risultati.xlsx
+2026-08-26 16:59:01 | INFO | Log: /Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/logs/run_20260826_165841.log
+2026-08-26 16:59:01 | INFO | ============================================
