@@ -1,0 +1,66 @@
+2026-08-26 16:19:29 | INFO | Log persistente: C:\Dev\Niko\Python\scriptRicerca\logs\run_20260826_161929.log
+2026-08-26 16:19:29 | INFO | ============================================
+2026-08-26 16:19:29 | INFO | AVVIO SCRIPT
+2026-08-26 16:19:29 | INFO | ============================================
+2026-08-26 16:19:29 | INFO | Input : C:\Dev\Niko\Python\scriptRicerca\input\Cognome_Nome_Data_di_Nascita.xlsx
+2026-08-26 16:19:29 | INFO | Output: C:\Dev\Niko\Python\scriptRicerca\output\risultati.xlsx
+2026-08-26 16:19:29 | INFO | Log   : C:\Dev\Niko\Python\scriptRicerca\logs\run_20260826_161929.log
+2026-08-26 16:19:29 | INFO | Foglio: Dati
+2026-08-26 16:19:29 | INFO | Modello: gemini-3.7-flash
+2026-08-26 16:19:29 | INFO | Max retry: 4
+2026-08-26 16:19:29 | INFO | Delay: 2.00 secondi
+2026-08-26 16:19:29 | INFO | Limite: 5 persone
+2026-08-26 16:19:29 | INFO | Creata copia di lavoro: C:\Dev\Niko\Python\scriptRicerca\output\risultati.xlsx
+2026-08-26 16:19:29 | INFO | --------------------------------------------
+2026-08-26 16:19:29 | INFO | [1] Riga 2 | SHPETIME ABAZI | nascita=31/08/1996
+2026-08-26 16:19:29 | INFO | Tentativo 1/4 | Riga 2
+2026-08-26 16:19:29 | INFO | Invio richiesta Gemini | Riga=2 | Persona=SHPETIME ABAZI
+2026-08-26 16:19:30 | INFO | HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/interactions "HTTP/1.1 429 Too Many Requests"
+2026-08-26 16:19:31 | INFO | HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/interactions "HTTP/1.1 429 Too Many Requests"
+2026-08-26 16:19:32 | INFO | HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/interactions "HTTP/1.1 429 Too Many Requests"
+2026-08-26 16:19:34 | INFO | HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/interactions "HTTP/1.1 429 Too Many Requests"
+2026-08-26 16:19:34 | ERROR | QUOTA GEMINI / RATE LIMIT rilevato alla riga 2.
+2026-08-26 16:19:34 | ERROR | Dettaglio errore quota
+Traceback (most recent call last):
+  File "C:\Dev\Niko\Python\scriptRicerca\.venv\Lib\site-packages\google\genai\_gaos\interactions.py", line 711, in create
+    return _speakeasy_parse_response(http_res)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Dev\Niko\Python\scriptRicerca\.venv\Lib\site-packages\google\genai\_gaos\interactions.py", line 489, in _speakeasy_parse_response
+    raise errors.CreateInteractionClientError(
+google.genai._gaos.errors.createinteraction.CreateInteractionClientError: You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Dev\Niko\Python\scriptRicerca\main.py", line 1019, in research_with_retry
+    result = research_person(
+             ^^^^^^^^^^^^^^^^
+  File "C:\Dev\Niko\Python\scriptRicerca\main.py", line 921, in research_person
+    interaction = client.interactions.create(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Dev\Niko\Python\scriptRicerca\.venv\Lib\site-packages\google\genai\_gaos\google_genai.py", line 278, in create
+    response = wrap_sdk_call(
+               ^^^^^^^^^^^^^^
+  File "C:\Dev\Niko\Python\scriptRicerca\.venv\Lib\site-packages\google\genai\_gaos\lib\compat_errors.py", line 368, in wrap_sdk_call
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Dev\Niko\Python\scriptRicerca\.venv\Lib\site-packages\google\genai\_gaos\interactions.py", line 713, in create
+    response_helpers.raise_parse_error(
+  File "C:\Dev\Niko\Python\scriptRicerca\.venv\Lib\site-packages\google\genai\_gaos\utils\response_helpers.py", line 92, in raise_parse_error
+    raise parse_error from exc
+google.genai._gaos.lib.compat_errors.RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 'code': 'too_many_requests'}}
+2026-08-26 16:19:34 | CRITICAL | ============================================
+2026-08-26 16:19:34 | CRITICAL | STOP: quota/rate limit Gemini rilevato.
+2026-08-26 16:19:34 | CRITICAL | Riga: 2 | SHPETIME ABAZI
+2026-08-26 16:19:34 | CRITICAL | Errore: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 'code': 'too_many_requests'}}
+2026-08-26 16:19:34 | CRITICAL | Lo script NON passerà alle persone successive.
+2026-08-26 16:19:34 | CRITICAL | ============================================
+2026-08-26 16:19:34 | INFO | ============================================
+2026-08-26 16:19:34 | WARNING | ESECUZIONE INTERROTTA PER QUOTA GEMINI
+2026-08-26 16:19:34 | INFO | Persone elaborate : 1
+2026-08-26 16:19:34 | INFO | Successi          : 0
+2026-08-26 16:19:34 | INFO | Errori            : 1
+2026-08-26 16:19:34 | INFO | Righe saltate     : 0
+2026-08-26 16:19:34 | INFO | Output            : C:\Dev\Niko\Python\scriptRicerca\output\risultati.xlsx
+2026-08-26 16:19:34 | INFO | Log completo      : C:\Dev\Niko\Python\scriptRicerca\logs\run_20260826_161929.log
+2026-08-26 16:19:34 | INFO | ============================================
