@@ -10,3 +10,11 @@ env/
 ._*
 .Spotlight-V100
 .Trashes
+# File di log
+*.log
+
+# File Excel
+*.xlsx
+*.xls
+*.xlsm
+*.csv
