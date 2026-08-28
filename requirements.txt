@@ -1,4 +1,7 @@
-google-genai
-pandas
-openpyxl
+requests
+beautifulsoup4
+ddgs
 python-dotenv
+google-genai
+openpyxl
+pypdf
