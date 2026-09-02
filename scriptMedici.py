@@ -19,18 +19,17 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import urljoin, urlparse
 
-import requests
-from bs4 import BeautifulSoup
-from ddgs import DDGS
-from dotenv import load_dotenv
-from openpyxl import load_workbook
-from openpyxl.styles import Alignment, Font, PatternFill
-from pypdf import PdfReader
-
-try:
-    from google import genai
-except Exception:
-    genai = None
+# Third-party imports are loaded lazily/guarded.
+# In questo modo, se manca una dipendenza, lo script crea comunque il log
+# e una copia dell'Excel di output, poi termina con un messaggio leggibile.
+requests = None
+BeautifulSoup = None
+DDGS = None
+load_dotenv = None
+load_workbook = None
+Alignment = Font = PatternFill = None
+PdfReader = None
+genai = None
 
 
 # ============================================================
@@ -82,6 +81,139 @@ USER_AGENT = (
 )
 
 SEARCH_SEMAPHORE: threading.BoundedSemaphore | None = None
+
+
+# ============================================================
+# BOOTSTRAP / PREFLIGHT DIPENDENZE
+# ============================================================
+
+def bootstrap_log_path(log_dir: Path) -> Path:
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir / f"startup_medici_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+
+
+def write_bootstrap_log(path: Path, message: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {message}\n")
+
+
+def import_dependencies(log_path: Path) -> tuple[bool, list[str]]:
+    global requests, BeautifulSoup, DDGS, load_dotenv
+    global load_workbook, Alignment, Font, PatternFill, PdfReader, genai
+
+    missing: list[str] = []
+
+    try:
+        import requests as _requests
+        requests = _requests
+    except Exception as exc:
+        missing.append(f"requests ({exc})")
+
+    try:
+        from bs4 import BeautifulSoup as _BeautifulSoup
+        BeautifulSoup = _BeautifulSoup
+    except Exception as exc:
+        missing.append(f"beautifulsoup4 ({exc})")
+
+    try:
+        from ddgs import DDGS as _DDGS
+        DDGS = _DDGS
+    except Exception as exc:
+        missing.append(f"ddgs ({exc})")
+
+    try:
+        from dotenv import load_dotenv as _load_dotenv
+        load_dotenv = _load_dotenv
+    except Exception as exc:
+        missing.append(f"python-dotenv ({exc})")
+
+    try:
+        from openpyxl import load_workbook as _load_workbook
+        from openpyxl.styles import Alignment as _Alignment
+        from openpyxl.styles import Font as _Font
+        from openpyxl.styles import PatternFill as _PatternFill
+        load_workbook = _load_workbook
+        Alignment = _Alignment
+        Font = _Font
+        PatternFill = _PatternFill
+    except Exception as exc:
+        missing.append(f"openpyxl ({exc})")
+
+    try:
+        from pypdf import PdfReader as _PdfReader
+        PdfReader = _PdfReader
+    except Exception as exc:
+        missing.append(f"pypdf ({exc})")
+
+    # Gemini è opzionale: non blocca l'esecuzione.
+    try:
+        from google import genai as _genai
+        genai = _genai
+    except Exception as exc:
+        genai = None
+        write_bootstrap_log(
+            log_path,
+            f"INFO | google-genai non disponibile: {type(exc).__name__}: {exc}. "
+            "Lo script potrà funzionare senza AI."
+        )
+
+    if missing:
+        write_bootstrap_log(
+            log_path,
+            "ERRORE | Dipendenze obbligatorie mancanti: " + "; ".join(missing)
+        )
+        return False, missing
+
+    write_bootstrap_log(log_path, "OK | Dipendenze obbligatorie caricate correttamente.")
+    return True, []
+
+
+def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
+    """
+    Ricava input/output/log-dir prima di argparse e prima delle dipendenze.
+    Serve per creare sempre un log e, quando possibile, la copia Excel di output.
+    """
+    input_path: Path | None = None
+    output_path: Path | None = None
+    log_dir = Path("logs")
+
+    # primo argomento non-opzione = input
+    for i, arg in enumerate(argv[1:], start=1):
+        if not arg.startswith("-"):
+            input_path = Path(arg)
+            break
+
+    if "--output" in argv:
+        try:
+            output_path = Path(argv[argv.index("--output") + 1])
+        except Exception:
+            pass
+
+    if "--log-dir" in argv:
+        try:
+            log_dir = Path(argv[argv.index("--log-dir") + 1])
+        except Exception:
+            pass
+
+    return input_path, output_path, log_dir
+
+
+def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
+    if input_path is None:
+        return None
+
+    input_path = input_path.expanduser().resolve()
+    if output_path is None:
+        output_path = input_path.with_name(f"{input_path.stem}_specialita_cv.xlsx")
+    else:
+        output_path = output_path.expanduser().resolve()
+
+    if input_path.exists() and input_path.suffix.casefold() == ".xlsx":
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        if not output_path.exists() and input_path != output_path:
+            shutil.copy2(input_path, output_path)
+    return output_path
 
 # ============================================================
 # MODELLI
@@ -1490,7 +1622,6 @@ def write_result(ws, headers: dict[str, int], result: dict[str, Any]) -> None:
 def main() -> int:
     global SEARCH_SEMAPHORE
 
-    load_dotenv()
     args = parse_args()
 
     SEARCH_SEMAPHORE = threading.BoundedSemaphore(args.search_concurrency)
@@ -1658,8 +1789,58 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    import sys
+
+    early_input, early_output, early_log_dir = parse_early_paths(sys.argv)
+    startup_log = bootstrap_log_path(early_log_dir)
+
     try:
+        initial_output = create_initial_output_copy(early_input, early_output)
+        if initial_output:
+            write_bootstrap_log(
+                startup_log,
+                f"INFO | Copia iniziale Excel disponibile: {initial_output}"
+            )
+    except Exception as exc:
+        write_bootstrap_log(
+            startup_log,
+            f"ERRORE | Impossibile creare la copia iniziale Excel: "
+            f"{type(exc).__name__}: {exc}"
+        )
+
+    ok, missing = import_dependencies(startup_log)
+    if not ok:
+        print("")
+        print("ERRORE: mancano dipendenze obbligatorie.")
+        print("Installa con:")
+        print("  python -m pip install -r requirements_medici.txt")
+        print("")
+        print(f"Log diagnostico: {startup_log.resolve()}")
+        if early_input:
+            resolved_out = early_output or early_input.with_name(
+                f"{early_input.stem}_specialita_cv.xlsx"
+            )
+            print(f"Excel di output/copia iniziale: {Path(resolved_out).resolve()}")
+        print("")
+        print("Dipendenze mancanti:")
+        for item in missing:
+            print(f" - {item}")
+        raise SystemExit(2)
+
+    try:
+        # Ora che python-dotenv è disponibile.
+        load_dotenv()
         raise SystemExit(main())
     except KeyboardInterrupt:
-        print("\nInterrotto.")
+        write_bootstrap_log(startup_log, "INTERRUZIONE | KeyboardInterrupt")
+        print("\\nInterrotto.")
         raise SystemExit(130)
+    except Exception as exc:
+        write_bootstrap_log(
+            startup_log,
+            f"FATAL | {type(exc).__name__}: {exc}"
+        )
+        print("")
+        print(f"ERRORE FATALE: {type(exc).__name__}: {exc}")
+        print(f"Log diagnostico: {startup_log.resolve()}")
+        raise
