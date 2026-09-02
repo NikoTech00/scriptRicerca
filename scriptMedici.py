@@ -36,7 +36,7 @@ genai = None
 # VERSIONE / OBIETTIVO
 # ============================================================
 
-VERSION = "V1.0 MEDICI - SPECIALITA + CV"
+VERSION = "V1.2 MEDICI - SPECIALITA + CV"
 
 # Input reale verificato su scriptMedici.xlsx:
 # Pers_Id, Pers_Cognome, Pers_Nome, Pers_DataNascita, Pers_CodFis,
@@ -205,7 +205,7 @@ def create_initial_output_copy(input_path: Path | None, output_path: Path | None
 
     input_path = input_path.expanduser().resolve()
     if output_path is None:
-        output_path = input_path.with_name(f"{input_path.stem}_specialita_cv.xlsx")
+        output_path = (Path.cwd() / "output" / f"{input_path.stem}_specialita_cv.xlsx").resolve()
     else:
         output_path = output_path.expanduser().resolve()
 
@@ -623,9 +623,13 @@ def person_from_row(ws, row: int, headers: dict[str, int]) -> Person:
 
 
 def output_path_for(input_path: Path, requested: Path | None) -> Path:
+    """
+    Se --output non viene passato, salva sempre in ./output/
+    per evitare ambiguità sulla posizione del file.
+    """
     if requested:
         return requested
-    return input_path.with_name(f"{input_path.stem}_specialita_cv.xlsx")
+    return Path("output") / f"{input_path.stem}_specialita_cv.xlsx"
 
 
 def prepare_output(input_path: Path, output_path: Path) -> None:
@@ -1782,6 +1786,9 @@ def main() -> int:
     logging.info("Stati: %s", counters)
     logging.info("Output: %s", output_path)
     logging.info("CV: %s", cv_dir)
+    print("")
+    print(f"Excel salvato in: {output_path}")
+    print(f"Log esecuzione: {log_file.resolve()}")
     logging.info("Cache: %s", cache_dir)
     logging.info("=" * 68)
 
@@ -1801,6 +1808,8 @@ if __name__ == "__main__":
                 startup_log,
                 f"INFO | Copia iniziale Excel disponibile: {initial_output}"
             )
+            print(f"Excel di output: {initial_output}")
+            print(f"Log startup: {startup_log.resolve()}")
     except Exception as exc:
         write_bootstrap_log(
             startup_log,
