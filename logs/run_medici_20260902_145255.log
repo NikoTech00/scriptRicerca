@@ -1,0 +1,25 @@
+2026-09-02 14:53:44 | INFO | ==============================================================================
+2026-09-02 14:53:44 | INFO | V4.1 MEDICI - SEARCH API STABLE + AUTH FAIL-FAST
+2026-09-02 14:53:44 | INFO | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-02 14:53:44 | INFO | Output: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 14:53:44 | INFO | Provider: serper
+2026-09-02 14:53:44 | INFO | Deep: False
+2026-09-02 14:53:44 | INFO | Search results: 8
+2026-09-02 14:53:44 | INFO | Max searches/persona: 2 (+1 con --deep)
+2026-09-02 14:53:44 | INFO | Delay: 0.1 - 0.3 sec
+2026-09-02 14:53:44 | INFO | CV sicuri dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-02 14:53:44 | INFO | CV da verificare dir: C:\Dev\Niko\scriptRicerca\cv_medici_da_verificare
+2026-09-02 14:53:44 | INFO | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-02 14:53:44 | INFO | Log: logs\run_medici_20260902_145255.log
+2026-09-02 14:53:44 | INFO | ==============================================================================
+2026-09-02 14:53:44 | INFO | Medici da elaborare: 1
+2026-09-02 14:53:46 | INFO | SEARCH API OK | serper | "GIUSEPPE ABAGNALE" site:hotmail.it medico curriculum specialista | 0 risultati
+2026-09-02 14:53:47 | INFO | SEARCH API OK | serper | "GIUSEPPE ABAGNALE" medico specialista curriculum ospedale | 1 risultati
+2026-09-02 14:53:47 | INFO | HIT SUMMARY | Pers_Id=359717 | query=2 | grezzi=1 | rilevanti=1 | provider={'serper': 2, 'brave': 0}
+2026-09-02 14:53:49 | INFO | DONE | Pers_Id=359717 | 5.0s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 14:53:49 | INFO | PROGRESS | 1/1 | 11.92 medici/min | ETA 0.0 min | {'DA_VERIFICARE': 1} | API={'serper': 2, 'brave': 0}
+2026-09-02 14:54:09 | INFO | ==============================================================================
+2026-09-02 14:54:09 | INFO | FINE | 0.4 min | {'DA_VERIFICARE': 1}
+2026-09-02 14:54:09 | INFO | API REQUESTS | totale=2 | {'serper': 2, 'brave': 0}
+2026-09-02 14:54:09 | INFO | OUTPUT | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 14:54:09 | INFO | ==============================================================================
