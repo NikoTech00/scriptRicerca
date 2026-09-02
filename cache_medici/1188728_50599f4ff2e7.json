@@ -1,0 +1,29 @@
+{
+  "version": "V1.0 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 9,
+    "pers_id": "1188728",
+    "medico_id": "0",
+    "surname": "ABALOTTI",
+    "name": "CHIARA",
+    "birth_date": "20/05/1984",
+    "fiscal_code": "BLTCHR84E60I531U",
+    "city": "CORNEDO VICENTINO",
+    "email": "chiara.abalotti@libero.it"
+  },
+  "result": {
+    "row": 9,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T08:37:58+00:00",
+    "error": "",
+    "elapsed": 81.38912549999077,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T08:37:58+00:00"
+}

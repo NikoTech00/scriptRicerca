@@ -1,0 +1,29 @@
+{
+  "version": "V1.0 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 2,
+    "pers_id": "2467194",
+    "medico_id": "0",
+    "surname": "AAZAM RAHIMIAN",
+    "name": "YASAMIN",
+    "birth_date": "19/05/1990",
+    "fiscal_code": "ZMRYMN90E59C573B",
+    "city": "BOLOGNA",
+    "email": "0"
+  },
+  "result": {
+    "row": 2,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T08:36:37+00:00",
+    "error": "",
+    "elapsed": 3.096670200000517,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T08:36:37+00:00"
+}

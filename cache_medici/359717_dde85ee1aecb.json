@@ -1,0 +1,29 @@
+{
+  "version": "V1.0 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 7,
+    "pers_id": "359717",
+    "medico_id": "0",
+    "surname": "ABAGNALE",
+    "name": "GIUSEPPE",
+    "birth_date": "05/06/1961",
+    "fiscal_code": "BGNGPP61H05E131Z",
+    "city": "GRAGNANO",
+    "email": "g-one.villani@hotmail.it"
+  },
+  "result": {
+    "row": 7,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T08:36:38+00:00",
+    "error": "",
+    "elapsed": 3.657313800009433,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T08:36:38+00:00"
+}
