@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
-VERSION = "V4.5 MEDICI - PROXIMITY IDENTITY + DOMAIN CONSENSUS"
+VERSION = "V4.6 MEDICI - STRUCTURED ROLE + GEO DISAMBIGUATION + VERIFIED PDF ONLY"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -232,7 +232,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_5.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_6.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -905,6 +905,202 @@ def cv_header_region(text: str) -> str:
             cut = min(cut, idx)
     return n[:cut]
 
+
+def _identity_variants(person: Person) -> list[str]:
+    variants = [
+        normalized_for_proximity(person.full_name),
+        normalized_for_proximity(f"{person.surname} {person.name}"),
+    ]
+    return [v for v in dict.fromkeys(variants) if v]
+
+
+def _specialty_alias_occurrences(text: str) -> list[tuple[int, int, str]]:
+    n = normalized_for_proximity(text)
+    found: list[tuple[int, int, str]] = []
+
+    for alias, canonical in sorted(
+        SPECIALTY_ALIASES.items(),
+        key=lambda x: len(x[0]),
+        reverse=True,
+    ):
+        a = normalized_for_proximity(alias)
+        if not a:
+            continue
+
+        start = 0
+        while True:
+            pos = n.find(a, start)
+            if pos < 0:
+                break
+            found.append((pos, pos + len(a), canonical))
+            start = pos + max(1, len(a))
+
+    return found
+
+
+def specialty_near_identity(
+    text: str,
+    person: Person,
+    max_gap: int = 110,
+) -> list[tuple[str, str]]:
+    """
+    Restituisce discipline che compaiono realmente vicine al nome del target.
+    La distanza è calcolata tra fine/inizio del nome e alias della disciplina,
+    non su una finestra generica di centinaia di caratteri.
+    """
+    n = normalized_for_proximity(text)
+    if not n:
+        return []
+
+    identities = identity_positions(n, person)
+    if not identities:
+        return []
+
+    aliases = _specialty_alias_occurrences(n)
+    out: list[tuple[str, str]] = []
+    seen = set()
+
+    for i_start, i_end in identities:
+        for s_start, s_end, canonical in aliases:
+            if s_start >= i_end:
+                gap = s_start - i_end
+            elif i_start >= s_end:
+                gap = i_start - s_end
+            else:
+                gap = 0
+
+            if gap > max_gap:
+                continue
+
+            # Estratto compatto attorno alla relazione nome-disciplina.
+            lo = max(0, min(i_start, s_start) - 45)
+            hi = min(len(n), max(i_end, s_end) + 75)
+            evidence = n[lo:hi]
+
+            key = normalize(canonical)
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append((canonical, evidence))
+
+    return out
+
+
+def explicit_specialty_near_identity(
+    text: str,
+    person: Person,
+    max_radius: int = 150,
+) -> list[tuple[str, str]]:
+    """
+    Pattern espliciti ("specialista in", "specializzazione in", ecc.) ammessi
+    solo nello stesso segmento molto vicino al nome del target.
+    """
+    out: list[tuple[str, str]] = []
+    seen = set()
+
+    for window in identity_windows(text, person, radius=max_radius):
+        for pat in EXPLICIT_PATTERNS:
+            for m in pat.finditer(window):
+                spec = normalize_specialty(clean(m.group(1)))
+                if not spec:
+                    continue
+                key = normalize(spec)
+                if key in seen:
+                    continue
+                seen.add(key)
+                out.append((spec, clean(m.group(0))[:350]))
+
+    return out
+
+
+def directory_profile_location(url: str, person: Person) -> str:
+    """
+    Prova a ricavare la località strutturata dallo slug di una directory.
+    Esempio Doctolib:
+      /medico-di-medicina-generale/gragnano/giuseppe-abagnale
+    -> gragnano
+    """
+    if not is_profile_directory(url):
+        return ""
+
+    path = unquote(urlparse(url).path or "")
+    raw_segments = [x for x in path.split("/") if x]
+    segments = [normalized_for_proximity(x) for x in raw_segments]
+
+    name_tokens = set(normalized_for_proximity(person.name).split())
+    surname_tokens = set(normalized_for_proximity(person.surname).split())
+
+    identity_idx = -1
+    for i, seg in enumerate(segments):
+        tokens = set(seg.split())
+        if name_tokens and surname_tokens and name_tokens.issubset(tokens) and surname_tokens.issubset(tokens):
+            identity_idx = i
+            break
+
+    if identity_idx <= 0:
+        return ""
+
+    candidate = segments[identity_idx - 1]
+    if not candidate:
+        return ""
+
+    # Il segmento precedente può essere una specialità, non una città.
+    specialty_terms = {
+        normalized_for_proximity(alias)
+        for alias in SPECIALTY_ALIASES
+    }
+    generic = (
+        "medico", "dottore", "specialista", "chirurgo", "professor",
+        "profilo", "doctor", "dr",
+    )
+
+    if candidate in specialty_terms:
+        return ""
+    if any(g in candidate for g in generic):
+        return ""
+
+    return candidate
+
+
+def directory_geo_conflict(
+    hit: WebHit,
+    person: Person,
+) -> tuple[bool, str]:
+    """
+    Per nomi potenzialmente omonimi, rifiuta un profilo directory quando
+    lo slug espone una città diversa da quella del record.
+    """
+    if not is_profile_directory(hit.url) or not person.city:
+        return False, ""
+
+    target_city = normalized_for_proximity(person.city)
+    if not target_city:
+        return False, ""
+
+    blob = normalized_for_proximity(
+        f"{unquote(hit.url)} {hit.title} {hit.snippet}"
+    )
+
+    if target_city in blob:
+        return False, ""
+
+    profile_city = directory_profile_location(hit.url, person)
+    if profile_city and profile_city != target_city:
+        return True, f"citta profilo incompatibile: {profile_city} != {target_city}"
+
+    return False, ""
+
+
+def strong_identity_context(text: str, person: Person) -> bool:
+    """
+    Per pagine non strutturate: l'identità è più forte se nome+cognome
+    compaiono in apertura oppure insieme a città/data/CF.
+    """
+    if exact_identity_in(text[:1800], person):
+        return True
+    return disambiguation_score(text, person) >= 90
+
+
 def cv_owner_identity(text: str, person: Person) -> tuple[bool, int, str]:
     if not text:
         return False, 0, "CV senza testo."
@@ -1404,113 +1600,258 @@ def normalize_specialty(raw: str) -> str:
     return ""
 
 
-def specialty_candidates(text: str, person: Person, source_url: str) -> list[tuple[int, str, str, str]]:
+def specialty_candidates(
+    text: str,
+    person: Person,
+    source_url: str,
+) -> list[tuple[int, str, str, str]]:
+    """
+    V4.6:
+    - niente alias generico dentro una finestra larga;
+    - disciplina collegata al nome da distanza stretta o pattern esplicito;
+    - fonti deboli non bastano;
+    - pagine generiche richiedono identità primaria/forte.
+    """
     if not text or identity_score(text, person) < 180:
         return []
-    if target_role_conflict(text, person):
+
+    if target_role_conflict(text, person, radius=105):
         return []
 
     authoritative = trusted_medical_domain(source_url)
-    weak = weak_specialty_domain(source_url)
     directory = is_profile_directory(source_url)
+    weak = weak_specialty_domain(source_url)
     dscore = disambiguation_score(text, person)
 
-    out = []
+    # Una pagina generica in cui il target è solo una citazione non deve
+    # trasferire la specialità del titolare/reparto al target.
+    if not authoritative and not directory and not strong_identity_context(text, person):
+        return []
+
+    out: list[tuple[int, str, str, str]] = []
     seen = set()
-    for window in identity_windows(text, person, radius=320):
-        for pat in EXPLICIT_PATTERNS:
-            for m in pat.finditer(window):
-                spec = normalize_specialty(clean(m.group(1)))
-                if not spec:
-                    continue
-                key=(normalize(spec), normalize(m.group(0)))
-                if key in seen: continue
-                seen.add(key)
-                score=360+min(dscore,700)+(260 if authoritative else 80 if directory else 0)
-                if weak: score-=180
-                out.append((score,spec,source_url,clean(m.group(0))[:350]))
-        for alias,canonical in sorted(SPECIALTY_ALIASES.items(), key=lambda x: len(x[0]), reverse=True):
-            a=normalize(alias)
-            if a not in window: continue
-            key=(normalize(canonical),a)
-            if key in seen: continue
-            seen.add(key)
-            score=285+min(dscore,700)+(230 if authoritative else 70 if directory else 0)
-            if "specializz" in window: score+=90
-            if weak: score-=180
-            out.append((score,canonical,source_url,window[:350]))
+
+    # 1) Pattern espliciti molto vicini al target.
+    for spec, evidence in explicit_specialty_near_identity(text, person, max_radius=145):
+        key = normalize(spec)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        score = 510 + min(dscore, 500)
+        if authoritative:
+            score += 190
+        elif directory:
+            score += 80
+        if weak:
+            score -= 220
+
+        out.append((score, spec, source_url, evidence))
+
+    # 2) Alias clinico entro distanza stretta dal nome.
+    for spec, evidence in specialty_near_identity(text, person, max_gap=95):
+        key = normalize(spec)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        score = 430 + min(dscore, 500)
+        if authoritative:
+            score += 170
+        elif directory:
+            score += 70
+        if weak:
+            score -= 220
+
+        out.append((score, spec, source_url, evidence[:350]))
+
     return out
-def specialty_candidates_from_hit(hit: WebHit, person: Person) -> list[tuple[int, str, str, str]]:
+
+
+def specialty_candidates_from_hit(
+    hit: WebHit,
+    person: Person,
+) -> list[tuple[int, str, str, str]]:
+    """
+    V4.6:
+    - PDF: nessuna specialità dalla SERP prima della verifica ownership;
+    - directory: nome + disciplina nel titolo/URL e geografia compatibile;
+    - istituzionale: titolo o snippet con relazione stretta nome-disciplina;
+    - generico: solo titolo/URL strutturato, mai snippet laterale.
+    """
+    real_url = normalize_result_url(hit.url)
+
+    # Regola fondamentale: da un PDF non si estrae alcuna specialità
+    # finché inspect_pdf_candidate/verify_cv non conferma che è del target.
+    if ".pdf" in real_url.casefold():
+        return []
+
     ok, _, _ = hit_relevance(hit, person)
     if not ok:
         return []
 
-    real_url = normalize_result_url(hit.url)
+    geo_bad, _ = directory_geo_conflict(hit, person)
+    if geo_bad:
+        return []
+
     title = hit.title or ""
     snippet = hit.snippet or ""
-    url_text = normalized_for_proximity(unquote(real_url))
+    decoded_url = unquote(real_url)
 
     title_id = exact_identity_in(title, person)
     url_id = url_identity_match(real_url, person)
     snippet_id = exact_identity_in(snippet, person)
+
     if not (title_id or url_id or snippet_id):
         return []
 
-    if target_role_conflict(f"{title} {snippet}", person, radius=130):
+    if target_role_conflict(f"{title} {snippet}", person, radius=105):
         return []
 
     authoritative = trusted_medical_domain(real_url)
     directory = is_profile_directory(real_url)
     weak = weak_specialty_domain(real_url)
-    title_n = normalized_for_proximity(title)
-    dscore = disambiguation_score(f"{title} {snippet} {unquote(real_url)}", person)
+    dscore = disambiguation_score(
+        f"{title} {snippet} {decoded_url}",
+        person,
+    )
 
-    out=[]
-    seen=set()
-    for alias,canonical in sorted(SPECIALTY_ALIASES.items(), key=lambda x:len(x[0]), reverse=True):
-        a=normalized_for_proximity(alias)
-        in_title=a in title_n
-        in_url=a in url_text
-        in_snippet_near=any(a in w for w in identity_windows(snippet,person,170))
+    out: list[tuple[int, str, str, str]] = []
+    seen = set()
 
-        if directory:
-            if not (title_id or url_id) or not (in_title or in_url):
-                continue
-        elif authoritative:
-            if not (in_title or in_url or in_snippet_near):
-                continue
-        else:
-            if not ((title_id and in_title) or (url_id and in_url)):
-                continue
+    # ---- Directory personali: titolo/slug strutturato ----
+    if directory:
+        if not (title_id or url_id):
+            return []
 
-        sk=normalize(canonical)
-        if sk in seen: continue
-        seen.add(sk)
-        score=520 if directory else 610 if authoritative else 390
-        score+=min(dscore,500)
-        if title_id and in_title: score+=90
-        if url_id and in_url: score+=90
-        if authoritative and in_snippet_near: score+=40
-        if weak: score-=190
-        ev=clean(f"{title} | {snippet}")[:350] or real_url[:350]
-        out.append((score,canonical,real_url,ev))
+        structural_texts = []
+        if title_id:
+            structural_texts.append(title)
+        if url_id:
+            structural_texts.append(decoded_url)
 
-    for source_text,base in ((title,610 if authoritative else 480),(snippet,560 if authoritative else 340)):
-        if source_text == snippet and not authoritative:
-            continue
-        for window in identity_windows(source_text,person,190):
-            for pat in EXPLICIT_PATTERNS:
-                for m in pat.finditer(window):
-                    spec=normalize_specialty(clean(m.group(1)))
-                    if not spec or normalize(spec) in seen: continue
-                    score=base+min(dscore,500)
-                    if directory:
-                        if source_text == snippet: continue
-                        score=560+min(dscore,500)
-                    if weak: score-=190
-                    seen.add(normalize(spec))
-                    out.append((score,spec,real_url,clean(m.group(0))[:350]))
+        for structural in structural_texts:
+            for spec, evidence in specialty_near_identity(
+                structural, person, max_gap=115
+            ):
+                key = normalize(spec)
+                if key in seen:
+                    continue
+                seen.add(key)
+                score = 560 + min(dscore, 400)
+                if weak:
+                    score -= 220
+                out.append((score, spec, real_url, evidence[:350]))
+
+        # Alcuni slug hanno città fra specialità e nome:
+        # /specialita/citta/nome-cognome. In questo caso cerchiamo l'alias
+        # nello URL intero, ma solo se URL identifica il target e la città
+        # è compatibile.
+        url_n = normalized_for_proximity(decoded_url)
+        if url_id:
+            for alias, canonical in sorted(
+                SPECIALTY_ALIASES.items(),
+                key=lambda x: len(x[0]),
+                reverse=True,
+            ):
+                a = normalized_for_proximity(alias)
+                if not a or a not in url_n:
+                    continue
+                key = normalize(canonical)
+                if key in seen:
+                    continue
+                seen.add(key)
+                score = 540 + min(dscore, 400)
+                if weak:
+                    score -= 220
+                out.append((
+                    score,
+                    canonical,
+                    real_url,
+                    clean(f"{title} | {decoded_url}")[:350],
+                ))
+
+        return out
+
+    # ---- Fonte sanitaria autorevole ----
+    if authoritative:
+        # Titolo: forte.
+        if title_id:
+            for spec, evidence in explicit_specialty_near_identity(
+                title, person, max_radius=120
+            ):
+                key = normalize(spec)
+                if key not in seen:
+                    seen.add(key)
+                    out.append((
+                        690 + min(dscore, 400),
+                        spec, real_url, evidence[:350]
+                    ))
+
+            for spec, evidence in specialty_near_identity(
+                title, person, max_gap=90
+            ):
+                key = normalize(spec)
+                if key not in seen:
+                    seen.add(key)
+                    out.append((
+                        640 + min(dscore, 400),
+                        spec, real_url, evidence[:350]
+                    ))
+
+        # Snippet: ammesso solo con nome e disciplina nello stesso segmento
+        # molto stretto.
+        if snippet_id:
+            for spec, evidence in explicit_specialty_near_identity(
+                snippet, person, max_radius=120
+            ):
+                key = normalize(spec)
+                if key not in seen:
+                    seen.add(key)
+                    out.append((
+                        620 + min(dscore, 400),
+                        spec, real_url, evidence[:350]
+                    ))
+
+            for spec, evidence in specialty_near_identity(
+                snippet, person, max_gap=75
+            ):
+                key = normalize(spec)
+                if key not in seen:
+                    seen.add(key)
+                    out.append((
+                        570 + min(dscore, 400),
+                        spec, real_url, evidence[:350]
+                    ))
+
+        return out
+
+    # ---- Fonte generica ----
+    if weak:
+        return []
+
+    # Mai snippet generico. Solo titolo o URL chiaramente intestato.
+    if title_id:
+        for spec, evidence in specialty_near_identity(
+            title, person, max_gap=80
+        ):
+            key = normalize(spec)
+            if key not in seen:
+                seen.add(key)
+                out.append((500, spec, real_url, evidence[:350]))
+
+    if url_id:
+        for spec, evidence in specialty_near_identity(
+            decoded_url, person, max_gap=85
+        ):
+            key = normalize(spec)
+            if key not in seen:
+                seen.add(key)
+                out.append((480, spec, real_url, evidence[:350]))
+
     return out
+
+
 def choose_specialty(candidates: list[tuple[int, str, str, str]]) -> tuple[str, str, str, str]:
     if not candidates:
         return "", "nessuna", "", ""
@@ -1719,31 +2060,54 @@ def hit_relevance(hit: WebHit, person: Person) -> tuple[bool, int, str]:
     return True, score, "ok"
 
 
-def landing_identity_ok(hit: WebHit, text: str, person: Person) -> tuple[bool, str]:
-    """Conferma l'identità sulla pagina prima di usarla come fonte."""
+def landing_identity_ok(
+    hit: WebHit,
+    text: str,
+    person: Person,
+) -> tuple[bool, str]:
     if not text:
         return False, "pagina senza testo"
+
     page_id = identity_score(text, person)
     if page_id < 180:
         return False, "nome completo assente dalla pagina"
 
-    if target_role_conflict(text[:6000], person):
+    if target_role_conflict(text[:5000], person, radius=105):
         return False, "ruolo incompatibile vicino al nome: possibile omonimo"
 
     if is_profile_directory(hit.url):
-        if not (exact_identity_in(hit.title, person) or url_identity_match(hit.url, person)):
+        if not (
+            exact_identity_in(hit.title, person)
+            or url_identity_match(hit.url, person)
+        ):
             return False, "profilo directory di altra persona"
+
+        geo_bad, geo_reason = directory_geo_conflict(hit, person)
+        if geo_bad:
+            return False, geo_reason
+
         return True, "profilo directory coerente"
 
     if trusted_medical_domain(hit.url):
-        return True, "fonte sanitaria autorevole con identita confermata"
+        # La fonte sanitaria può contenere elenchi di molte persone, quindi
+        # non basta il nome disperso nel corpo: deve comparire in apertura
+        # oppure esserci un disambiguatore forte.
+        if strong_identity_context(text, person):
+            return True, "fonte sanitaria con identita primaria/disambiguata"
 
-    # Su fonti generiche pretendiamo che il risultato sia intestato alla persona,
-    # non che il nome compaia soltanto nel corpo della pagina.
+        # Per risultati intestati esattamente al target accettiamo la landing.
+        if exact_identity_in(hit.title, person) or url_identity_match(hit.url, person):
+            return True, "fonte sanitaria intestata al target"
+
+        return False, "fonte sanitaria con identita solo incidentale"
+
     if exact_identity_in(hit.title, person) or url_identity_match(hit.url, person):
-        return True, "identita primaria confermata"
+        if strong_identity_context(text, person):
+            return True, "identita primaria confermata"
+        return False, "fonte generica senza disambiguazione sufficiente"
 
     return False, "fonte generica con identita solo incidentale"
+
 
 def score_hit_for_person(hit: WebHit, person: Person) -> int:
     ok, score, _ = hit_relevance(hit, person)
@@ -1866,7 +2230,9 @@ def research_person(person: Person, args: argparse.Namespace,
         if kind == "verified":
             cv_path, cv_url, cv_conf = found_path, hit.url, found_conf
             notes.append("CV verificato trovato direttamente dai risultati.")
-            specialty_pool.extend(specialty_candidates(cv_text, person, hit.url))
+            specialty_pool.extend(
+                specialty_candidates(cv_text, person, hit.url)
+            )
             break
         else:
             if found_path not in cv_review_paths:
@@ -1874,7 +2240,6 @@ def research_person(person: Person, args: argparse.Namespace,
             if hit.url not in cv_review_urls:
                 cv_review_urls.append(hit.url)
             notes.append("PDF candidato salvato per verifica manuale.")
-            specialty_pool.extend(specialty_candidates(cv_text, person, hit.url))
 
     # 2) Landing page: analizziamo i migliori risultati anche senza identità
     # già perfettamente visibile nello snippet.
@@ -1938,7 +2303,9 @@ def research_person(person: Person, args: argparse.Namespace,
             if kind == "verified":
                 cv_path, cv_url, cv_conf = found_path, candidate, found_conf
                 notes.append("CV verificato trovato tramite landing page.")
-                specialty_pool.extend(specialty_candidates(cv_text, person, candidate))
+                specialty_pool.extend(
+                    specialty_candidates(cv_text, person, candidate)
+                )
                 break
             else:
                 if found_path not in cv_review_paths:
@@ -1946,7 +2313,6 @@ def research_person(person: Person, args: argparse.Namespace,
                 if candidate not in cv_review_urls:
                     cv_review_urls.append(candidate)
                 notes.append("CV candidato da landing page salvato per verifica manuale.")
-                specialty_pool.extend(specialty_candidates(cv_text, person, candidate))
 
         if cv_path:
             break
@@ -1990,7 +2356,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V4.5 ({args.provider})",
+        "method": f"Search API V4.6 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -2049,13 +2415,13 @@ def main() -> int:
             if value:
                 previous_methods.add(value)
 
-    if previous_methods and not all("V4.5" in m for m in previous_methods):
+    if previous_methods and not all("V4.6" in m for m in previous_methods):
         logging.warning(
             "OUTPUT CONTIENE RISULTATI DI VERSIONI PRECEDENTI | %s",
             sorted(previous_methods)[:8]
         )
         logging.warning(
-            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_5.xlsx"
+            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_6.xlsx"
         )
 
     atomic_save(wb, output_path)
@@ -2131,7 +2497,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.5 ({args.provider})",
+                "method": f"Search API V4.6 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -2151,7 +2517,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.5 ({args.provider})",
+                "method": f"Search API V4.6 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -2170,7 +2536,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.5 ({args.provider})",
+                "method": f"Search API V4.6 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
@@ -2264,4 +2630,3 @@ if __name__ == "__main__":
         print(f"\nERRORE FATALE: {type(exc).__name__}: {exc}")
         print(f"Log diagnostico: {startup_log.resolve()}")
         raise
-#
