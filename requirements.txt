@@ -1,7 +1,6 @@
-requests
-beautifulsoup4
-ddgs
-python-dotenv
-google-genai
-openpyxl
-pypdf
+requests>=2.32
+beautifulsoup4>=4.12
+python-dotenv>=1.0
+openpyxl>=3.1
+pypdf>=5.0
+playwright>=1.55

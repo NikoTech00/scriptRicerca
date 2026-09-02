@@ -6,56 +6,48 @@ import ipaddress
 import json
 import logging
 import os
+import random
 import re
 import shutil
 import socket
 import tempfile
-import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, asdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
-from urllib.parse import urljoin, urlparse
+from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-# Le dipendenze vengono caricate nel bootstrap, così il log viene creato
-# anche se manca un pacchetto.
+VERSION = "V3.0 MEDICI - BROWSER SEARCH NO API"
+
+# Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
 BeautifulSoup = None
-DDGS = None
 load_dotenv = None
 load_workbook = None
 Alignment = Font = PatternFill = None
 PdfReader = None
-genai = None
-
-VERSION = "V2.0 MEDICI - GOOGLE GROUNDING + CV VERIFICATO"
+sync_playwright = None
 
 DEFAULT_SHEET = "Foglio1"
-DEFAULT_WORKERS = 6
-DEFAULT_AI_CONCURRENCY = 3
-DEFAULT_SEARCH_CONCURRENCY = 3
+DEFAULT_ENGINE = "bing"
 DEFAULT_SEARCH_RESULTS = 8
-DEFAULT_SAVE_EVERY = 20
-DEFAULT_MODEL = "gemini-3.7-flash"
+DEFAULT_SAVE_EVERY = 10
+DEFAULT_DELAY_MIN = 1.2
+DEFAULT_DELAY_MAX = 2.8
 
-HTTP_TIMEOUT = 10
+HTTP_TIMEOUT = 12
 MAX_PDF_BYTES = 25 * 1024 * 1024
 MAX_HTML_BYTES = 5 * 1024 * 1024
 MAX_PDF_PAGES = 100
-MAX_PDF_TEXT = 100_000
+MAX_PDF_TEXT = 120_000
+MAX_PAGE_TEXT = 70_000
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0 Safari/537.36"
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/151.0.0.0 Safari/537.36"
 )
-
-AI_SEMAPHORE: threading.BoundedSemaphore | None = None
-SEARCH_SEMAPHORE: threading.BoundedSemaphore | None = None
-AI_CIRCUIT_LOCK = threading.Lock()
-AI_DISABLED_FOR_RUN = False
-AI_DISABLE_REASON = ""
 
 OUTPUT_COLUMNS = (
     "Ricerca_Stato",
@@ -106,11 +98,11 @@ class WebHit:
     title: str
     url: str
     snippet: str
-    provider: str = ""
+    engine: str
 
 
 # ============================================================
-# BOOTSTRAP
+# UTIL / BOOTSTRAP
 # ============================================================
 
 def clean(value: Any) -> str:
@@ -129,10 +121,6 @@ def numericish(value: str) -> str:
     return s
 
 
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
-
-
 def normalize(text: str) -> str:
     s = clean(text).casefold()
     s = s.replace("’", "'").replace("–", "-").replace("—", "-")
@@ -147,6 +135,10 @@ def safe_part(value: str) -> str:
 
 def canonical_url(url: str) -> str:
     return clean(url).split("#", 1)[0].rstrip("/")
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def domain(url: str) -> str:
@@ -167,11 +159,53 @@ def write_bootstrap_log(path: Path, message: str) -> None:
         f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | {message}\n")
 
 
-def import_dependencies(log_path: Path) -> tuple[bool, list[str]]:
-    global requests, BeautifulSoup, DDGS, load_dotenv
-    global load_workbook, Alignment, Font, PatternFill, PdfReader, genai
+def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
+    input_path = None
+    output_path = None
+    log_dir = Path("logs")
 
-    missing: list[str] = []
+    for arg in argv[1:]:
+        if not arg.startswith("-"):
+            input_path = Path(arg)
+            break
+
+    if "--output" in argv:
+        try:
+            output_path = Path(argv[argv.index("--output") + 1])
+        except Exception:
+            pass
+
+    if "--log-dir" in argv:
+        try:
+            log_dir = Path(argv[argv.index("--log-dir") + 1])
+        except Exception:
+            pass
+
+    return input_path, output_path, log_dir
+
+
+def default_output_path(input_path: Path) -> Path:
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v3.xlsx"
+
+
+def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
+    if input_path is None:
+        return None
+    inp = input_path.expanduser().resolve()
+    out = output_path.expanduser().resolve() if output_path else default_output_path(inp).resolve()
+
+    if inp.exists() and inp.suffix.casefold() == ".xlsx":
+        out.parent.mkdir(parents=True, exist_ok=True)
+        if not out.exists() and inp != out:
+            shutil.copy2(inp, out)
+    return out
+
+
+def import_dependencies(log_path: Path) -> tuple[bool, list[str]]:
+    global requests, BeautifulSoup, load_dotenv
+    global load_workbook, Alignment, Font, PatternFill, PdfReader, sync_playwright
+
+    missing = []
 
     try:
         import requests as _requests
@@ -205,72 +239,18 @@ def import_dependencies(log_path: Path) -> tuple[bool, list[str]]:
     except Exception as exc:
         missing.append(f"pypdf ({exc})")
 
-    # Gemini è il motore principale, ma teniamo provider esterni come fallback.
     try:
-        from google import genai as _genai
-        genai = _genai
+        from playwright.sync_api import sync_playwright as _sync_playwright
+        sync_playwright = _sync_playwright
     except Exception as exc:
-        genai = None
-        write_bootstrap_log(
-            log_path,
-            f"WARNING | google-genai non disponibile: {type(exc).__name__}: {exc}"
-        )
-
-    try:
-        from ddgs import DDGS as _DDGS
-        DDGS = _DDGS
-    except Exception:
-        DDGS = None  # fallback opzionale, non blocca
+        missing.append(f"playwright ({exc})")
 
     if missing:
         write_bootstrap_log(log_path, "ERRORE | Dipendenze mancanti: " + "; ".join(missing))
         return False, missing
 
-    write_bootstrap_log(log_path, "OK | Dipendenze obbligatorie caricate.")
+    write_bootstrap_log(log_path, "OK | Dipendenze caricate.")
     return True, []
-
-
-def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
-    input_path = None
-    output_path = None
-    log_dir = Path("logs")
-
-    for arg in argv[1:]:
-        if not arg.startswith("-"):
-            input_path = Path(arg)
-            break
-
-    if "--output" in argv:
-        try:
-            output_path = Path(argv[argv.index("--output") + 1])
-        except Exception:
-            pass
-
-    if "--log-dir" in argv:
-        try:
-            log_dir = Path(argv[argv.index("--log-dir") + 1])
-        except Exception:
-            pass
-
-    return input_path, output_path, log_dir
-
-
-def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv.xlsx"
-
-
-def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
-    if input_path is None:
-        return None
-
-    inp = input_path.expanduser().resolve()
-    out = output_path.expanduser().resolve() if output_path else default_output_path(inp).resolve()
-
-    if inp.exists() and inp.suffix.casefold() == ".xlsx":
-        out.parent.mkdir(parents=True, exist_ok=True)
-        if not out.exists() and inp != out:
-            shutil.copy2(inp, out)
-    return out
 
 
 # ============================================================
@@ -278,50 +258,44 @@ def create_initial_output_copy(input_path: Path | None, output_path: Path | None
 # ============================================================
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(
-        description=f"{VERSION}: ricerca web grounded della specialità e CV dei medici."
-    )
+    p = argparse.ArgumentParser(description=VERSION)
     p.add_argument("input", type=Path)
     p.add_argument("--output", type=Path)
     p.add_argument("--sheet", default=DEFAULT_SHEET)
     p.add_argument("--limit", "--max-rows", dest="limit", type=int)
     p.add_argument("--start-row", type=int, default=2)
 
-    p.add_argument("--workers", type=int, default=DEFAULT_WORKERS)
-    p.add_argument("--ai-concurrency", type=int, default=DEFAULT_AI_CONCURRENCY)
-    p.add_argument("--search-concurrency", type=int, default=DEFAULT_SEARCH_CONCURRENCY)
+    p.add_argument("--engine", choices=("bing", "google", "auto"), default=DEFAULT_ENGINE)
     p.add_argument("--search-results", type=int, default=DEFAULT_SEARCH_RESULTS)
-
-    p.add_argument("--model", default=os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
-    p.add_argument(
-        "--provider",
-        choices=("auto", "gemini", "serper", "brave", "ddgs"),
-        default="auto",
-        help="auto: Gemini Google Search -> Serper/Brave -> DDGS fallback.",
-    )
-    p.add_argument(
-        "--deep",
-        action="store_true",
-        help="Seconda ricerca mirata se il primo passaggio non trova CV o specialità.",
-    )
+    p.add_argument("--headless", action="store_true",
+                   help="Avvia Chromium senza finestra. Per i primi test consiglio di NON usarlo.")
+    p.add_argument("--deep", action="store_true",
+                   help="Aggiunge query e pagine da analizzare per i casi incompleti.")
     p.add_argument("--save-every", type=int, default=DEFAULT_SAVE_EVERY)
+    p.add_argument("--delay-min", type=float, default=DEFAULT_DELAY_MIN)
+    p.add_argument("--delay-max", type=float, default=DEFAULT_DELAY_MAX)
+
     p.add_argument("--retry-all", action="store_true")
     p.add_argument("--retry-errors", action="store_true")
     p.add_argument("--ignore-cache", action="store_true")
 
     p.add_argument("--cv-dir", type=Path, default=Path("cv_medici"))
     p.add_argument("--cache-dir", type=Path, default=Path("cache_medici"))
+    p.add_argument("--browser-data-dir", type=Path, default=Path("browser_medici"))
     p.add_argument("--log-dir", type=Path, default=Path("logs"))
 
     args = p.parse_args()
 
-    for field in ("workers", "ai_concurrency", "search_concurrency", "search_results", "save_every"):
-        if getattr(args, field) <= 0:
-            p.error(f"--{field.replace('_', '-')} deve essere > 0")
     if args.limit is not None and args.limit <= 0:
         p.error("--limit deve essere > 0")
     if args.start_row < 2:
         p.error("--start-row deve essere >= 2")
+    if args.search_results <= 0:
+        p.error("--search-results deve essere > 0")
+    if args.save_every <= 0:
+        p.error("--save-every deve essere > 0")
+    if args.delay_min < 0 or args.delay_max < args.delay_min:
+        p.error("Delay non valido")
     return args
 
 
@@ -334,7 +308,7 @@ def configure_logging(log_dir: Path) -> Path:
     root.setLevel(logging.INFO)
 
     fmt = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(threadName)s | %(message)s",
+        "%(asctime)s | %(levelname)s | %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     fh = logging.FileHandler(path, encoding="utf-8")
@@ -390,6 +364,7 @@ def person_from_row(ws, row: int, headers: dict[str, int]) -> Person:
     dob = getv(ws, row, headers, "Pers_DataNascita")
     if isinstance(dob, (datetime, date)):
         dob = dob.strftime("%d/%m/%Y")
+
     return Person(
         row=row,
         pers_id=numericish(clean(getv(ws, row, headers, "Pers_Id"))),
@@ -399,8 +374,8 @@ def person_from_row(ws, row: int, headers: dict[str, int]) -> Person:
         birth_date=clean(dob),
         fiscal_code=clean(getv(ws, row, headers, "Pers_CodFis")).upper(),
         city=clean(getv(ws, row, headers, "Indirizzi_Citta")),
-        email=clean(getv(ws, row, headers, "emailPredefinita"))
-              or clean(getv(ws, row, headers, "Email")),
+        email=clean(getv(ws, row, headers, "emailPredefinita")) or
+              clean(getv(ws, row, headers, "Email")),
     )
 
 
@@ -477,7 +452,161 @@ def write_cache(person: Person, cache_dir: Path, result: dict[str, Any]) -> None
 
 
 # ============================================================
-# SAFE HTTP / PDF
+# BROWSER SEARCH
+# ============================================================
+
+BLOCK_MARKERS = (
+    "unusual traffic", "our systems have detected unusual traffic",
+    "verify you are human", "captcha", "detected unusual traffic",
+    "access denied", "robot or human", "challenge",
+)
+
+
+class BrowserSearch:
+    def __init__(self, data_dir: Path, headless: bool, engine: str,
+                 delay_min: float, delay_max: float, max_results: int):
+        self.data_dir = data_dir
+        self.headless = headless
+        self.engine = engine
+        self.delay_min = delay_min
+        self.delay_max = delay_max
+        self.max_results = max_results
+        self.pw = None
+        self.context = None
+        self.page = None
+        self.blocked_engines: set[str] = set()
+
+    def __enter__(self):
+        self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.pw = sync_playwright().start()
+
+        self.context = self.pw.chromium.launch_persistent_context(
+            user_data_dir=str(self.data_dir),
+            headless=self.headless,
+            viewport={"width": 1440, "height": 900},
+            user_agent=USER_AGENT,
+            locale="it-IT",
+            timezone_id="Europe/Rome",
+            args=["--disable-blink-features=AutomationControlled"],
+        )
+        self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
+        self.page.set_default_timeout(12_000)
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        try:
+            if self.context:
+                self.context.close()
+        finally:
+            if self.pw:
+                self.pw.stop()
+
+    def _delay(self):
+        time.sleep(random.uniform(self.delay_min, self.delay_max))
+
+    def _blocked(self) -> bool:
+        try:
+            body = normalize(self.page.locator("body").inner_text(timeout=3000))
+            return any(x in body for x in BLOCK_MARKERS)
+        except Exception:
+            return False
+
+    def search(self, query: str) -> list[WebHit]:
+        engines = [self.engine] if self.engine != "auto" else ["bing", "google"]
+
+        for engine in engines:
+            if engine in self.blocked_engines:
+                continue
+            try:
+                hits = self._search_engine(engine, query)
+                if hits:
+                    return hits
+            except RuntimeError as exc:
+                if "BLOCCO_BROWSER" in str(exc):
+                    self.blocked_engines.add(engine)
+                    logging.error("BROWSER BLOCCATO | %s | %s", engine, exc)
+                else:
+                    logging.warning("SEARCH FAIL | %s | %s | %s", engine, query, exc)
+            except Exception as exc:
+                logging.warning("SEARCH FAIL | %s | %s | %s: %s",
+                                engine, query, type(exc).__name__, exc)
+        return []
+
+    def _search_engine(self, engine: str, query: str) -> list[WebHit]:
+        self._delay()
+
+        if engine == "bing":
+            url = f"https://www.bing.com/search?q={quote_plus(query)}&setlang=it-IT&cc=it"
+        else:
+            url = f"https://www.google.com/search?q={quote_plus(query)}&hl=it&gl=it&num=10"
+
+        self.page.goto(url, wait_until="domcontentloaded", timeout=20_000)
+
+        if self._blocked():
+            raise RuntimeError(f"BLOCCO_BROWSER: CAPTCHA/anti-bot rilevato su {engine}")
+
+        hits = self._parse_bing() if engine == "bing" else self._parse_google()
+
+        logging.info("SEARCH OK | %s | %s | %s risultati", engine, query, len(hits))
+        return hits[:self.max_results]
+
+    def _parse_bing(self) -> list[WebHit]:
+        out = []
+        for li in self.page.locator("li.b_algo").all()[:20]:
+            try:
+                a = li.locator("h2 a").first
+                title = clean(a.inner_text(timeout=1500))
+                url = clean(a.get_attribute("href"))
+                snippet = ""
+                p = li.locator(".b_caption p")
+                if p.count():
+                    snippet = clean(p.first.inner_text(timeout=1000))
+                if url.startswith(("http://", "https://")):
+                    out.append(WebHit(title, url, snippet, "bing"))
+            except Exception:
+                continue
+        return dedupe_hits(out)
+
+    def _parse_google(self) -> list[WebHit]:
+        out = []
+        # Google cambia spesso markup: partiamo dagli h3 e risaliamo all'anchor.
+        for h3 in self.page.locator("#search h3").all()[:30]:
+            try:
+                a = h3.locator("xpath=ancestor::a[1]")
+                if not a.count():
+                    continue
+                title = clean(h3.inner_text(timeout=1000))
+                url = clean(a.get_attribute("href"))
+                if url.startswith("/url?"):
+                    q = parse_qs(urlparse(url).query).get("q", [])
+                    url = q[0] if q else ""
+                if not url.startswith(("http://", "https://")):
+                    continue
+                container = h3.locator("xpath=ancestor::div[contains(@class,'MjjYud')][1]")
+                snippet = ""
+                try:
+                    snippet = clean(container.inner_text(timeout=1000))[:900]
+                except Exception:
+                    pass
+                out.append(WebHit(title, url, snippet, "google"))
+            except Exception:
+                continue
+        return dedupe_hits(out)
+
+
+def dedupe_hits(hits: Iterable[WebHit]) -> list[WebHit]:
+    out = []
+    seen = set()
+    for hit in hits:
+        key = canonical_url(hit.url)
+        if key and key not in seen:
+            seen.add(key)
+            out.append(hit)
+    return out
+
+
+# ============================================================
+# HTTP / PDF / PAGINE
 # ============================================================
 
 def is_public_http_url(url: str) -> bool:
@@ -485,6 +614,7 @@ def is_public_http_url(url: str) -> bool:
         p = urlparse(url)
         if p.scheme not in {"http", "https"} or not p.hostname:
             return False
+
         try:
             infos = socket.getaddrinfo(
                 p.hostname,
@@ -508,7 +638,10 @@ def get_bytes(url: str, max_bytes: int) -> tuple[Any, bytes] | None:
     try:
         r = requests.get(
             url,
-            headers={"User-Agent": USER_AGENT, "Accept-Language": "it-IT,it;q=0.9,en;q=0.5"},
+            headers={
+                "User-Agent": USER_AGENT,
+                "Accept-Language": "it-IT,it;q=0.9,en;q=0.5",
+            },
             timeout=HTTP_TIMEOUT,
             allow_redirects=True,
             stream=True,
@@ -539,6 +672,34 @@ def pdf_text(raw: bytes) -> str:
     except Exception:
         return ""
 
+
+def html_text(raw: bytes) -> str:
+    try:
+        soup = BeautifulSoup(raw, "html.parser")
+        for tag in soup(["script", "style", "noscript", "svg"]):
+            tag.decompose()
+        return clean(soup.get_text(" ", strip=True))[:MAX_PAGE_TEXT]
+    except Exception:
+        return ""
+
+
+def page_text(url: str) -> str:
+    got = get_bytes(url, MAX_HTML_BYTES)
+    if not got:
+        return ""
+    r, raw = got
+    try:
+        ctype = normalize(r.headers.get("Content-Type", ""))
+        if raw.startswith(b"%PDF") or "application/pdf" in ctype:
+            return pdf_text(raw)
+        return html_text(raw)
+    finally:
+        r.close()
+
+
+# ============================================================
+# IDENTITÀ / CV
+# ============================================================
 
 CV_POSITIVE = (
     "curriculum vitae", "curriculum professionale", "curriculum formativo",
@@ -574,6 +735,8 @@ def identity_score(text: str, person: Person) -> int:
         score += 35
     if person.fiscal_code and normalize(person.fiscal_code) in n:
         score += 600
+    if person.city and normalize(person.city) in n:
+        score += 35
     return score
 
 
@@ -585,7 +748,7 @@ def date_variants(dob: str) -> set[str]:
             d = datetime.strptime(dob[:10], fmt)
             return {
                 d.strftime("%d/%m/%Y"), d.strftime("%d-%m-%Y"),
-                d.strftime("%d.%m.%Y"), d.strftime("%Y-%m-%d")
+                d.strftime("%d.%m.%Y"), d.strftime("%Y-%m-%d"),
             }
         except Exception:
             continue
@@ -596,15 +759,13 @@ def verify_cv(text: str, person: Person) -> tuple[bool, str, str]:
     n = normalize(text)
 
     if identity_score(text, person) < 180:
-        return False, "bassa", "Nome/cognome non verificati nel documento."
+        return False, "bassa", "Nome/cognome non verificati."
 
-    # Codice fiscale: se nel PDF ce n'è uno diverso, rifiuta.
     if person.fiscal_code:
-        matches = re.findall(r"\b[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]\b", text.upper())
-        if matches and person.fiscal_code not in matches:
+        fiscal_codes = re.findall(r"\b[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]\b", text.upper())
+        if fiscal_codes and person.fiscal_code not in fiscal_codes:
             return False, "bassa", "Codice fiscale incompatibile."
 
-    # Se il CV dichiara esplicitamente una DOB e non coincide, rifiuta.
     if person.birth_date:
         m = re.search(
             r"(?:data\s+di\s+nascita|nato\s+il|nata\s+il).{0,50}"
@@ -622,13 +783,15 @@ def verify_cv(text: str, person: Person) -> tuple[bool, str, str]:
     med = sum(1 for x in MEDICAL_TERMS if x in n)
 
     if pos < 2 and "curriculum vitae" not in n and "europass" not in n:
-        return False, "bassa", "Il PDF non appare un CV."
+        return False, "bassa", "Il documento non appare un CV."
     if med == 0:
-        return False, "bassa", "Manca il contesto medico."
+        return False, "bassa", "Manca contesto medico."
     if neg >= 3 and "curriculum vitae" not in n:
         return False, "bassa", "Documento concorsuale/amministrativo."
 
-    conf = "alta" if (person.fiscal_code and normalize(person.fiscal_code) in n) or pos >= 4 else "media"
+    conf = "alta" if (
+        person.fiscal_code and normalize(person.fiscal_code) in n
+    ) or pos >= 4 else "media"
     return True, conf, "CV verificato sul contenuto."
 
 
@@ -642,16 +805,19 @@ def try_pdf_url(url: str, person: Person, cv_dir: Path) -> tuple[str, str, str] 
         return None
     r, raw = got
     try:
-        ctype = clean(r.headers.get("Content-Type")).casefold()
+        ctype = normalize(r.headers.get("Content-Type", ""))
         if not (raw.startswith(b"%PDF") or "application/pdf" in ctype):
             return None
+
         text = pdf_text(raw)
         if not text:
             return None
+
         ok, conf, reason = verify_cv(text, person)
         if not ok:
             logging.info("CV SCARTATO | %s | %s", url, reason)
             return None
+
         cv_dir.mkdir(parents=True, exist_ok=True)
         dest = cv_destination(person, cv_dir)
         dest.write_bytes(raw)
@@ -673,13 +839,15 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path) -> tuple[str, str, 
     r, raw = got
     try:
         soup = BeautifulSoup(raw, "html.parser")
-        links: list[tuple[int, str]] = []
+        links = []
+
         for a in soup.select("a[href]"):
             href = clean(a.get("href"))
             if not href:
                 continue
             candidate = urljoin(url, href)
             label = normalize(f"{a.get_text(' ', strip=True)} {candidate}")
+
             score = 0
             if ".pdf" in candidate.casefold():
                 score += 50
@@ -691,6 +859,7 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path) -> tuple[str, str, 
                 score += 25
             if any(x in label for x in CV_NEGATIVE):
                 score -= 100
+
             if score >= 80:
                 links.append((score, candidate))
 
@@ -710,383 +879,202 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path) -> tuple[str, str, 
 
 
 # ============================================================
-# GEMINI GROUNDED SEARCH
+# SPECIALITÀ
 # ============================================================
 
-GROUND_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "identity_confidence": {
-            "type": "string",
-            "enum": ["alta", "media", "bassa", "nessuna"],
-        },
-        "specialty_found": {"type": "boolean"},
-        "specialty": {"type": "string"},
-        "specialty_confidence": {
-            "type": "string",
-            "enum": ["alta", "media", "bassa", "nessuna"],
-        },
-        "specialty_evidence": {"type": "string"},
-        "specialty_source_urls": {
-            "type": "array",
-            "items": {"type": "string"},
-        },
-        "cv_candidates": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "url": {"type": "string"},
-                    "title": {"type": "string"},
-                    "confidence": {
-                        "type": "string",
-                        "enum": ["alta", "media", "bassa"],
-                    },
-                },
-                "required": ["url", "title", "confidence"],
-            },
-        },
-        "other_source_urls": {
-            "type": "array",
-            "items": {"type": "string"},
-        },
-        "notes": {"type": "string"},
-    },
-    "required": [
-        "identity_confidence",
-        "specialty_found",
-        "specialty",
-        "specialty_confidence",
-        "specialty_evidence",
-        "specialty_source_urls",
-        "cv_candidates",
-        "other_source_urls",
-        "notes",
-    ],
+# Alias e titoli comuni. Non è usata per "indovinare": serve solo per normalizzare
+# frasi esplicite trovate nelle fonti.
+SPECIALTY_ALIASES = {
+    "anestesia e rianimazione": "Anestesia e Rianimazione",
+    "anestesia rianimazione": "Anestesia e Rianimazione",
+    "cardiologia": "Cardiologia",
+    "chirurgia generale": "Chirurgia Generale",
+    "chirurgia vascolare": "Chirurgia Vascolare",
+    "dermatologia": "Dermatologia e Venereologia",
+    "dermatologia e venereologia": "Dermatologia e Venereologia",
+    "ematologia": "Ematologia",
+    "endocrinologia": "Endocrinologia",
+    "gastroenterologia": "Gastroenterologia",
+    "geriatria": "Geriatria",
+    "ginecologia e ostetricia": "Ginecologia e Ostetricia",
+    "malattie infettive": "Malattie Infettive",
+    "medicina del lavoro": "Medicina del Lavoro",
+    "medicina dello sport": "Medicina dello Sport",
+    "medicina fisica e riabilitativa": "Medicina Fisica e Riabilitativa",
+    "medicina interna": "Medicina Interna",
+    "medicina legale": "Medicina Legale",
+    "nefrologia": "Nefrologia",
+    "neurologia": "Neurologia",
+    "neurochirurgia": "Neurochirurgia",
+    "oculistica": "Oftalmologia",
+    "oftalmologia": "Oftalmologia",
+    "oncologia": "Oncologia Medica",
+    "oncologia medica": "Oncologia Medica",
+    "ortopedia": "Ortopedia e Traumatologia",
+    "ortopedia e traumatologia": "Ortopedia e Traumatologia",
+    "otorinolaringoiatria": "Otorinolaringoiatria",
+    "pediatria": "Pediatria",
+    "pneumologia": "Malattie dell'Apparato Respiratorio",
+    "psichiatria": "Psichiatria",
+    "radiodiagnostica": "Radiodiagnostica",
+    "radiologia": "Radiodiagnostica",
+    "reumatologia": "Reumatologia",
+    "urologia": "Urologia",
 }
 
+EXPLICIT_PATTERNS = (
+    re.compile(r"\bspecialista\s+in\s+([^.;:\n]{3,100})", re.I),
+    re.compile(r"\bspecializzato(?:a)?\s+in\s+([^.;:\n]{3,100})", re.I),
+    re.compile(r"\bspecializzazione\s+in\s+([^.;:\n]{3,100})", re.I),
+    re.compile(r"\bdiploma\s+di\s+specializzazione\s+in\s+([^.;:\n]{3,100})", re.I),
+    re.compile(r"\bscuola\s+di\s+specializzazione\s+in\s+([^.;:\n]{3,100})", re.I),
+)
 
-def gemini_prompt(person: Person, deep: bool = False) -> str:
-    extra = (
-        "\nEsegui una ricerca più approfondita e mirata: prova anche siti di ASL/AUSL/ASST/AOU/"
-        "IRCCS, università, amministrazione trasparente, ordini dei medici e PDF curriculum."
-        if deep else ""
+
+def normalize_specialty(raw: str) -> str:
+    r = normalize(raw)
+    r = re.split(r"\b(?:presso|conseguita|conseguito|università|universita|nel|nell'|anno)\b", r)[0]
+    r = r.strip(" ,.-;:")
+    if not r:
+        return ""
+
+    for alias, canonical in sorted(SPECIALTY_ALIASES.items(), key=lambda x: len(x[0]), reverse=True):
+        if alias in r:
+            return canonical
+
+    # Se non è in tassonomia, conserviamo solo una forma breve e plausibile.
+    raw2 = clean(raw)
+    raw2 = re.split(r"[.;:\n|•]", raw2)[0].strip(" ,.-")
+    if 3 <= len(raw2) <= 80:
+        invalid = {"medico", "medico chirurgo", "medicina e chirurgia", "dirigente medico"}
+        if normalize(raw2) not in invalid:
+            return raw2
+    return ""
+
+
+def specialty_candidates(text: str, person: Person, source_url: str) -> list[tuple[int, str, str, str]]:
+    if not text or identity_score(text, person) < 180:
+        return []
+
+    out = []
+    ntext = normalize(text)
+    authoritative = any(
+        x in domain(source_url)
+        for x in ("asl", "ausl", "asst", "ats-", "aou", "irccs", "osped",
+                  "policlin", "univ", "ordinemedici", "salute")
     )
 
-    return f"""
-Stai facendo una ricerca professionale sul web su UNO specifico medico italiano.
+    for pat in EXPLICIT_PATTERNS:
+        for m in pat.finditer(text):
+            raw = clean(m.group(1))
+            spec = normalize_specialty(raw)
+            if not spec:
+                continue
+            score = 250 + identity_score(text, person)
+            if authoritative:
+                score += 120
+            evidence = clean(m.group(0))[:350]
+            out.append((score, spec, source_url, evidence))
 
-PERSONA DA IDENTIFICARE
-- Nome: {person.name}
-- Cognome: {person.surname}
-- Data di nascita: {person.birth_date or "non disponibile"}
-- Codice fiscale: {person.fiscal_code or "non disponibile"}
-- Città nel database: {person.city or "non disponibile"}
-- Email nel database: {person.email or "non disponibile"}
-
-OBIETTIVI
-1. Identificare la SPECIALITÀ MEDICA effettiva della persona.
-2. Trovare il suo CURRICULUM VITAE, preferibilmente PDF ufficiale o pubblicato
-   da ospedale, ASL/AUSL/ASST/AOU, IRCCS, università, ordine professionale,
-   ente pubblico o struttura sanitaria.
-
-REGOLE CRITICHE
-- Usa Google Search.
-- Non inventare nulla.
-- Non dedurre automaticamente la specialità dal semplice reparto in cui lavora.
-- "Medico chirurgo", "laureato in medicina e chirurgia" e "dirigente medico"
-  NON sono specialità.
-- Considera valida una specialità solo se una fonte riferita alla stessa persona
-  dichiara chiaramente "specialista in", "specializzazione in", un titolo equivalente,
-  oppure un CV verificabile la documenta.
-- Usa data di nascita, codice fiscale, città ed email solo per disambiguare gli omonimi.
-- Se ci sono più omonimi e non riesci a distinguere la persona, abbassa la confidenza
-  o restituisci specialty_found=false.
-- Per il CV restituisci URL REALI trovati nella ricerca. Non costruire URL.
-- Non indicare come CV graduatorie, elenchi candidati, verbali, bandi, delibere,
-  determinazioni o pagine che citano semplicemente il medico.
-- Dai priorità a fonti istituzionali e sanitarie.
-- specialty_evidence deve essere una frase breve che descrive cosa dimostra la fonte,
-  senza inventare citazioni testuali.
-{extra}
-
-Restituisci esclusivamente il JSON richiesto dallo schema.
-""".strip()
-
-
-def recursively_extract_urls(obj: Any) -> list[str]:
-    urls: list[str] = []
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if k in {"url", "uri"} and isinstance(v, str) and v.startswith(("http://", "https://")):
-                urls.append(v)
-            urls.extend(recursively_extract_urls(v))
-    elif isinstance(obj, list):
-        for v in obj:
-            urls.extend(recursively_extract_urls(v))
-    return urls
-
-
-def is_quota_error(exc: Exception) -> bool:
-    s = f"{type(exc).__name__}: {exc}".casefold()
-    return any(x in s for x in ("429", "quota", "rate limit", "resource_exhausted", "too many requests"))
-
-
-def disable_ai_for_run(reason: str) -> None:
-    global AI_DISABLED_FOR_RUN, AI_DISABLE_REASON
-    with AI_CIRCUIT_LOCK:
-        AI_DISABLED_FOR_RUN = True
-        AI_DISABLE_REASON = reason
-
-
-def gemini_grounded(person: Person, model: str, deep: bool = False) -> dict[str, Any] | None:
-    global AI_DISABLED_FOR_RUN
-
-    if genai is None or not os.getenv("GEMINI_API_KEY"):
-        return None
-    if AI_DISABLED_FOR_RUN:
-        return None
-    if AI_SEMAPHORE is None:
-        raise RuntimeError("AI semaphore non inizializzato")
-
-    with AI_SEMAPHORE:
-        try:
-            client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-            interaction = client.interactions.create(
-                model=model,
-                input=gemini_prompt(person, deep=deep),
-                tools=[{"type": "google_search"}],
-                response_format={
-                    "type": "text",
-                    "mime_type": "application/json",
-                    "schema": GROUND_SCHEMA,
-                },
-            )
-            raw = clean(interaction.output_text)
-            data = json.loads(raw)
-
-            # Le annotazioni di grounding forniscono fonti aggiuntive reali.
-            try:
-                dumped = interaction.model_dump()
-                annotation_urls = recursively_extract_urls(dumped)
-            except Exception:
-                annotation_urls = []
-
-            data["_annotation_urls"] = list(dict.fromkeys(annotation_urls))
-            logging.info(
-                "GEMINI SEARCH OK | Pers_Id=%s | specialita=%s | cv_candidates=%s | deep=%s",
-                person.pers_id,
-                clean(data.get("specialty")) or "N/D",
-                len(data.get("cv_candidates") or []),
-                deep,
-            )
-            return data
-
-        except Exception as exc:
-            if is_quota_error(exc):
-                reason = f"{type(exc).__name__}: {exc}"
-                disable_ai_for_run(reason)
-                logging.error("GEMINI CIRCUIT BREAKER | %s", reason)
-            else:
-                logging.warning(
-                    "GEMINI SEARCH FAIL | Pers_Id=%s | %s: %s",
-                    person.pers_id, type(exc).__name__, exc
-                )
-            return None
-
-
-# ============================================================
-# SEARCH API FALLBACK
-# ============================================================
-
-def search_serper(query: str, max_results: int) -> list[WebHit]:
-    key = os.getenv("SERPER_API_KEY")
-    if not key:
-        return []
-    r = requests.post(
-        "https://google.serper.dev/search",
-        headers={"X-API-KEY": key, "Content-Type": "application/json"},
-        json={"q": query, "gl": "it", "hl": "it", "num": max_results},
-        timeout=HTTP_TIMEOUT,
-    )
-    r.raise_for_status()
-    data = r.json()
-    return [
-        WebHit(clean(x.get("title")), clean(x.get("link")), clean(x.get("snippet")), "serper")
-        for x in data.get("organic", [])[:max_results]
-        if clean(x.get("link"))
-    ]
-
-
-def search_brave(query: str, max_results: int) -> list[WebHit]:
-    key = os.getenv("BRAVE_SEARCH_API_KEY")
-    if not key:
-        return []
-    r = requests.get(
-        "https://api.search.brave.com/res/v1/web/search",
-        headers={"X-Subscription-Token": key, "Accept": "application/json"},
-        params={"q": query, "count": max_results, "country": "IT", "search_lang": "it"},
-        timeout=HTTP_TIMEOUT,
-    )
-    r.raise_for_status()
-    data = r.json()
-    return [
-        WebHit(clean(x.get("title")), clean(x.get("url")), clean(x.get("description")), "brave")
-        for x in data.get("web", {}).get("results", [])[:max_results]
-        if clean(x.get("url"))
-    ]
-
-
-def search_ddgs(query: str, max_results: int) -> list[WebHit]:
-    if DDGS is None:
-        return []
-    raw = DDGS(timeout=HTTP_TIMEOUT).text(
-        query, region="it-it", safesearch="moderate",
-        max_results=max_results, backend="duckduckgo"
-    ) or []
-    return [
-        WebHit(
-            clean(x.get("title")),
-            clean(x.get("href") or x.get("url")),
-            clean(x.get("body") or x.get("snippet")),
-            "ddgs",
-        )
-        for x in raw
-        if clean(x.get("href") or x.get("url"))
-    ]
-
-
-def external_search(query: str, max_results: int, provider: str = "auto") -> list[WebHit]:
-    if SEARCH_SEMAPHORE is None:
-        raise RuntimeError("Search semaphore non inizializzato")
-
-    with SEARCH_SEMAPHORE:
-        chain = []
-        if provider in {"auto", "serper"} and os.getenv("SERPER_API_KEY"):
-            chain.append(("serper", lambda: search_serper(query, max_results)))
-        if provider in {"auto", "brave"} and os.getenv("BRAVE_SEARCH_API_KEY"):
-            chain.append(("brave", lambda: search_brave(query, max_results)))
-        if provider in {"auto", "ddgs"} and DDGS is not None:
-            chain.append(("ddgs", lambda: search_ddgs(query, max_results)))
-
-        for name, fn in chain:
-            try:
-                hits = fn()
-                if hits:
-                    logging.info("SEARCH API OK | %s | %s | %s risultati", name, query, len(hits))
-                    return dedupe_hits(hits)
-            except Exception as exc:
-                logging.warning("SEARCH API FAIL | %s | %s: %s", name, type(exc).__name__, exc)
-        return []
-
-
-def dedupe_hits(hits: Iterable[WebHit]) -> list[WebHit]:
-    out, seen = [], set()
-    for hit in hits:
-        key = canonical_url(hit.url)
-        if key and key not in seen:
-            seen.add(key)
-            out.append(hit)
+    # Nel CV accettiamo anche alias vicino a parole chiave "specializzazione".
+    if "specializz" in ntext:
+        for alias, canonical in SPECIALTY_ALIASES.items():
+            idx = ntext.find(alias)
+            if idx >= 0:
+                window = ntext[max(0, idx - 160): idx + len(alias) + 160]
+                if "specializz" in window:
+                    score = 220 + identity_score(text, person)
+                    if authoritative:
+                        score += 100
+                    out.append((score, canonical, source_url,
+                                f"Rilevata specializzazione: {canonical}"))
     return out
 
 
-def fallback_queries(person: Person) -> list[str]:
+def choose_specialty(candidates: list[tuple[int, str, str, str]]) -> tuple[str, str, str, str]:
+    if not candidates:
+        return "", "nessuna", "", ""
+
+    candidates = sorted(candidates, key=lambda x: x[0], reverse=True)
+    best = candidates[0]
+
+    # Conflitto forte tra due specialità quasi equivalenti -> non decidere.
+    for second in candidates[1:4]:
+        if normalize(second[1]) != normalize(best[1]) and second[0] >= best[0] - 40:
+            return "", "nessuna", "", ""
+
+    conf = "alta" if best[0] >= 500 else "media"
+    return best[1], conf, best[2], best[3]
+
+
+# ============================================================
+# QUERY
+# ============================================================
+
+def email_domain(email: str) -> str:
+    if "@" not in email:
+        return ""
+    d = email.rsplit("@", 1)[1].strip().casefold()
+    if d in {"gmail.com", "hotmail.com", "outlook.com", "libero.it", "virgilio.it", "yahoo.it", "yahoo.com"}:
+        return ""
+    return d
+
+
+def cv_queries(person: Person, deep: bool) -> list[str]:
+    full = f'"{person.full_name}"'
+    qs = [
+        f'{full} medico "curriculum vitae"',
+        f'{full} medico curriculum filetype:pdf',
+    ]
+    if person.city:
+        qs.append(f'{full} medico "{person.city}" curriculum')
+    d = email_domain(person.email)
+    if d:
+        qs.append(f'{full} site:{d} curriculum')
+    if deep:
+        qs.extend([
+            f'{full} "curriculum professionale"',
+            f'{full} "amministrazione trasparente" curriculum',
+        ])
+    return qs
+
+
+def specialty_queries(person: Person, deep: bool) -> list[str]:
     full = f'"{person.full_name}"'
     qs = [
         f'{full} medico "specialista in"',
         f'{full} medico "specializzazione in"',
-        f'{full} "curriculum vitae" filetype:pdf',
     ]
     if person.city:
-        qs.append(f'{full} medico "{person.city}" curriculum')
+        qs.append(f'{full} medico "{person.city}" specialista')
+    d = email_domain(person.email)
+    if d:
+        qs.append(f'{full} site:{d} specialista')
+    if deep:
+        qs.extend([
+            f'{full} medico ospedale specializzazione',
+            f'{full} "diploma di specializzazione"',
+        ])
     return qs
 
 
-SPECIALTY_HINT = re.compile(
-    r"(?:specialista|specializzato|specializzata|specializzazione)\s+in\s+"
-    r"([A-ZÀ-ÖØ-Ýa-zà-öø-ÿ][A-ZÀ-ÖØ-Ýa-zà-öø-ÿ0-9 '&/().,+\-]{2,90})",
-    re.I,
-)
-
-
-def extract_specialty_from_hits(hits: list[WebHit], person: Person) -> tuple[str, str, str, str]:
-    candidates = []
-    for hit in hits:
-        text = f"{hit.title} {hit.snippet}"
-        if identity_score(text, person) < 180:
-            continue
-        for m in SPECIALTY_HINT.finditer(text):
-            spec = clean(m.group(1))
-            spec = re.split(r"[|;•]", spec)[0].strip(" .,-")
-            if not spec:
-                continue
-            score = identity_score(text, person)
-            d = domain(hit.url)
-            if any(x in d for x in ("asl", "ausl", "asst", "aou", "irccs", "osped", "policlin", "univ", "ordinemedici")):
-                score += 150
-            candidates.append((score, spec, hit.url, clean(hit.snippet)))
-
-    if not candidates:
-        return "", "", "", ""
-
-    candidates.sort(reverse=True)
-    best = candidates[0]
-    if len(candidates) > 1 and normalize(candidates[1][1]) != normalize(best[1]) and candidates[1][0] >= best[0] - 30:
-        return "", "", "", ""
-    return best[1], ("alta" if best[0] >= 400 else "media"), best[2], best[3]
-
-
 # ============================================================
-# PIPELINE PERSONA
+# PIPELINE
 # ============================================================
 
-def collect_urls_from_ground(data: dict[str, Any]) -> list[str]:
-    urls = []
-    for key in ("specialty_source_urls", "other_source_urls", "_annotation_urls"):
-        for url in data.get(key) or []:
-            if isinstance(url, str) and url.startswith(("http://", "https://")):
-                urls.append(url)
-    for item in data.get("cv_candidates") or []:
-        url = clean(item.get("url"))
-        if url.startswith(("http://", "https://")):
-            urls.append(url)
-    return list(dict.fromkeys(urls))
+def score_hit_for_person(hit: WebHit, person: Person) -> int:
+    text = f"{hit.title} {hit.snippet}"
+    score = identity_score(text, person)
+    d = domain(hit.url)
+    if any(x in d for x in ("asl", "ausl", "asst", "aou", "irccs", "osped", "policlin", "univ", "ordinemedici")):
+        score += 120
+    if "curriculum" in normalize(text + " " + hit.url):
+        score += 80
+    return score
 
 
-def validate_ground_specialty(data: dict[str, Any]) -> tuple[str, str, str]:
-    if not data.get("specialty_found"):
-        return "", "nessuna", ""
-
-    identity_conf = clean(data.get("identity_confidence"))
-    spec_conf = clean(data.get("specialty_confidence"))
-    specialty = clean(data.get("specialty"))
-    evidence = clean(data.get("specialty_evidence"))
-
-    # Non accettiamo risultati deboli come dati definitivi.
-    if identity_conf not in {"alta", "media"}:
-        return "", "nessuna", ""
-    if spec_conf not in {"alta", "media"}:
-        return "", "nessuna", ""
-    if not specialty:
-        return "", "nessuna", ""
-
-    n = normalize(specialty)
-    invalid = (
-        "medico chirurgo", "dirigente medico", "medicina e chirurgia",
-        "medico", "chirurgo",
-    )
-    if n in invalid:
-        return "", "nessuna", ""
-
-    return specialty, spec_conf, evidence
-
-
-def research_person(
-    person: Person,
-    args: argparse.Namespace,
-    cv_dir: Path,
-    cache_dir: Path,
-) -> dict[str, Any]:
+def research_person(person: Person, args: argparse.Namespace,
+                    browser: BrowserSearch, cv_dir: Path, cache_dir: Path) -> dict[str, Any]:
     if not args.ignore_cache:
         cached = read_cache(person, cache_dir)
         if cached:
@@ -1095,115 +1083,68 @@ def research_person(
             return cached
 
     started = time.perf_counter()
-    sources: list[str] = []
-    notes: list[str] = []
-    method_parts: list[str] = []
+    sources = []
+    notes = []
+    specialty_pool = []
 
-    specialty = ""
-    specialty_conf = "nessuna"
-    specialty_evidence = ""
     cv_path = ""
     cv_url = ""
     cv_conf = "nessuna"
 
-    grounded: dict[str, Any] | None = None
+    # -------- CV FIRST --------
+    cv_hits = []
+    for q in cv_queries(person, args.deep):
+        hits = browser.search(q)
+        cv_hits.extend(hits)
+        sources.extend(h.url for h in hits[:4])
 
-    # 1) GROUNDING GOOGLE come motore principale
-    if args.provider in {"auto", "gemini"}:
-        grounded = gemini_grounded(person, args.model, deep=False)
-        if grounded:
-            method_parts.append("Gemini Google Search")
-            sources.extend(collect_urls_from_ground(grounded))
-
-            specialty, specialty_conf, specialty_evidence = validate_ground_specialty(grounded)
-
-            # Verifica davvero i CV proposti dal modello.
-            cv_candidates = grounded.get("cv_candidates") or []
-            cv_candidates = sorted(
-                cv_candidates,
-                key=lambda x: {"alta": 3, "media": 2, "bassa": 1}.get(clean(x.get("confidence")), 0),
-                reverse=True,
-            )
-            for item in cv_candidates[:5]:
-                candidate = clean(item.get("url"))
-                if not candidate.startswith(("http://", "https://")):
-                    continue
-                found = try_cv_candidate(candidate, person, cv_dir)
-                if found:
-                    cv_path, cv_url, cv_text, cv_conf = found
-                    sources.insert(0, cv_url)
-                    notes.append("CV trovato tramite Google Search e verificato sul PDF.")
-                    break
-
-    # 2) Secondo passaggio grounded, SOLO se richiesto e manca qualcosa.
-    if args.deep and args.provider in {"auto", "gemini"} and (not specialty or not cv_path):
-        deep_data = gemini_grounded(person, args.model, deep=True)
-        if deep_data:
-            method_parts.append("Gemini Deep Search")
-            sources.extend(collect_urls_from_ground(deep_data))
-
-            if not specialty:
-                specialty, specialty_conf, specialty_evidence = validate_ground_specialty(deep_data)
-
-            if not cv_path:
-                for item in (deep_data.get("cv_candidates") or [])[:6]:
-                    candidate = clean(item.get("url"))
-                    if not candidate.startswith(("http://", "https://")):
-                        continue
-                    found = try_cv_candidate(candidate, person, cv_dir)
-                    if found:
-                        cv_path, cv_url, cv_text, cv_conf = found
-                        sources.insert(0, cv_url)
-                        notes.append("CV trovato nel secondo passaggio e verificato.")
-                        break
-
-    # 3) Search API fallback se Gemini non ha prodotto abbastanza.
-    need_fallback = not specialty or not cv_path
-    if need_fallback and args.provider != "gemini":
-        provider_for_api = args.provider if args.provider in {"serper", "brave", "ddgs"} else "auto"
-        all_hits: list[WebHit] = []
-
-        for q in fallback_queries(person):
-            hits = external_search(q, args.search_results, provider_for_api)
-            all_hits.extend(hits)
-
-            # Prova CV subito dai risultati più pertinenti.
-            if not cv_path:
-                ranked = sorted(
-                    hits,
-                    key=lambda h: (
-                        100 if "curriculum" in normalize(f"{h.title} {h.snippet} {h.url}") else 0
-                    ) + identity_score(f"{h.title} {h.snippet}", person),
-                    reverse=True,
-                )
-                for hit in ranked[:4]:
-                    if identity_score(f"{hit.title} {hit.snippet}", person) < 180:
-                        continue
-                    found = try_cv_candidate(hit.url, person, cv_dir)
-                    if found:
-                        cv_path, cv_url, cv_text, cv_conf = found
-                        sources.insert(0, cv_url)
-                        notes.append(f"CV verificato tramite fallback {hit.provider}.")
-                        break
-
-            if not specialty:
-                s, c, u, ev = extract_specialty_from_hits(dedupe_hits(all_hits), person)
-                if s:
-                    specialty, specialty_conf, specialty_evidence = s, c, ev
-                    sources.append(u)
-
-            if specialty and cv_path:
+        ranked = sorted(hits, key=lambda h: score_hit_for_person(h, person), reverse=True)
+        for hit in ranked[:5]:
+            # Un risultato con solo cognome/nome nel titolo/snippet può comunque portare al CV.
+            if score_hit_for_person(hit, person) < 180:
+                continue
+            found = try_cv_candidate(hit.url, person, cv_dir)
+            if found:
+                cv_path, cv_url, cv_text, cv_conf = found
+                sources.insert(0, cv_url)
+                notes.append("CV trovato e verificato sul contenuto.")
+                specialty_pool.extend(specialty_candidates(cv_text, person, cv_url))
                 break
+        if cv_path:
+            break
 
-        if all_hits:
-            method_parts.append("Search API fallback")
-            sources.extend([h.url for h in dedupe_hits(all_hits)[:6]])
+    # -------- SPECIALITÀ --------
+    specialty_hits = []
+    for q in specialty_queries(person, args.deep):
+        hits = browser.search(q)
+        specialty_hits.extend(hits)
+        sources.extend(h.url for h in hits[:4])
 
-    # 4) Se Gemini è fuori quota, distinguiamolo da "nessun risultato".
-    if not grounded and AI_DISABLED_FOR_RUN and args.provider in {"auto", "gemini"}:
-        notes.append("Gemini Google Search disabilitato per quota/rate limit durante questa esecuzione.")
+        # Snippet
+        for hit in hits:
+            blob = f"{person.full_name}\n{hit.title}\n{hit.snippet}"
+            specialty_pool.extend(specialty_candidates(blob, person, hit.url))
 
-    sources = list(dict.fromkeys(u for u in sources if clean(u).startswith(("http://", "https://"))))
+        # Pagine reali: priorità ai risultati più forti.
+        ranked = sorted(hits, key=lambda h: score_hit_for_person(h, person), reverse=True)
+        for hit in ranked[:4]:
+            if score_hit_for_person(hit, person) < 180:
+                continue
+            text = page_text(hit.url)
+            if text:
+                specialty_pool.extend(specialty_candidates(text, person, hit.url))
+
+        spec, spec_conf, spec_src, spec_ev = choose_specialty(specialty_pool)
+        if spec:
+            break
+
+    specialty, specialty_conf, specialty_source, specialty_evidence = choose_specialty(specialty_pool)
+    if specialty_source:
+        sources.insert(0, specialty_source)
+
+    # Se il browser è stato bloccato su tutti i motori disponibili, segnala chiaramente.
+    engines_expected = {args.engine} if args.engine != "auto" else {"bing", "google"}
+    browser_blocked = engines_expected.issubset(browser.blocked_engines)
 
     if specialty and cv_path:
         status = "COMPLETATO"
@@ -1211,14 +1152,14 @@ def research_person(
         status = "SPECIALITA_TROVATA"
     elif cv_path:
         status = "CV_TROVATO_SPECIALITA_DA_VERIFICARE"
-    elif AI_DISABLED_FOR_RUN and not sources:
-        status = "BLOCCATO_QUOTA_RICERCA"
+    elif browser_blocked:
+        status = "BLOCCATO_BROWSER"
     elif sources:
         status = "DA_VERIFICARE"
     else:
         status = "NESSUN_RISULTATO"
 
-    elapsed = time.perf_counter() - started
+    sources = list(dict.fromkeys(canonical_url(u) for u in sources if u.startswith(("http://", "https://"))))
 
     result = {
         "row": person.row,
@@ -1229,20 +1170,20 @@ def research_person(
         "cv_path": cv_path,
         "cv_url": cv_url,
         "cv_confidence": cv_conf,
-        "sources": "\n".join(sources[:10]),
-        "method": " | ".join(method_parts) or "N/D",
+        "sources": "\n".join(sources[:12]),
+        "method": f"Playwright browser search ({args.engine})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
-        "elapsed": elapsed,
+        "elapsed": time.perf_counter() - started,
     }
 
     write_cache(person, cache_dir, result)
 
     logging.info(
-        "DONE | Pers_Id=%s | %.1fs | %s | specialita=%s | cv=%s | metodo=%s",
-        person.pers_id, elapsed, status, specialty or "N/D",
-        "SI" if cv_path else "NO", result["method"]
+        "DONE | Pers_Id=%s | %.1fs | %s | specialita=%s | cv=%s",
+        person.pers_id, result["elapsed"], status,
+        specialty or "N/D", "SI" if cv_path else "NO"
     )
     return result
 
@@ -1252,12 +1193,7 @@ def research_person(
 # ============================================================
 
 def main() -> int:
-    global AI_SEMAPHORE, SEARCH_SEMAPHORE
-
     args = parse_args()
-    AI_SEMAPHORE = threading.BoundedSemaphore(args.ai_concurrency)
-    SEARCH_SEMAPHORE = threading.BoundedSemaphore(args.search_concurrency)
-
     log_file = configure_logging(args.log_dir)
 
     input_path = args.input.expanduser().resolve()
@@ -1268,6 +1204,7 @@ def main() -> int:
     )
     cv_dir = args.cv_dir.expanduser().resolve()
     cache_dir = args.cache_dir.expanduser().resolve()
+    browser_data_dir = args.browser_data_dir.expanduser().resolve()
 
     if not input_path.exists():
         raise FileNotFoundError(input_path)
@@ -1284,34 +1221,31 @@ def main() -> int:
     headers = ensure_output_columns(ws)
     atomic_save(wb, output_path)
 
-    logging.info("=" * 76)
+    logging.info("=" * 78)
     logging.info("%s", VERSION)
     logging.info("Input: %s", input_path)
     logging.info("Output: %s", output_path)
-    logging.info("Workers: %s", args.workers)
-    logging.info("AI concurrency: %s", args.ai_concurrency)
-    logging.info("Provider: %s", args.provider)
-    logging.info("Gemini model: %s", args.model)
-    logging.info("Gemini key: %s", "SI" if os.getenv("GEMINI_API_KEY") else "NO")
-    logging.info("Serper key: %s", "SI" if os.getenv("SERPER_API_KEY") else "NO")
-    logging.info("Brave key: %s", "SI" if os.getenv("BRAVE_SEARCH_API_KEY") else "NO")
-    logging.info("DDGS fallback: %s", "SI" if DDGS is not None else "NO")
-    logging.info("Deep mode: %s", "SI" if args.deep else "NO")
+    logging.info("Engine: %s", args.engine)
+    logging.info("Headless: %s", args.headless)
+    logging.info("Deep: %s", args.deep)
+    logging.info("Search results: %s", args.search_results)
+    logging.info("Delay: %.1f - %.1f sec", args.delay_min, args.delay_max)
+    logging.info("Browser profile: %s", browser_data_dir)
     logging.info("CV dir: %s", cv_dir)
     logging.info("Cache dir: %s", cache_dir)
     logging.info("Log: %s", log_file)
-    logging.info("=" * 76)
+    logging.info("=" * 78)
 
     print(f"Excel output: {output_path}")
     print(f"Log: {log_file.resolve()}")
 
-    people: list[Person] = []
+    people = []
     for row in range(args.start_row, ws.max_row + 1):
         if args.limit is not None and len(people) >= args.limit:
             break
 
-        person = person_from_row(ws, row, headers)
-        if not person.pers_id or not person.surname or not person.name:
+        p = person_from_row(ws, row, headers)
+        if not p.pers_id or not p.surname or not p.name:
             continue
 
         status = clean(getv(ws, row, headers, "Ricerca_Stato")).upper()
@@ -1320,7 +1254,7 @@ def main() -> int:
         if status == "ERRORE" and not args.retry_errors:
             continue
 
-        people.append(person)
+        people.append(p)
 
     logging.info("Medici da elaborare: %s", len(people))
 
@@ -1328,21 +1262,22 @@ def main() -> int:
         atomic_save(wb, output_path)
         return 0
 
+    counts = {}
     start_all = time.perf_counter()
-    completed = 0
     unsaved = 0
-    counts: dict[str, int] = {}
 
-    with ThreadPoolExecutor(max_workers=args.workers, thread_name_prefix="medico") as pool:
-        futures = {
-            pool.submit(research_person, p, args, cv_dir, cache_dir): p
-            for p in people
-        }
+    with BrowserSearch(
+        data_dir=browser_data_dir,
+        headless=args.headless,
+        engine=args.engine,
+        delay_min=args.delay_min,
+        delay_max=args.delay_max,
+        max_results=args.search_results,
+    ) as browser:
 
-        for future in as_completed(futures):
-            person = futures[future]
+        for i, person in enumerate(people, start=1):
             try:
-                result = future.result()
+                result = research_person(person, args, browser, cv_dir, cache_dir)
             except Exception as exc:
                 logging.exception("ERRORE PERSONA | %s | %s", person.pers_id, person.full_name)
                 result = {
@@ -1355,45 +1290,44 @@ def main() -> int:
                     "cv_url": "",
                     "cv_confidence": "nessuna",
                     "sources": "",
-                    "method": "",
+                    "method": f"Playwright browser search ({args.engine})",
                     "notes": "",
                     "updated": utc_now(),
                     "error": f"{type(exc).__name__}: {exc}",
                 }
 
             set_result(ws, headers, person.row, result)
-
             status = clean(result.get("status")) or "?"
             counts[status] = counts.get(status, 0) + 1
-            completed += 1
             unsaved += 1
 
             if unsaved >= args.save_every:
                 atomic_save(wb, output_path)
                 unsaved = 0
-                logging.info("CHECKPOINT | %s/%s | %s", completed, len(people), output_path)
+                logging.info("CHECKPOINT | %s/%s | %s", i, len(people), output_path)
 
-            if completed % 10 == 0 or completed == len(people):
+            if i % 5 == 0 or i == len(people):
                 elapsed = time.perf_counter() - start_all
-                rate = completed / elapsed * 60 if elapsed else 0.0
-                eta = (len(people) - completed) / rate if rate else 0.0
+                rate = i / elapsed * 60 if elapsed else 0.0
+                eta = (len(people) - i) / rate if rate else 0.0
                 logging.info(
                     "PROGRESS | %s/%s | %.2f medici/min | ETA %.1f min | %s",
-                    completed, len(people), rate, eta, counts
+                    i, len(people), rate, eta, counts
                 )
+
+            # Se il browser viene bloccato, salviamo subito e interrompiamo:
+            expected = {args.engine} if args.engine != "auto" else {"bing", "google"}
+            if expected.issubset(browser.blocked_engines):
+                logging.error("STOP | Tutti i motori richiesti risultano bloccati/CAPTCHA.")
+                break
 
     atomic_save(wb, output_path)
 
     elapsed = time.perf_counter() - start_all
-    rate = completed / elapsed * 60 if elapsed else 0.0
-
-    logging.info("=" * 76)
-    logging.info("FINE | elaborati=%s | %.1f min | %.2f medici/min", completed, elapsed / 60, rate)
-    logging.info("STATI | %s", counts)
-    if AI_DISABLED_FOR_RUN:
-        logging.info("AI CIRCUIT BREAKER | %s", AI_DISABLE_REASON)
+    logging.info("=" * 78)
+    logging.info("FINE | %.1f min | %s", elapsed / 60, counts)
     logging.info("OUTPUT | %s", output_path)
-    logging.info("=" * 76)
+    logging.info("=" * 78)
 
     print("")
     print(f"Excel salvato in: {output_path}")
@@ -1423,7 +1357,8 @@ if __name__ == "__main__":
     ok, missing = import_dependencies(startup_log)
     if not ok:
         print("\nERRORE: mancano dipendenze obbligatorie.")
-        print("Installa con: python -m pip install -r requirements_medici_v2.txt")
+        print("Installa con: python -m pip install -r requirements_medici_v3.txt")
+        print("Poi esegui: python -m playwright install chromium")
         print(f"Log diagnostico: {startup_log.resolve()}")
         for item in missing:
             print(f" - {item}")
