@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V3.4 MEDICI - RELEVANCE FALLBACK + GOOGLE FIRST"
+VERSION = "V4.0 MEDICI - SERPER PRIMARY + ADAPTIVE SEARCH"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -28,14 +28,12 @@ load_dotenv = None
 load_workbook = None
 Alignment = Font = PatternFill = None
 PdfReader = None
-sync_playwright = None
 
 DEFAULT_SHEET = "Foglio1"
-DEFAULT_ENGINE = "auto"
 DEFAULT_SEARCH_RESULTS = 8
 DEFAULT_SAVE_EVERY = 10
-DEFAULT_DELAY_MIN = 1.2
-DEFAULT_DELAY_MAX = 2.8
+DEFAULT_DELAY_MIN = 0.15
+DEFAULT_DELAY_MAX = 0.35
 
 HTTP_TIMEOUT = 12
 MAX_PDF_BYTES = 25 * 1024 * 1024
@@ -234,7 +232,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v3_4.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -252,7 +250,7 @@ def create_initial_output_copy(input_path: Path | None, output_path: Path | None
 
 def import_dependencies(log_path: Path) -> tuple[bool, list[str]]:
     global requests, BeautifulSoup, load_dotenv
-    global load_workbook, Alignment, Font, PatternFill, PdfReader, sync_playwright
+    global load_workbook, Alignment, Font, PatternFill, PdfReader
 
     missing = []
 
@@ -288,11 +286,6 @@ def import_dependencies(log_path: Path) -> tuple[bool, list[str]]:
     except Exception as exc:
         missing.append(f"pypdf ({exc})")
 
-    try:
-        from playwright.sync_api import sync_playwright as _sync_playwright
-        sync_playwright = _sync_playwright
-    except Exception as exc:
-        missing.append(f"playwright ({exc})")
 
     if missing:
         write_bootstrap_log(log_path, "ERRORE | Dipendenze mancanti: " + "; ".join(missing))
@@ -314,13 +307,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--limit", "--max-rows", dest="limit", type=int)
     p.add_argument("--start-row", type=int, default=2)
 
-    p.add_argument("--engine", choices=("bing", "google", "auto"), default=DEFAULT_ENGINE,
-                   help="Motore preferito; l'altro viene usato automaticamente come fallback.")
+    p.add_argument("--provider", choices=("serper", "brave", "auto"), default="auto",
+                   help="auto = Serper primario, Brave fallback se configurato.")
     p.add_argument("--search-results", type=int, default=DEFAULT_SEARCH_RESULTS)
-    p.add_argument("--headless", action="store_true",
-                   help="Avvia Chromium senza finestra. Per i primi test consiglio di NON usarlo.")
+    p.add_argument("--max-searches-per-person", type=int, default=2,
+                   help="Budget massimo di query Search API per medico. Default 2.")
     p.add_argument("--deep", action="store_true",
-                   help="Aggiunge query e pagine da analizzare per i casi incompleti.")
+                   help="Consente una terza query mirata solo se serve.")
     p.add_argument("--save-every", type=int, default=DEFAULT_SAVE_EVERY)
     p.add_argument("--delay-min", type=float, default=DEFAULT_DELAY_MIN)
     p.add_argument("--delay-max", type=float, default=DEFAULT_DELAY_MAX)
@@ -332,7 +325,6 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--cv-dir", type=Path, default=Path("cv_medici"))
     p.add_argument("--cv-review-dir", type=Path, default=Path("cv_medici_da_verificare"))
     p.add_argument("--cache-dir", type=Path, default=Path("cache_medici"))
-    p.add_argument("--browser-data-dir", type=Path, default=Path("browser_medici"))
     p.add_argument("--log-dir", type=Path, default=Path("logs"))
 
     args = p.parse_args()
@@ -343,6 +335,8 @@ def parse_args() -> argparse.Namespace:
         p.error("--start-row deve essere >= 2")
     if args.search_results <= 0:
         p.error("--search-results deve essere > 0")
+    if args.max_searches_per_person <= 0:
+        p.error("--max-searches-per-person deve essere > 0")
     if args.save_every <= 0:
         p.error("--save-every deve essere > 0")
     if args.delay_min < 0 or args.delay_max < args.delay_min:
@@ -505,187 +499,163 @@ def write_cache(person: Person, cache_dir: Path, result: dict[str, Any]) -> None
 
 
 # ============================================================
-# BROWSER SEARCH
+# SEARCH API
 # ============================================================
 
-BLOCK_MARKERS = (
-    "unusual traffic", "our systems have detected unusual traffic",
-    "verify you are human", "captcha", "detected unusual traffic",
-    "access denied", "robot or human", "challenge",
-)
+class SearchQuotaError(RuntimeError):
+    pass
 
 
-class BrowserSearch:
-    def __init__(self, data_dir: Path, headless: bool, engine: str,
-                 delay_min: float, delay_max: float, max_results: int):
-        self.data_dir = data_dir
-        self.headless = headless
-        self.engine = engine
+class SearchClient:
+    def __init__(self, provider: str, max_results: int,
+                 delay_min: float, delay_max: float):
+        self.provider = provider
+        self.max_results = max_results
         self.delay_min = delay_min
         self.delay_max = delay_max
-        self.max_results = max_results
-        self.pw = None
-        self.context = None
-        self.page = None
-        self.blocked_engines: set[str] = set()
 
-    def __enter__(self):
-        self.data_dir.mkdir(parents=True, exist_ok=True)
-        self.pw = sync_playwright().start()
+        self.serper_key = clean(os.getenv("SERPER_API_KEY"))
+        self.brave_key = clean(os.getenv("BRAVE_SEARCH_API_KEY"))
 
-        self.context = self.pw.chromium.launch_persistent_context(
-            user_data_dir=str(self.data_dir),
-            headless=self.headless,
-            viewport={"width": 1440, "height": 900},
-            user_agent=USER_AGENT,
-            locale="it-IT",
-            timezone_id="Europe/Rome",
-            args=["--disable-blink-features=AutomationControlled"],
-        )
-        self.page = self.context.pages[0] if self.context.pages else self.context.new_page()
-        self.page.set_default_timeout(12_000)
-        return self
+        if provider == "serper" and not self.serper_key:
+            raise RuntimeError("SERPER_API_KEY mancante nel file .env.")
+        if provider == "brave" and not self.brave_key:
+            raise RuntimeError("BRAVE_SEARCH_API_KEY mancante nel file .env.")
+        if provider == "auto" and not (self.serper_key or self.brave_key):
+            raise RuntimeError(
+                "Nessuna Search API configurata. Inserisci SERPER_API_KEY nel file .env "
+                "(consigliata) oppure BRAVE_SEARCH_API_KEY."
+            )
 
-    def __exit__(self, exc_type, exc, tb):
-        try:
-            if self.context:
-                self.context.close()
-        finally:
-            if self.pw:
-                self.pw.stop()
+        self.requests_total = 0
+        self.requests_by_provider = {"serper": 0, "brave": 0}
+        self.failures_by_provider = {"serper": 0, "brave": 0}
 
-    def _delay(self):
-        time.sleep(random.uniform(self.delay_min, self.delay_max))
+    def configured_providers(self) -> list[str]:
+        if self.provider == "serper":
+            return ["serper"]
+        if self.provider == "brave":
+            return ["brave"]
 
-    def _blocked(self) -> bool:
-        try:
-            body = normalize(self.page.locator("body").inner_text(timeout=3000))
-            return any(x in body for x in BLOCK_MARKERS)
-        except Exception:
-            return False
+        out = []
+        if self.serper_key:
+            out.append("serper")
+        if self.brave_key:
+            out.append("brave")
+        return out
+
+    def _sleep(self):
+        if self.delay_max > 0:
+            time.sleep(random.uniform(self.delay_min, self.delay_max))
 
     def search(self, query: str) -> list[WebHit]:
-        # AUTO: Google prima. Bing resta fallback tecnico.
-        if self.engine in {"google", "auto"}:
-            engines = ["google", "bing"]
-        else:
-            engines = ["bing", "google"]
-
-        for engine in engines:
-            if engine in self.blocked_engines:
-                continue
+        last_error = None
+        for provider in self.configured_providers():
             try:
-                hits = self._search_engine(engine, query)
+                hits = self._search_provider(provider, query)
                 if hits:
                     return hits
-                logging.warning("SEARCH EMPTY | %s | %s", engine, query)
-            except RuntimeError as exc:
-                if "BLOCCO_BROWSER" in str(exc):
-                    self.blocked_engines.add(engine)
-                    logging.error("BROWSER BLOCCATO | %s | %s", engine, exc)
-                else:
-                    logging.warning("SEARCH FAIL | %s | %s | %s", engine, query, exc)
+            except SearchQuotaError:
+                raise
             except Exception as exc:
-                logging.warning("SEARCH FAIL | %s | %s | %s: %s",
-                                engine, query, type(exc).__name__, exc)
+                last_error = exc
+                self.failures_by_provider[provider] += 1
+                logging.warning(
+                    "SEARCH API FAIL | %s | %s | %s: %s",
+                    provider, query, type(exc).__name__, exc
+                )
+
+        if last_error:
+            logging.warning("SEARCH API EMPTY/FAIL | %s", query)
         return []
 
-    def search_specific(self, engine: str, query: str) -> list[WebHit]:
-        """
-        Ricerca esplicita su un singolo motore. Serve quando il motore primario
-        restituisce risultati tecnicamente validi ma semanticamente irrilevanti.
-        """
-        if engine in self.blocked_engines:
-            return []
-        try:
-            return self._search_engine(engine, query)
-        except RuntimeError as exc:
-            if "BLOCCO_BROWSER" in str(exc):
-                self.blocked_engines.add(engine)
-                logging.error("BROWSER BLOCCATO | %s | %s", engine, exc)
-            else:
-                logging.warning("SEARCH FAIL | %s | %s | %s", engine, query, exc)
-        except Exception as exc:
-            logging.warning(
-                "SEARCH FAIL | %s | %s | %s: %s",
-                engine, query, type(exc).__name__, exc
-            )
-        return []
+    def _search_provider(self, provider: str, query: str) -> list[WebHit]:
+        self._sleep()
+        self.requests_total += 1
+        self.requests_by_provider[provider] += 1
 
-    def _search_engine(self, engine: str, query: str) -> list[WebHit]:
-        self._delay()
+        if provider == "serper":
+            return self._serper(query)
+        if provider == "brave":
+            return self._brave(query)
+        raise ValueError(provider)
 
-        if engine == "bing":
-            url = f"https://www.bing.com/search?q={quote_plus(query)}&setlang=it-IT&cc=it"
-        else:
-            url = f"https://www.google.com/search?q={quote_plus(query)}&hl=it&gl=it&num=10"
+    def _serper(self, query: str) -> list[WebHit]:
+        r = requests.post(
+            "https://google.serper.dev/search",
+            headers={
+                "X-API-KEY": self.serper_key,
+                "Content-Type": "application/json",
+            },
+            json={
+                "q": query,
+                "gl": "it",
+                "hl": "it",
+                "num": min(max(self.max_results, 1), 20),
+            },
+            timeout=HTTP_TIMEOUT,
+        )
 
-        self.page.goto(url, wait_until="domcontentloaded", timeout=20_000)
+        if r.status_code == 429:
+            raise SearchQuotaError("Serper: crediti/quota esauriti o rate limit.")
+        if r.status_code in {401, 403}:
+            raise RuntimeError(f"Serper autenticazione fallita HTTP {r.status_code}")
+        r.raise_for_status()
 
-        if self._blocked():
-            raise RuntimeError(f"BLOCCO_BROWSER: CAPTCHA/anti-bot rilevato su {engine}")
-
-        hits = self._parse_bing() if engine == "bing" else self._parse_google()
-
-        logging.info("SEARCH OK | %s | %s | %s risultati", engine, query, len(hits))
-        return hits[:self.max_results]
-
-    def _parse_bing(self) -> list[WebHit]:
+        data = r.json()
         out = []
-        for li in self.page.locator("li.b_algo").all()[:20]:
-            try:
-                a = li.locator("h2 a").first
-                title = clean(a.inner_text(timeout=1500))
-                url = clean(a.get_attribute("href"))
-                url = normalize_result_url(url)
-                snippet = ""
-                p = li.locator(".b_caption p")
-                if p.count():
-                    snippet = clean(p.first.inner_text(timeout=1000))
-                if url.startswith(("http://", "https://")):
-                    out.append(WebHit(title, url, snippet, "bing"))
-            except Exception:
+        for item in data.get("organic", [])[:self.max_results]:
+            url = clean(item.get("link"))
+            if not url.startswith(("http://", "https://")):
                 continue
-        return dedupe_hits(out)
+            out.append(WebHit(
+                title=clean(item.get("title")),
+                url=url,
+                snippet=clean(item.get("snippet")),
+                engine="serper",
+            ))
 
-    def _parse_google(self) -> list[WebHit]:
+        logging.info("SEARCH API OK | serper | %s | %s risultati", query, len(out))
+        return out
+
+    def _brave(self, query: str) -> list[WebHit]:
+        r = requests.get(
+            "https://api.search.brave.com/res/v1/web/search",
+            headers={
+                "Accept": "application/json",
+                "X-Subscription-Token": self.brave_key,
+            },
+            params={
+                "q": query,
+                "count": min(max(self.max_results, 1), 20),
+                "country": "it",
+                "search_lang": "it",
+            },
+            timeout=HTTP_TIMEOUT,
+        )
+
+        if r.status_code == 429:
+            raise SearchQuotaError("Brave Search: quota/rate limit.")
+        if r.status_code in {401, 403}:
+            raise RuntimeError(f"Brave autenticazione fallita HTTP {r.status_code}")
+        r.raise_for_status()
+
+        data = r.json()
+        results = ((data.get("web") or {}).get("results") or [])
         out = []
-        # Google cambia spesso markup: partiamo dagli h3 e risaliamo all'anchor.
-        for h3 in self.page.locator("#search h3").all()[:30]:
-            try:
-                a = h3.locator("xpath=ancestor::a[1]")
-                if not a.count():
-                    continue
-                title = clean(h3.inner_text(timeout=1000))
-                url = clean(a.get_attribute("href"))
-                if url.startswith("/url?"):
-                    q = parse_qs(urlparse(url).query).get("q", [])
-                    url = q[0] if q else ""
-                if not url.startswith(("http://", "https://")):
-                    continue
-                container = h3.locator("xpath=ancestor::div[contains(@class,'MjjYud')][1]")
-                snippet = ""
-                try:
-                    snippet = clean(container.inner_text(timeout=1000))[:900]
-                except Exception:
-                    pass
-                out.append(WebHit(title, url, snippet, "google"))
-            except Exception:
+        for item in results[:self.max_results]:
+            url = clean(item.get("url"))
+            if not url.startswith(("http://", "https://")):
                 continue
-        return dedupe_hits(out)
+            out.append(WebHit(
+                title=clean(item.get("title")),
+                url=url,
+                snippet=clean(item.get("description")),
+                engine="brave",
+            ))
 
-
-def dedupe_hits(hits: Iterable[WebHit]) -> list[WebHit]:
-    out = []
-    seen = set()
-    for hit in hits:
-        real_url = normalize_result_url(hit.url)
-        key = canonical_url(real_url)
-        if key and key not in seen:
-            seen.add(key)
-            out.append(WebHit(hit.title, real_url, hit.snippet, hit.engine))
-    return out
-
+        logging.info("SEARCH API OK | brave | %s | %s risultati", query, len(out))
+        return out
 
 # ============================================================
 # HTTP / PDF / PAGINE
@@ -1244,7 +1214,8 @@ def email_domain(email: str) -> str:
 
 def research_queries(person: Person, deep: bool) -> list[str]:
     """
-    Query più selettive: identità esatta + contesto sanitario + CV.
+    Query in ordine di costo/valore. Il pipeline NON le esegue tutte:
+    si ferma appena ottiene fonti abbastanza rilevanti.
     """
     full = f'"{person.full_name}"'
     reverse = f'"{person.surname} {person.name}"'
@@ -1252,19 +1223,32 @@ def research_queries(person: Person, deep: bool) -> list[str]:
 
     d = email_domain(person.email)
     if d:
-        qs.append(f'{full} site:{d} curriculum OR specialista OR medico')
+        qs.append(f'{full} site:{d} medico curriculum specialista')
 
-    qs.extend([
-        f'{full} medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS',
-        f'{full} "curriculum vitae" filetype:pdf medico',
-        f'{reverse} medico specialista curriculum',
-    ])
+    # Prima query generale ad alta resa.
+    qs.append(f'{full} medico specialista curriculum ospedale')
 
-    if deep and person.city:
-        qs.append(f'{full} medico "{person.city}" specializzazione OR curriculum')
+    # Seconda query CV-specifica.
+    qs.append(f'{full} "curriculum vitae" filetype:pdf')
 
-    # Massimo 4 query: meno rumore e meno rischio blocco.
-    return qs[:4]
+    # Query di disambiguazione.
+    if person.city:
+        qs.append(f'{full} medico "{person.city}" specializzazione')
+    else:
+        qs.append(f'{reverse} medico specialista')
+
+    if deep:
+        qs.append(f'{full} ASL OR AUSL OR ASST OR AOU OR IRCCS curriculum')
+
+    # Deduplica mantenendo l'ordine.
+    out = []
+    seen = set()
+    for q in qs:
+        k = q.casefold()
+        if k not in seen:
+            seen.add(k)
+            out.append(q)
+    return out
 
 
 # ============================================================
@@ -1347,7 +1331,7 @@ def score_hit_for_person(hit: WebHit, person: Person) -> int:
 
 
 def research_person(person: Person, args: argparse.Namespace,
-                    browser: BrowserSearch, cv_dir: Path, review_dir: Path,
+                    search_client: SearchClient, cv_dir: Path, review_dir: Path,
                     cache_dir: Path) -> dict[str, Any]:
     if not args.ignore_cache:
         cached = read_cache(person, cache_dir)
@@ -1367,61 +1351,40 @@ def research_person(person: Person, args: argparse.Namespace,
     cv_review_paths = []
     cv_review_urls = []
 
-    # -------- DISCOVERY UNIFICATA: 3-4 QUERY + ANALISI PROFONDA --------
-    queries = research_queries(person, args.deep)
+    # -------- SEARCH API ADATTIVA --------
     all_hits = []
+    relevant_hits = []
+    queries_used = 0
 
-    # Primo passaggio: motore preferito (AUTO = Google).
-    for q in queries:
-        hits = browser.search(q)
+    budget = args.max_searches_per_person + (1 if args.deep else 0)
+
+    for q in research_queries(person, args.deep):
+        if queries_used >= budget:
+            break
+
+        hits = search_client.search(q)
+        queries_used += 1
         all_hits.extend(hits)
+        all_hits = dedupe_hits(all_hits)
 
-    all_hits = dedupe_hits(all_hits)
-
-    def filter_relevant(hits_to_filter):
-        accepted = []
-        for hit in hits_to_filter:
+        relevant_hits = []
+        for hit in all_hits:
             ok, rel_score, reason = hit_relevance(hit, person)
             if ok:
-                accepted.append(hit)
-                logging.info(
-                    "HIT ACCETTATO | Pers_Id=%s | engine=%s | score=%s | %s | %s",
-                    person.pers_id, hit.engine, rel_score, hit.title[:120], hit.url
-                )
+                relevant_hits.append(hit)
             else:
-                logging.info(
-                    "HIT SCARTATO | Pers_Id=%s | engine=%s | score=%s | %s | %s | %s",
-                    person.pers_id, hit.engine, rel_score, reason, hit.title[:100], hit.url
+                logging.debug(
+                    "HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s",
+                    person.pers_id, rel_score, reason, hit.url
                 )
-        return accepted
 
-    relevant_hits = filter_relevant(all_hits)
-
-    # Fallback SEMANTICO: se il motore ha restituito 10 risultati ma tutti
-    # irrilevanti, proviamo esplicitamente l'altro motore. Nella V3.3 questo
-    # non succedeva perché Bing "aveva risultati" e impediva il fallback.
-    if not relevant_hits:
-        engines_seen = {h.engine for h in all_hits}
-        if "google" in engines_seen:
-            alternate = "bing"
-        else:
-            alternate = "google"
-
-        if alternate not in browser.blocked_engines:
-            logging.warning(
-                "RELEVANCE FALLBACK | Pers_Id=%s | nessun hit rilevante; provo %s",
-                person.pers_id, alternate
-            )
-            alt_hits = []
-            for q in queries:
-                alt_hits.extend(browser.search_specific(alternate, q))
-
-            alt_hits = dedupe_hits(alt_hits)
-            # Evitiamo duplicati fra i due motori.
-            existing = {normalize_result_url(h.url) for h in all_hits}
-            alt_hits = [h for h in alt_hits if normalize_result_url(h.url) not in existing]
-            all_hits.extend(alt_hits)
-            relevant_hits.extend(filter_relevant(alt_hits))
+        # Stop anticipato: almeno 2 fonti rilevanti oppure una fonte rilevante
+        # molto forte (score >= 420 / PDF-CV).
+        if relevant_hits:
+            best_score = max(score_hit_for_person(h, person) for h in relevant_hits)
+            strong_pdf = any(hit_looks_pdf(h) for h in relevant_hits)
+            if len(relevant_hits) >= 2 or best_score >= 420 or strong_pdf:
+                break
 
     ranked_hits = sorted(
         dedupe_hits(relevant_hits),
@@ -1432,15 +1395,11 @@ def research_person(person: Person, args: argparse.Namespace,
         reverse=True,
     )
 
-    # Solo fonti realmente rilevanti finiscono nell'Excel.
     sources.extend(h.url for h in ranked_hits[:args.search_results * 2])
-    engine_counts = {}
-    for h in all_hits:
-        engine_counts[h.engine] = engine_counts.get(h.engine, 0) + 1
-
     logging.info(
-        "HIT SUMMARY | Pers_Id=%s | grezzi=%s | rilevanti=%s | engines=%s",
-        person.pers_id, len(all_hits), len(ranked_hits), engine_counts
+        "HIT SUMMARY | Pers_Id=%s | query=%s | grezzi=%s | rilevanti=%s | provider=%s",
+        person.pers_id, queries_used, len(all_hits), len(ranked_hits),
+        search_client.requests_by_provider
     )
 
     pdf_seen = set()
@@ -1552,17 +1511,12 @@ def research_person(person: Person, args: argparse.Namespace,
     if specialty_source:
         sources.insert(0, specialty_source)
 
-    # Se il browser è stato bloccato su tutti i motori disponibili, segnala chiaramente.
-    browser_blocked = {"bing", "google"}.issubset(browser.blocked_engines)
-
     if specialty and cv_path:
         status = "COMPLETATO"
     elif specialty:
         status = "SPECIALITA_TROVATA"
     elif cv_path:
         status = "CV_TROVATO_SPECIALITA_DA_VERIFICARE"
-    elif browser_blocked:
-        status = "BLOCCATO_BROWSER"
     elif cv_review_paths:
         status = "DA_VERIFICARE"
     elif sources and ranked_hits:
@@ -1584,7 +1538,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Playwright browser search V3.4 ({args.engine})",
+        "method": f"Search API V4 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -1618,7 +1572,6 @@ def main() -> int:
     cv_dir = args.cv_dir.expanduser().resolve()
     review_dir = args.cv_review_dir.expanduser().resolve()
     cache_dir = args.cache_dir.expanduser().resolve()
-    browser_data_dir = args.browser_data_dir.expanduser().resolve()
 
     if not input_path.exists():
         raise FileNotFoundError(input_path)
@@ -1634,17 +1587,16 @@ def main() -> int:
     require_input_columns(headers)
     headers = ensure_output_columns(ws)
     atomic_save(wb, output_path)
-#ciao
+
     logging.info("=" * 78)
     logging.info("%s", VERSION)
     logging.info("Input: %s", input_path)
     logging.info("Output: %s", output_path)
-    logging.info("Engine: %s", args.engine)
-    logging.info("Headless: %s", args.headless)
+    logging.info("Provider: %s", args.provider)
     logging.info("Deep: %s", args.deep)
     logging.info("Search results: %s", args.search_results)
+    logging.info("Max searches/persona: %s (+1 con --deep)", args.max_searches_per_person)
     logging.info("Delay: %.1f - %.1f sec", args.delay_min, args.delay_max)
-    logging.info("Browser profile: %s", browser_data_dir)
     logging.info("CV sicuri dir: %s", cv_dir)
     logging.info("CV da verificare dir: %s", review_dir)
     logging.info("Cache dir: %s", cache_dir)
@@ -1681,67 +1633,88 @@ def main() -> int:
     start_all = time.perf_counter()
     unsaved = 0
 
-    with BrowserSearch(
-        data_dir=browser_data_dir,
-        headless=args.headless,
-        engine=args.engine,
+    search_client = SearchClient(
+        provider=args.provider,
+        max_results=args.search_results,
         delay_min=args.delay_min,
         delay_max=args.delay_max,
-        max_results=args.search_results,
-    ) as browser:
+    )
 
-        for i, person in enumerate(people, start=1):
-            try:
-                result = research_person(person, args, browser, cv_dir, review_dir, cache_dir)
-            except Exception as exc:
-                logging.exception("ERRORE PERSONA | %s | %s", person.pers_id, person.full_name)
-                result = {
-                    "row": person.row,
-                    "status": "ERRORE",
-                    "specialty": "",
-                    "specialty_confidence": "nessuna",
-                    "specialty_evidence": "",
-                    "cv_path": "",
-                    "cv_url": "",
-                    "cv_confidence": "nessuna",
-                    "cv_review_paths": "",
-                    "cv_review_urls": "",
-                    "sources": "",
-                    "method": f"Playwright browser search V3.4 ({args.engine})",
-                    "notes": "",
-                    "updated": utc_now(),
-                    "error": f"{type(exc).__name__}: {exc}",
-                }
+    for i, person in enumerate(people, start=1):
+        try:
+            result = research_person(
+                person, args, search_client, cv_dir, review_dir, cache_dir
+            )
+        except SearchQuotaError as exc:
+            logging.error("QUOTA SEARCH API | %s", exc)
+            result = {
+                "row": person.row,
+                "status": "BLOCCATO_QUOTA_RICERCA",
+                "specialty": "",
+                "specialty_confidence": "nessuna",
+                "specialty_evidence": "",
+                "cv_path": "",
+                "cv_url": "",
+                "cv_confidence": "nessuna",
+                "cv_review_paths": "",
+                "cv_review_urls": "",
+                "sources": "",
+                "method": f"Search API V4 ({args.provider})",
+                "notes": "Quota Search API esaurita o rate limit.",
+                "updated": utc_now(),
+                "error": str(exc),
+            }
+        except Exception as exc:
+            logging.exception("ERRORE PERSONA | %s | %s", person.pers_id, person.full_name)
+            result = {
+                "row": person.row,
+                "status": "ERRORE",
+                "specialty": "",
+                "specialty_confidence": "nessuna",
+                "specialty_evidence": "",
+                "cv_path": "",
+                "cv_url": "",
+                "cv_confidence": "nessuna",
+                "cv_review_paths": "",
+                "cv_review_urls": "",
+                "sources": "",
+                "method": f"Search API V4 ({args.provider})",
+                "notes": "",
+                "updated": utc_now(),
+                "error": f"{type(exc).__name__}: {exc}",
+            }
 
-            set_result(ws, headers, person.row, result)
-            status = clean(result.get("status")) or "?"
-            counts[status] = counts.get(status, 0) + 1
-            unsaved += 1
+        set_result(ws, headers, person.row, result)
+        status = clean(result.get("status")) or "?"
+        counts[status] = counts.get(status, 0) + 1
+        unsaved += 1
 
-            if unsaved >= args.save_every:
-                atomic_save(wb, output_path)
-                unsaved = 0
-                logging.info("CHECKPOINT | %s/%s | %s", i, len(people), output_path)
+        if unsaved >= args.save_every:
+            atomic_save(wb, output_path)
+            unsaved = 0
+            logging.info("CHECKPOINT | %s/%s | %s", i, len(people), output_path)
 
-            if i % 5 == 0 or i == len(people):
-                elapsed = time.perf_counter() - start_all
-                rate = i / elapsed * 60 if elapsed else 0.0
-                eta = (len(people) - i) / rate if rate else 0.0
-                logging.info(
-                    "PROGRESS | %s/%s | %.2f medici/min | ETA %.1f min | %s",
-                    i, len(people), rate, eta, counts
-                )
+        if i % 5 == 0 or i == len(people):
+            elapsed = time.perf_counter() - start_all
+            rate = i / elapsed * 60 if elapsed else 0.0
+            eta = (len(people) - i) / rate if rate else 0.0
+            logging.info(
+                "PROGRESS | %s/%s | %.2f medici/min | ETA %.1f min | %s | API=%s",
+                i, len(people), rate, eta, counts, search_client.requests_by_provider
+            )
 
-            # Se il browser viene bloccato, salviamo subito e interrompiamo:
-            if {"bing", "google"}.issubset(browser.blocked_engines):
-                logging.error("STOP | Tutti i motori richiesti risultano bloccati/CAPTCHA.")
-                break
+        if status == "BLOCCATO_QUOTA_RICERCA":
+            atomic_save(wb, output_path)
+            logging.error("STOP | Quota Search API esaurita.")
+            break
 
     atomic_save(wb, output_path)
 
     elapsed = time.perf_counter() - start_all
     logging.info("=" * 78)
     logging.info("FINE | %.1f min | %s", elapsed / 60, counts)
+    logging.info("API REQUESTS | totale=%s | %s",
+                 search_client.requests_total, search_client.requests_by_provider)
     logging.info("OUTPUT | %s", output_path)
     logging.info("=" * 78)
 
@@ -1750,6 +1723,7 @@ def main() -> int:
     print(f"Log esecuzione: {log_file.resolve()}")
     print(f"CV sicuri salvati in: {cv_dir}")
     print(f"CV da verificare salvati in: {review_dir}")
+    print(f"Richieste Search API: {search_client.requests_total} | {search_client.requests_by_provider}")
     return 0
 
 
@@ -1774,8 +1748,7 @@ if __name__ == "__main__":
     ok, missing = import_dependencies(startup_log)
     if not ok:
         print("\nERRORE: mancano dipendenze obbligatorie.")
-        print("Installa con: python -m pip install -r requirements_medici_v3.txt")
-        print("Poi esegui: python -m playwright install chromium")
+        print("Installa con: python -m pip install -r requirements_medici_v4.txt")
         print(f"Log diagnostico: {startup_log.resolve()}")
         for item in missing:
             print(f" - {item}")
