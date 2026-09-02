@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V4.2 MEDICI - STRICT IDENTITY + VERIFIED SOURCES"
+VERSION = "V4.3 MEDICI - SPECIALTY EXTRACTION + PDF PRE-FILTER"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -232,7 +232,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_2.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_3.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -782,6 +782,12 @@ CV_NEGATIVE = (
     "graduatoria", "elenco candidati", "candidati ammessi", "verbale",
     "bando", "avviso pubblico", "prova orale", "prova scritta",
     "commissione esaminatrice", "delibera", "deliberazione",
+    "privacy", "cookie", "informativa", "consenso informato",
+    "modulo", "manuale", "guida", "brochure", "faq",
+    "per saperne di piu", "per saperne di più",
+    "conduite a tenir", "ricerca clinica", "ricerca scientifica",
+    "patient", "paziente", "istruzioni", "protocollo",
+    "linee guida", "raccomandazioni", "prescrizione",
 )
 
 MEDICAL_TERMS = (
@@ -1039,6 +1045,27 @@ def dedupe_hits(hits: Iterable[WebHit]) -> list[WebHit]:
 
 
 
+def plausible_cv_pdf_url(url: str, label: str = "") -> bool:
+    """
+    Elimina prima del download i PDF chiaramente incompatibili con un CV.
+    Non certifica che il documento sia un curriculum: la verifica definitiva
+    resta affidata a verify_cv().
+    """
+    raw = f"{url} {label}".casefold()
+    # URL e nomi file usano spesso -, _, / al posto degli spazi.
+    blob = re.sub(r"[_/\\?&=+%.-]+", " ", raw)
+    blob = re.sub(r"\s+", " ", blob).strip()
+
+    negatives = {
+        normalize(x)
+        for x in CV_NEGATIVE
+    }
+    if any(neg and neg in blob for neg in negatives):
+        return False
+
+    return True
+
+
 def landing_pdf_links(url: str, person: Person) -> list[str]:
     """
     Apre una landing page via HTTP e raccoglie PDF plausibili.
@@ -1065,6 +1092,11 @@ def landing_pdf_links(url: str, person: Person) -> list[str]:
                 continue
 
             label = normalize(f"{a.get_text(' ', strip=True)} {candidate}")
+
+            if ".pdf" in candidate.casefold() and not plausible_cv_pdf_url(candidate, label):
+                logging.debug("PDF PRE-SCARTATO | non-CV evidente | %s", candidate)
+                continue
+
             score = 0
             if ".pdf" in candidate.casefold():
                 score += 80
@@ -1083,6 +1115,10 @@ def landing_pdf_links(url: str, person: Person) -> list[str]:
         html = raw.decode("utf-8", errors="ignore")
         pdf_url_pattern = r"https?://[^\"'<> ]+?\.pdf(?:\?[^\"'<> ]*)?"
         for m in re.findall(pdf_url_pattern, html, flags=re.I):
+            if not plausible_cv_pdf_url(m):
+                logging.debug("PDF PRE-SCARTATO | markup non-CV evidente | %s", m)
+                continue
+
             score = 75
             nm = normalize(m)
             if normalize(person.surname) in nm:
@@ -1153,6 +1189,15 @@ SPECIALTY_ALIASES = {
     "radiologia": "Radiodiagnostica",
     "reumatologia": "Reumatologia",
     "urologia": "Urologia",
+    "medicina generale": "Medicina Generale",
+    "medico di medicina generale": "Medicina Generale",
+    "medico medicina generale": "Medicina Generale",
+    "medico di base": "Medicina Generale",
+    "medico curante": "Medicina Generale",
+    "medicina di famiglia": "Medicina Generale",
+    "medico di famiglia": "Medicina Generale",
+    "pediatra di libera scelta": "Pediatria",
+    "pediatra di famiglia": "Pediatria",
 }
 
 EXPLICIT_PATTERNS = (
@@ -1224,6 +1269,82 @@ def specialty_candidates(text: str, person: Person, source_url: str) -> list[tup
     return out
 
 
+def specialty_candidates_from_hit(
+    hit: WebHit,
+    person: Person,
+) -> list[tuple[int, str, str, str]]:
+    """
+    Estrae specialità/ruolo clinico da titolo, snippet e URL soltanto dopo
+    che il risultato è stato associato con sufficiente sicurezza alla persona.
+    """
+    ok, rel_score, _ = hit_relevance(hit, person)
+    if not ok:
+        return []
+
+    real_url = normalize_result_url(hit.url)
+    raw_blob = f"{hit.title}\n{hit.snippet}\n{real_url}"
+
+    # L'identità deve comparire davvero nel risultato.
+    if not (
+        exact_identity_in(hit.title, person)
+        or url_identity_match(real_url, person)
+        or exact_identity_in(hit.snippet, person)
+    ):
+        return []
+
+    # Normalizzazione anche di - _ / nell'URL.
+    nblob = normalize(raw_blob)
+    nblob = re.sub(r"[_/\\?&=+%.-]+", " ", nblob)
+    nblob = re.sub(r"\s+", " ", nblob).strip()
+
+    authoritative = trusted_medical_domain(real_url)
+    directory = is_profile_directory(real_url)
+    out: list[tuple[int, str, str, str]] = []
+
+    for pat in EXPLICIT_PATTERNS:
+        for m in pat.finditer(raw_blob):
+            spec = normalize_specialty(clean(m.group(1)))
+            if not spec:
+                continue
+            score = 310 + min(rel_score, 500)
+            if authoritative:
+                score += 100
+            out.append(
+                (score, spec, real_url, clean(m.group(0))[:350])
+            )
+
+    # Alias/titoli clinici presenti in una fonte già verificata.
+    seen_specs = set()
+    for alias, canonical in sorted(
+        SPECIALTY_ALIASES.items(),
+        key=lambda x: len(x[0]),
+        reverse=True,
+    ):
+        alias_n = normalize(alias)
+        if alias_n not in nblob:
+            continue
+
+        spec_key = normalize(canonical)
+        if spec_key in seen_specs:
+            continue
+        seen_specs.add(spec_key)
+
+        score = 240 + min(rel_score, 500)
+        if exact_identity_in(hit.title, person):
+            score += 90
+        if url_identity_match(real_url, person):
+            score += 90
+        if authoritative:
+            score += 90
+        elif directory:
+            score += 40
+
+        evidence = clean(f"{hit.title} | {hit.snippet}")[:350] or real_url[:350]
+        out.append((score, canonical, real_url, evidence))
+
+    return out
+
+
 def choose_specialty(candidates: list[tuple[int, str, str, str]]) -> tuple[str, str, str, str]:
     if not candidates:
         return "", "nessuna", "", ""
@@ -1265,6 +1386,9 @@ def research_queries(person: Person, deep: bool) -> list[str]:
 
     # Query generale per profilo/struttura/specialità.
     qs.append(f'{full} medico specialista ospedale')
+
+    # Query mirata alla disciplina, prima di passare al CV.
+    qs.append(f'{full} specializzazione OR specialista OR "medico di"')
 
     # Un dominio email è utile solo se non è un provider personale. Se sembra
     # sanitario/istituzionale lo anticipiamo; altrimenti resta una query deep.
@@ -1480,12 +1604,22 @@ def research_person(person: Person, args: argparse.Namespace,
                     person.pers_id, rel_score, reason, hit.url
                 )
 
-        # Stop anticipato: almeno 2 fonti rilevanti oppure una fonte rilevante
-        # molto forte (score >= 420 / PDF-CV).
+        # Stop anticipato soltanto quando abbiamo già estratto una
+        # specialità affidabile oppure trovato un PDF plausibile come CV.
         if relevant_hits:
-            best_score = max(score_hit_for_person(h, person) for h in relevant_hits)
-            strong_pdf = any(hit_looks_pdf(h) for h in relevant_hits)
-            if len(relevant_hits) >= 2 or best_score >= 420 or strong_pdf:
+            specialty_preview = []
+            for preview_hit in relevant_hits:
+                specialty_preview.extend(
+                    specialty_candidates_from_hit(preview_hit, person)
+                )
+
+            strong_pdf = any(
+                hit_looks_pdf(h)
+                and plausible_cv_pdf_url(h.url, f"{h.title} {h.snippet}")
+                for h in relevant_hits
+            )
+
+            if specialty_preview or strong_pdf:
                 break
 
     ranked_hits = sorted(
@@ -1511,6 +1645,13 @@ def research_person(person: Person, args: argparse.Namespace,
         if pdf_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
             break
         if ".pdf" not in hit.url.casefold():
+            continue
+
+        if not plausible_cv_pdf_url(hit.url, f"{hit.title} {hit.snippet}"):
+            logging.info(
+                "PDF PRE-SCARTATO | Pers_Id=%s | non-CV evidente | %s",
+                person.pers_id, hit.url
+            )
             continue
 
         key = normalize_result_url(hit.url)
@@ -1607,10 +1748,11 @@ def research_person(person: Person, args: argparse.Namespace,
         if cv_path:
             break
 
-    # 3) Specialità anche dagli snippet realmente restituiti dal motore.
-    # IMPORTANTE: non iniettiamo il nome della persona nel testo; l'identità
-    # deve essere presente davvero nel risultato.
+    # 3) Specialità da SERP verificata.
     for hit in ranked_hits:
+        specialty_pool.extend(specialty_candidates_from_hit(hit, person))
+
+        # Parser esplicito tradizionale sugli snippet.
         blob = f"{hit.title}\n{hit.snippet}"
         specialty_pool.extend(specialty_candidates(blob, person, hit.url))
 
@@ -1648,7 +1790,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V4.2 ({args.provider})",
+        "method": f"Search API V4.3 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -1769,7 +1911,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.2 ({args.provider})",
+                "method": f"Search API V4.3 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -1789,7 +1931,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.2 ({args.provider})",
+                "method": f"Search API V4.3 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -1808,7 +1950,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.2 ({args.provider})",
+                "method": f"Search API V4.3 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
@@ -1902,4 +2044,3 @@ if __name__ == "__main__":
         print(f"\nERRORE FATALE: {type(exc).__name__}: {exc}")
         print(f"Log diagnostico: {startup_log.resolve()}")
         raise
-#
