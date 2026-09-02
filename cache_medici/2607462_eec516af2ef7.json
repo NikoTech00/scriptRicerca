@@ -1,0 +1,29 @@
+{
+  "version": "V1.0 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 21,
+    "pers_id": "2607462",
+    "medico_id": "0",
+    "surname": "ABATE",
+    "name": "CLAUDIA",
+    "birth_date": "31/03/1993",
+    "fiscal_code": "BTACLD93C71F158Q",
+    "city": "Milazzo",
+    "email": "0"
+  },
+  "result": {
+    "row": 21,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T08:40:38+00:00",
+    "error": "",
+    "elapsed": 96.13943939999444,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T08:40:38+00:00"
+}
