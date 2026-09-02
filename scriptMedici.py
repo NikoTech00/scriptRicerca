@@ -1634,7 +1634,7 @@ def main() -> int:
     require_input_columns(headers)
     headers = ensure_output_columns(ws)
     atomic_save(wb, output_path)
-
+#ciao
     logging.info("=" * 78)
     logging.info("%s", VERSION)
     logging.info("Input: %s", input_path)
