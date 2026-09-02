@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 3,
+    "pers_id": "2606079",
+    "medico_id": "0",
+    "surname": "ABAD AGUIAR",
+    "name": "ERNESTO MARTIN",
+    "birth_date": "02/05/1971",
+    "fiscal_code": "BDGRST71E02Z504P",
+    "city": "Nuoro",
+    "email": "0"
+  },
+  "result": {
+    "row": 3,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T08:59:06+00:00",
+    "error": "",
+    "elapsed": 48.23262570000952,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T08:59:06+00:00"
+}

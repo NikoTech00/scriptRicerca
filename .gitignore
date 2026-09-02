@@ -10,9 +10,3 @@ env/
 ._*
 .Spotlight-V100
 .Trashes
-
-# File Excel
-*.xlsx
-*.xls
-*.xlsm
-*.csv

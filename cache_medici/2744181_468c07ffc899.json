@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 5,
+    "pers_id": "2744181",
+    "medico_id": "0",
+    "surname": "ABAGNALE",
+    "name": "FEDERICA",
+    "birth_date": "29/10/1994",
+    "fiscal_code": "BGNFRC94R69C129W",
+    "city": "Napoli",
+    "email": "0"
+  },
+  "result": {
+    "row": 5,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T08:59:54+00:00",
+    "error": "",
+    "elapsed": 96.33706919994438,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T08:59:54+00:00"
+}

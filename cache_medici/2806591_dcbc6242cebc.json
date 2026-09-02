@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 13,
+    "pers_id": "2806591",
+    "medico_id": "0",
+    "surname": "ABATANGELO",
+    "name": "GIULIO",
+    "birth_date": "01/10/1990",
+    "fiscal_code": "BTNGLI90R01B563J",
+    "city": "Padova",
+    "email": "0"
+  },
+  "result": {
+    "row": 13,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T09:01:30+00:00",
+    "error": "",
+    "elapsed": 96.09514250000939,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T09:01:30+00:00"
+}

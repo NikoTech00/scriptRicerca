@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 17,
+    "pers_id": "2463758",
+    "medico_id": "0",
+    "surname": "ABATE",
+    "name": "ANTONIO HERMES",
+    "birth_date": "18/09/1992",
+    "fiscal_code": "BTANNH92P18C129B",
+    "city": "Verona",
+    "email": "0"
+  },
+  "result": {
+    "row": 17,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T09:03:06+00:00",
+    "error": "",
+    "elapsed": 96.11984619998839,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T09:03:06+00:00"
+}

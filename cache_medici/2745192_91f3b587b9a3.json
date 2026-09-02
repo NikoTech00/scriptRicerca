@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 14,
+    "pers_id": "2745192",
+    "medico_id": "0",
+    "surname": "ABATANGELO",
+    "name": "SILVIA",
+    "birth_date": "13/11/1994",
+    "fiscal_code": "BTNSLV94S53D612Z",
+    "city": "Prato",
+    "email": "0"
+  },
+  "result": {
+    "row": 14,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T09:02:18+00:00",
+    "error": "",
+    "elapsed": 96.12069690000499,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T09:02:18+00:00"
+}

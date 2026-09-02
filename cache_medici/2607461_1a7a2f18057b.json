@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 19,
+    "pers_id": "2607461",
+    "medico_id": "0",
+    "surname": "ABATE",
+    "name": "BIAGIO",
+    "birth_date": "29/06/1993",
+    "fiscal_code": "BTABGI93H29A783K",
+    "city": "Montesarchio",
+    "email": "0"
+  },
+  "result": {
+    "row": 19,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T09:03:06+00:00",
+    "error": "",
+    "elapsed": 80.100562800013,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T09:03:06+00:00"
+}

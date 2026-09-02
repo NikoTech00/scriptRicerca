@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 11,
+    "pers_id": "1219520",
+    "medico_id": "0",
+    "surname": "ABASCHINA",
+    "name": "MARIA",
+    "birth_date": "15/11/1971",
+    "fiscal_code": "BSCMRA71S55Z140R",
+    "city": "MONTELUPONE",
+    "email": "abaskina@tiscali.it"
+  },
+  "result": {
+    "row": 11,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T09:01:46+00:00",
+    "error": "",
+    "elapsed": 112.12878249998903,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T09:01:46+00:00"
+}

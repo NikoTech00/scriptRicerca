@@ -1,0 +1,29 @@
+{
+  "version": "V1.2 MEDICI - SPECIALITA + CV",
+  "person": {
+    "row": 6,
+    "pers_id": "2744182",
+    "medico_id": "0",
+    "surname": "ABAGNALE",
+    "name": "GIOVANNA",
+    "birth_date": "19/07/1994",
+    "fiscal_code": "BGNGNN94L59I483W",
+    "city": "Napoli",
+    "email": "0"
+  },
+  "result": {
+    "row": 6,
+    "status": "NESSUN_RISULTATO",
+    "specialty": "",
+    "specialty_confidence": "nessuna",
+    "cv_path": "",
+    "cv_url": "",
+    "sources": "",
+    "notes": "",
+    "updated": "2026-09-02T08:59:54+00:00",
+    "error": "",
+    "elapsed": 96.33396540000103,
+    "from_cache": false
+  },
+  "saved_at": "2026-09-02T08:59:54+00:00"
+}
