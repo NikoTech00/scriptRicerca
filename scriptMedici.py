@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V4.1 MEDICI - SEARCH API STABLE + AUTH FAIL-FAST"
+VERSION = "V4.2 MEDICI - STRICT IDENTITY + VERIFIED SOURCES"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -232,7 +232,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_1.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_2.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -803,6 +803,14 @@ JUNK_DOMAIN_HINTS = (
     "linkedin.", "wikipedia.", "ebay.", "aliexpress.",
 )
 
+# Directory/profili in cui una pagina può citare molti medici diversi.
+# Su questi domini non basta che il nome compaia nello snippet: il profilo
+# deve appartenere chiaramente alla persona cercata.
+PROFILE_DIRECTORY_HINTS = (
+    "miodottore.", "doctoralia.", "doctolib.", "dottori.it",
+    "topdoctors.", "paginebianche.", "paginegialle.",
+)
+
 
 def identity_score(text: str, person: Person) -> int:
     n = normalize(text)
@@ -1246,34 +1254,33 @@ def email_domain(email: str) -> str:
 
 
 def research_queries(person: Person, deep: bool) -> list[str]:
-    """
-    Query in ordine di costo/valore. Il pipeline NON le esegue tutte:
-    si ferma appena ottiene fonti abbastanza rilevanti.
-    """
+    """Query ordinate per precisione; l'algoritmo si ferma appena ha evidenze forti."""
     full = f'"{person.full_name}"'
     reverse = f'"{person.surname} {person.name}"'
     qs = []
 
-    d = email_domain(person.email)
-    if d:
-        qs.append(f'{full} site:{d} medico curriculum specialista')
-
-    # Prima query generale ad alta resa.
-    qs.append(f'{full} medico specialista curriculum ospedale')
-
-    # Seconda query CV-specifica.
-    qs.append(f'{full} "curriculum vitae" filetype:pdf')
-
-    # Query di disambiguazione.
+    # Prima disambiguiamo con la città: evita omonimi e directory rumorose.
     if person.city:
-        qs.append(f'{full} medico "{person.city}" specializzazione')
-    else:
-        qs.append(f'{reverse} medico specialista')
+        qs.append(f'{full} medico "{person.city}"')
+
+    # Query generale per profilo/struttura/specialità.
+    qs.append(f'{full} medico specialista ospedale')
+
+    # Un dominio email è utile solo se non è un provider personale. Se sembra
+    # sanitario/istituzionale lo anticipiamo; altrimenti resta una query deep.
+    d = email_domain(person.email)
+    if d and trusted_medical_domain(f'https://{d}'):
+        qs.append(f'{full} site:{d} medico specialista curriculum')
+
+    # CV specifico, dopo aver tentato l'identificazione professionale.
+    qs.append(f'{full} "curriculum vitae" medico filetype:pdf')
 
     if deep:
-        qs.append(f'{full} ASL OR AUSL OR ASST OR AOU OR IRCCS curriculum')
+        if d and not trusted_medical_domain(f'https://{d}'):
+            qs.append(f'{full} site:{d} medico')
+        qs.append(f'{full} ASL OR AUSL OR ASST OR AOU OR IRCCS medico')
+        qs.append(f'{reverse} medico specializzazione')
 
-    # Deduplica mantenendo l'ordine.
     out = []
     seen = set()
     for q in qs:
@@ -1298,63 +1305,125 @@ def trusted_medical_domain(url: str) -> bool:
     return any(x in d for x in TRUSTED_MEDICAL_DOMAIN_HINTS)
 
 
+def exact_identity_in(text: str, person: Person) -> bool:
+    n = normalize(text)
+    full = normalize(person.full_name)
+    reverse = normalize(f"{person.surname} {person.name}")
+    return bool((full and full in n) or (reverse and reverse in n))
+
+
+def url_identity_match(url: str, person: Person) -> bool:
+    try:
+        parsed = urlparse(normalize_result_url(url))
+        # Gli slug dei profili usano spesso -, _, / fra nome e cognome.
+        path = re.sub(r"[-_/+.]+", " ", unquote(parsed.path))
+        return exact_identity_in(path, person)
+    except Exception:
+        return False
+
+
+def is_profile_directory(url: str) -> bool:
+    d = domain(url)
+    return any(x in d for x in PROFILE_DIRECTORY_HINTS)
+
+
+def profile_identity_conflict(hit: WebHit, person: Person) -> bool:
+    """Rifiuta profili directory chiaramente intestati a un'altra persona."""
+    if not is_profile_directory(hit.url):
+        return False
+    # Per directory/profili la persona deve essere nel titolo o nello slug URL.
+    return not (exact_identity_in(hit.title, person) or url_identity_match(hit.url, person))
+
+
 def hit_relevance(hit: WebHit, person: Person) -> tuple[bool, int, str]:
-    """
-    Filtra i risultati palesemente estranei prima di aprire pagine/PDF.
-    """
+    """Filtro SERP ad alta precisione: nessun cognome-only e nessun profilo altrui."""
     real_url = normalize_result_url(hit.url)
     d = domain(real_url)
-    blob = normalize(f"{hit.title} {hit.snippet} {real_url}")
-
     if not d:
         return False, -999, "dominio assente"
-
     if is_junk_domain(real_url):
         return False, -500, f"dominio irrilevante: {d}"
+    if profile_identity_conflict(hit, person):
+        return False, -450, "profilo directory intestato a un'altra persona"
+
+    title_full = exact_identity_in(hit.title, person)
+    url_full = url_identity_match(real_url, person)
+    snippet_full = exact_identity_in(hit.snippet, person)
 
     surname = normalize(person.surname)
     name = normalize(person.name)
-    full = normalize(person.full_name)
-    reverse = normalize(f"{person.surname} {person.name}")
+    title_n = normalize(hit.title)
+    title_both = bool(surname and name and surname in title_n and name in title_n)
 
-    has_full = bool(full and full in blob) or bool(reverse and reverse in blob)
-    has_surname = bool(surname and surname in blob)
-    has_name = bool(name and name in blob)
+    blob = normalize(f"{hit.title} {hit.snippet} {real_url}")
     medical_context = any(x in blob for x in MEDICAL_TERMS)
     trusted = trusted_medical_domain(real_url)
     professional_domain = email_domain(person.email)
-    same_prof_domain = bool(professional_domain and (d == professional_domain or d.endswith("." + professional_domain)))
+    same_prof_domain = bool(
+        professional_domain and (d == professional_domain or d.endswith("." + professional_domain))
+    )
 
     score = 0
-    if has_full:
-        score += 220
-    elif has_surname and has_name:
-        score += 130
-    elif has_surname:
-        score += 45
-
+    if title_full:
+        score += 360
+    elif title_both:
+        score += 260
+    if url_full:
+        score += 320
+    if snippet_full:
+        score += 150
     if medical_context:
-        score += 80
+        score += 90
     if trusted:
-        score += 120
+        score += 130
     if same_prof_domain:
-        score += 220
+        score += 160
     if "curriculum" in blob or "europass" in blob or ".pdf" in real_url.casefold():
-        score += 70
+        score += 80
     if person.city and normalize(person.city) in blob:
-        score += 30
+        score += 35
 
-    # Accettiamo:
-    # - identità forte;
-    # - cognome + fonte sanitaria affidabile;
-    # - dominio professionale noto.
-    relevant = has_full or (has_surname and trusted) or same_prof_domain
+    # Regole di accettazione:
+    # 1. nome completo nel titolo o URL; oppure
+    # 2. fonte sanitaria autorevole + nome completo nello snippet; oppure
+    # 3. dominio professionale noto + nome completo nello snippet/titolo.
+    relevant = (
+        title_full
+        or url_full
+        or (trusted and snippet_full)
+        or (same_prof_domain and (snippet_full or title_both))
+    )
 
     if not relevant:
-        return False, score, "identità/fonte insufficienti"
+        return False, score, "identita primaria non verificata"
+    if not medical_context and not trusted and not same_prof_domain and not hit_looks_pdf(hit):
+        return False, score, "manca contesto medico"
 
     return True, score, "ok"
 
+
+def landing_identity_ok(hit: WebHit, text: str, person: Person) -> tuple[bool, str]:
+    """Conferma l'identità sulla pagina prima di usarla come fonte."""
+    if not text:
+        return False, "pagina senza testo"
+    page_id = identity_score(text, person)
+    if page_id < 180:
+        return False, "nome completo assente dalla pagina"
+
+    if is_profile_directory(hit.url):
+        if not (exact_identity_in(hit.title, person) or url_identity_match(hit.url, person)):
+            return False, "profilo directory di altra persona"
+        return True, "profilo directory coerente"
+
+    if trusted_medical_domain(hit.url):
+        return True, "fonte sanitaria autorevole con identita confermata"
+
+    # Su fonti generiche pretendiamo che il risultato sia intestato alla persona,
+    # non che il nome compaia soltanto nel corpo della pagina.
+    if exact_identity_in(hit.title, person) or url_identity_match(hit.url, person):
+        return True, "identita primaria confermata"
+
+    return False, "fonte generica con identita solo incidentale"
 
 def score_hit_for_person(hit: WebHit, person: Person) -> int:
     ok, score, _ = hit_relevance(hit, person)
@@ -1428,7 +1497,6 @@ def research_person(person: Person, args: argparse.Namespace,
         reverse=True,
     )
 
-    sources.extend(h.url for h in ranked_hits[:args.search_results * 2])
     logging.info(
         "HIT SUMMARY | Pers_Id=%s | query=%s | grezzi=%s | rilevanti=%s | provider=%s",
         person.pers_id, queries_used, len(all_hits), len(ranked_hits),
@@ -1493,11 +1561,18 @@ def research_person(person: Person, args: argparse.Namespace,
             continue
 
         landing_checked += 1
-        sources.append(hit.url)
 
         text = page_text(hit.url)
-        if text:
-            specialty_pool.extend(specialty_candidates(text, person, hit.url))
+        page_ok, page_reason = landing_identity_ok(hit, text, person)
+        if not page_ok:
+            logging.info(
+                "LANDING SCARTATA | Pers_Id=%s | %s | %s",
+                person.pers_id, page_reason, hit.url
+            )
+            continue
+
+        sources.append(hit.url)
+        specialty_pool.extend(specialty_candidates(text, person, hit.url))
 
         for candidate in landing_pdf_links(hit.url, person):
             if pdf_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
@@ -1532,9 +1607,11 @@ def research_person(person: Person, args: argparse.Namespace,
         if cv_path:
             break
 
-    # 3) Specialità anche dagli snippet raccolti.
+    # 3) Specialità anche dagli snippet realmente restituiti dal motore.
+    # IMPORTANTE: non iniettiamo il nome della persona nel testo; l'identità
+    # deve essere presente davvero nel risultato.
     for hit in ranked_hits:
-        blob = f"{person.full_name}\n{hit.title}\n{hit.snippet}"
+        blob = f"{hit.title}\n{hit.snippet}"
         specialty_pool.extend(specialty_candidates(blob, person, hit.url))
 
     if all_hits and not ranked_hits:
@@ -1552,7 +1629,7 @@ def research_person(person: Person, args: argparse.Namespace,
         status = "CV_TROVATO_SPECIALITA_DA_VERIFICARE"
     elif cv_review_paths:
         status = "DA_VERIFICARE"
-    elif sources and ranked_hits:
+    elif sources:
         status = "DA_VERIFICARE"
     else:
         status = "NESSUN_RISULTATO"
@@ -1571,7 +1648,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V4.1 ({args.provider})",
+        "method": f"Search API V4.2 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -1692,7 +1769,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.1 ({args.provider})",
+                "method": f"Search API V4.2 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -1712,7 +1789,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.1 ({args.provider})",
+                "method": f"Search API V4.2 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -1731,7 +1808,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.1 ({args.provider})",
+                "method": f"Search API V4.2 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
