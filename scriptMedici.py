@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V4.0 MEDICI - SERPER PRIMARY + ADAPTIVE SEARCH"
+VERSION = "V4.1 MEDICI - SEARCH API STABLE + AUTH FAIL-FAST"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -232,7 +232,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_1.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -506,6 +506,10 @@ class SearchQuotaError(RuntimeError):
     pass
 
 
+class SearchAuthError(RuntimeError):
+    pass
+
+
 class SearchClient:
     def __init__(self, provider: str, max_results: int,
                  delay_min: float, delay_max: float):
@@ -550,13 +554,22 @@ class SearchClient:
 
     def search(self, query: str) -> list[WebHit]:
         last_error = None
-        for provider in self.configured_providers():
+        providers = self.configured_providers()
+
+        for idx, provider in enumerate(providers):
             try:
                 hits = self._search_provider(provider, query)
                 if hits:
                     return hits
             except SearchQuotaError:
                 raise
+            except SearchAuthError as exc:
+                self.failures_by_provider[provider] += 1
+                logging.error("SEARCH API AUTH FAIL | %s | %s", provider, exc)
+                if self.provider != "auto" or idx == len(providers) - 1:
+                    raise
+                last_error = exc
+                continue
             except Exception as exc:
                 last_error = exc
                 self.failures_by_provider[provider] += 1
@@ -599,7 +612,10 @@ class SearchClient:
         if r.status_code == 429:
             raise SearchQuotaError("Serper: crediti/quota esauriti o rate limit.")
         if r.status_code in {401, 403}:
-            raise RuntimeError(f"Serper autenticazione fallita HTTP {r.status_code}")
+            raise SearchAuthError(
+                f"Serper autenticazione rifiutata HTTP {r.status_code}. "
+                "Controlla che SERPER_API_KEY sia corretta, attiva e associata a un account con accesso API."
+            )
         r.raise_for_status()
 
         data = r.json()
@@ -637,7 +653,10 @@ class SearchClient:
         if r.status_code == 429:
             raise SearchQuotaError("Brave Search: quota/rate limit.")
         if r.status_code in {401, 403}:
-            raise RuntimeError(f"Brave autenticazione fallita HTTP {r.status_code}")
+            raise SearchAuthError(
+                f"Brave Search autenticazione rifiutata HTTP {r.status_code}. "
+                "Controlla BRAVE_SEARCH_API_KEY."
+            )
         r.raise_for_status()
 
         data = r.json()
@@ -996,6 +1015,20 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path,
 def hit_looks_pdf(hit: WebHit) -> bool:
     blob = normalize(f"{hit.title} {hit.snippet} {hit.url}")
     return ".pdf" in hit.url.casefold() or "curriculum" in blob or "europass" in blob
+
+def dedupe_hits(hits: Iterable[WebHit]) -> list[WebHit]:
+    """Deduplica i risultati mantenendo il primo URL canonico."""
+    out: list[WebHit] = []
+    seen: set[str] = set()
+    for hit in hits:
+        real_url = normalize_result_url(hit.url)
+        key = canonical_url(real_url)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        out.append(WebHit(hit.title, real_url, hit.snippet, hit.engine))
+    return out
+
 
 
 def landing_pdf_links(url: str, person: Person) -> list[str]:
@@ -1538,7 +1571,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V4 ({args.provider})",
+        "method": f"Search API V4.1 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -1645,6 +1678,26 @@ def main() -> int:
             result = research_person(
                 person, args, search_client, cv_dir, review_dir, cache_dir
             )
+        except SearchAuthError as exc:
+            logging.error("AUTH SEARCH API | %s", exc)
+            result = {
+                "row": person.row,
+                "status": "BLOCCATO_AUTENTICAZIONE_API",
+                "specialty": "",
+                "specialty_confidence": "nessuna",
+                "specialty_evidence": "",
+                "cv_path": "",
+                "cv_url": "",
+                "cv_confidence": "nessuna",
+                "cv_review_paths": "",
+                "cv_review_urls": "",
+                "sources": "",
+                "method": f"Search API V4.1 ({args.provider})",
+                "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
+                "updated": utc_now(),
+                "error": str(exc),
+            }
+
         except SearchQuotaError as exc:
             logging.error("QUOTA SEARCH API | %s", exc)
             result = {
@@ -1659,7 +1712,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4 ({args.provider})",
+                "method": f"Search API V4.1 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -1678,7 +1731,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4 ({args.provider})",
+                "method": f"Search API V4.1 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
@@ -1703,9 +1756,12 @@ def main() -> int:
                 i, len(people), rate, eta, counts, search_client.requests_by_provider
             )
 
-        if status == "BLOCCATO_QUOTA_RICERCA":
+        if status in {"BLOCCATO_QUOTA_RICERCA", "BLOCCATO_AUTENTICAZIONE_API"}:
             atomic_save(wb, output_path)
-            logging.error("STOP | Quota Search API esaurita.")
+            if status == "BLOCCATO_QUOTA_RICERCA":
+                logging.error("STOP | Quota Search API esaurita.")
+            else:
+                logging.error("STOP | Autenticazione Search API rifiutata.")
             break
 
     atomic_save(wb, output_path)
@@ -1756,6 +1812,9 @@ if __name__ == "__main__":
 
     try:
         load_dotenv()
+        script_env = Path(__file__).resolve().parent / ".env"
+        if script_env.exists():
+            load_dotenv(script_env, override=False)
         raise SystemExit(main())
     except KeyboardInterrupt:
         write_bootstrap_log(startup_log, "INTERRUZIONE | KeyboardInterrupt")
@@ -1766,3 +1825,4 @@ if __name__ == "__main__":
         print(f"\nERRORE FATALE: {type(exc).__name__}: {exc}")
         print(f"Log diagnostico: {startup_log.resolve()}")
         raise
+#
