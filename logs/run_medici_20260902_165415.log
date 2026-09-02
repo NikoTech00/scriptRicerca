@@ -1,0 +1,381 @@
+2026-09-02 16:54:57 | INFO | ==============================================================================
+2026-09-02 16:54:57 | INFO | V4.6 MEDICI - STRUCTURED ROLE + GEO DISAMBIGUATION + VERIFIED PDF ONLY
+2026-09-02 16:54:57 | INFO | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-02 16:54:57 | INFO | Output: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 16:54:57 | INFO | Provider: serper
+2026-09-02 16:54:57 | INFO | Deep: False
+2026-09-02 16:54:57 | INFO | Search results: 8
+2026-09-02 16:54:57 | INFO | Max searches/persona: 3 (+1 con --deep)
+2026-09-02 16:54:57 | INFO | Delay: 0.1 - 0.3 sec
+2026-09-02 16:54:57 | INFO | CV sicuri dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-02 16:54:57 | INFO | CV da verificare dir: C:\Dev\Niko\scriptRicerca\cv_medici_da_verificare
+2026-09-02 16:54:57 | INFO | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-02 16:54:57 | INFO | Log: logs\run_medici_20260902_165415.log
+2026-09-02 16:54:57 | INFO | ==============================================================================
+2026-09-02 16:54:57 | INFO | Medici da elaborare: 40
+2026-09-02 16:54:59 | INFO | SEARCH API OK | serper | "YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA" | 3 risultati
+2026-09-02 16:55:02 | INFO | SEARCH API OK | serper | "YASAMIN AAZAM RAHIMIAN" medico specialista ospedale | 1 risultati
+2026-09-02 16:55:04 | INFO | SEARCH API OK | serper | "YASAMIN AAZAM RAHIMIAN" specializzazione OR specialista OR "medico di" | 2 risultati
+2026-09-02 16:55:04 | INFO | HIT SUMMARY | Pers_Id=2467194 | query=3 | grezzi=3 | rilevanti=1 | provider={'serper': 3, 'brave': 0}
+2026-09-02 16:55:06 | INFO | DONE | Pers_Id=2467194 | 9.4s | SPECIALITA_TROVATA | specialita=Medicina Fisica e Riabilitativa | cv=NO | cv_review=0
+2026-09-02 16:55:08 | INFO | SEARCH API OK | serper | "ERNESTO MARTIN ABAD AGUIAR" medico "Nuoro" | 8 risultati
+2026-09-02 16:55:08 | INFO | HIT SUMMARY | Pers_Id=2606079 | query=1 | grezzi=8 | rilevanti=3 | provider={'serper': 4, 'brave': 0}
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1738603917/legal/Per_saperne_di_pi%C3%B9_sui_servizi_personalizzati.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1747059391/legal/Per_saperne_di_pi%C3%B9_sulla_ricerca_e_lo_sviluppo_di_prodotti_innovativi.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://esante.gouv.fr/sites/default/files/media_entity/documents/%5BINS%20au%20quotidien%5D%20Conduite%20à%20tenir%20en%20fonction%20du%20retour%20d%27INSi.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1708014384/legal/Adyen_CGU_ITA.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1642696847/PrivacyPolicy-B2B-january-2022-Vdef_jx0yux.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1643797392/Privacy-policy-B2B-ITA-Jan22-vdef_pkciyb.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1614251120/legal/D%C3%89FINITIONS_patients.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1657277812/legal/B2C-PrivacyPolicy-July-22-ITA.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1745330410/legal/B2C-VDEF-PP-APR-25-FR.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1753974148/legal/B2C-PrivacyPolicy-JULY_25-DE.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1584379505/pms_training/intellio_teletransmission_fsedegradee.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_tcs.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1586961367/KV%20Declaration%20Form/Zertifizierter_Videodienstanbieter_Datenschutzcert_Formular.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/mkg/file/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1607434983/Transparence_des_liens_-_LAP_-_de%CC%81claration_V4_m11n9b.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1697629985/legal/Certification_HAS_du_LAP_Doctolib_20231017.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:55:09 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1695113836/legal/B2B-Conditionsderogatoires-CA-SEP23-FR.pdf
+2026-09-02 16:55:11 | INFO | DONE | Pers_Id=2606079 | 4.8s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 16:55:12 | INFO | SEARCH API OK | serper | "CHIARA ABAGNALE" medico "San felice Circeo" | 2 risultati
+2026-09-02 16:55:14 | INFO | SEARCH API OK | serper | "CHIARA ABAGNALE" medico specialista ospedale | 8 risultati
+2026-09-02 16:55:16 | INFO | SEARCH API OK | serper | "CHIARA ABAGNALE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:55:16 | INFO | HIT SUMMARY | Pers_Id=2606149 | query=3 | grezzi=16 | rilevanti=1 | provider={'serper': 7, 'brave': 0}
+2026-09-02 16:55:19 | INFO | DONE | Pers_Id=2606149 | 7.8s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:55:20 | INFO | SEARCH API OK | serper | "FEDERICA ABAGNALE" medico "Napoli" | 0 risultati
+2026-09-02 16:55:23 | INFO | SEARCH API OK | serper | "FEDERICA ABAGNALE" medico specialista ospedale | 0 risultati
+2026-09-02 16:55:25 | INFO | SEARCH API OK | serper | "FEDERICA ABAGNALE" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-02 16:55:25 | INFO | HIT SUMMARY | Pers_Id=2744181 | query=3 | grezzi=1 | rilevanti=0 | provider={'serper': 10, 'brave': 0}
+2026-09-02 16:55:25 | INFO | DONE | Pers_Id=2744181 | 5.8s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:55:26 | INFO | SEARCH API OK | serper | "GIOVANNA ABAGNALE" medico "Napoli" | 4 risultati
+2026-09-02 16:55:28 | INFO | SEARCH API OK | serper | "GIOVANNA ABAGNALE" medico specialista ospedale | 0 risultati
+2026-09-02 16:55:29 | INFO | SEARCH API OK | serper | "GIOVANNA ABAGNALE" specializzazione OR specialista OR "medico di" | 0 risultati
+2026-09-02 16:55:29 | INFO | HIT SUMMARY | Pers_Id=2744182 | query=3 | grezzi=4 | rilevanti=0 | provider={'serper': 13, 'brave': 0}
+2026-09-02 16:55:29 | INFO | DONE | Pers_Id=2744182 | 4.5s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:55:29 | INFO | PROGRESS | 5/40 | 9.25 medici/min | ETA 3.8 min | {'SPECIALITA_TROVATA': 2, 'DA_VERIFICARE': 1, 'NESSUN_RISULTATO': 2} | API={'serper': 13, 'brave': 0}
+2026-09-02 16:55:32 | INFO | SEARCH API OK | serper | "GIUSEPPE ABAGNALE" medico "GRAGNANO" | 8 risultati
+2026-09-02 16:55:32 | INFO | HIT SUMMARY | Pers_Id=359717 | query=1 | grezzi=8 | rilevanti=1 | provider={'serper': 14, 'brave': 0}
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1738603917/legal/Per_saperne_di_pi%C3%B9_sui_servizi_personalizzati.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1747059391/legal/Per_saperne_di_pi%C3%B9_sulla_ricerca_e_lo_sviluppo_di_prodotti_innovativi.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://esante.gouv.fr/sites/default/files/media_entity/documents/%5BINS%20au%20quotidien%5D%20Conduite%20à%20tenir%20en%20fonction%20du%20retour%20d%27INSi.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1708014384/legal/Adyen_CGU_ITA.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1642696847/PrivacyPolicy-B2B-january-2022-Vdef_jx0yux.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1643797392/Privacy-policy-B2B-ITA-Jan22-vdef_pkciyb.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1614251120/legal/D%C3%89FINITIONS_patients.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1657277812/legal/B2C-PrivacyPolicy-July-22-ITA.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1745330410/legal/B2C-VDEF-PP-APR-25-FR.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1753974148/legal/B2C-PrivacyPolicy-JULY_25-DE.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1584379505/pms_training/intellio_teletransmission_fsedegradee.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_tcs.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1586961367/KV%20Declaration%20Form/Zertifizierter_Videodienstanbieter_Datenschutzcert_Formular.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/mkg/file/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1607434983/Transparence_des_liens_-_LAP_-_de%CC%81claration_V4_m11n9b.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1697629985/legal/Certification_HAS_du_LAP_Doctolib_20231017.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:55:33 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1695113836/legal/B2B-Conditionsderogatoires-CA-SEP23-FR.pdf
+2026-09-02 16:55:33 | INFO | DONE | Pers_Id=359717 | 3.6s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 16:55:34 | INFO | SEARCH API OK | serper | "LUCIA ABAGNALE" medico "Santa Maria la Carità" | 0 risultati
+2026-09-02 16:55:36 | INFO | SEARCH API OK | serper | "LUCIA ABAGNALE" medico specialista ospedale | 1 risultati
+2026-09-02 16:55:39 | INFO | SEARCH API OK | serper | "LUCIA ABAGNALE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:55:39 | INFO | HIT SUMMARY | Pers_Id=2606156 | query=3 | grezzi=9 | rilevanti=1 | provider={'serper': 17, 'brave': 0}
+2026-09-02 16:55:47 | INFO | LANDING SCARTATA | Pers_Id=2606156 | nome completo assente dalla pagina | https://burc.regione.campania.it/eBurcWeb/directServlet?DOCUMENT_ID=00108224&ATTACH_ID=160875
+2026-09-02 16:55:47 | INFO | DONE | Pers_Id=2606156 | 14.4s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:55:48 | INFO | SEARCH API OK | serper | "CHIARA ABALOTTI" medico "CORNEDO VICENTINO" | 8 risultati
+2026-09-02 16:55:50 | INFO | SEARCH API OK | serper | "CHIARA ABALOTTI" medico specialista ospedale | 2 risultati
+2026-09-02 16:55:52 | INFO | SEARCH API OK | serper | "CHIARA ABALOTTI" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:55:52 | INFO | HIT SUMMARY | Pers_Id=1188728 | query=3 | grezzi=14 | rilevanti=2 | provider={'serper': 20, 'brave': 0}
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1738603917/legal/Per_saperne_di_pi%C3%B9_sui_servizi_personalizzati.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1747059391/legal/Per_saperne_di_pi%C3%B9_sulla_ricerca_e_lo_sviluppo_di_prodotti_innovativi.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://esante.gouv.fr/sites/default/files/media_entity/documents/%5BINS%20au%20quotidien%5D%20Conduite%20à%20tenir%20en%20fonction%20du%20retour%20d%27INSi.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1708014384/legal/Adyen_CGU_ITA.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1642696847/PrivacyPolicy-B2B-january-2022-Vdef_jx0yux.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1643797392/Privacy-policy-B2B-ITA-Jan22-vdef_pkciyb.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1614251120/legal/D%C3%89FINITIONS_patients.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1657277812/legal/B2C-PrivacyPolicy-July-22-ITA.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1745330410/legal/B2C-VDEF-PP-APR-25-FR.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1753974148/legal/B2C-PrivacyPolicy-JULY_25-DE.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1584379505/pms_training/intellio_teletransmission_fsedegradee.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_tcs.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1586961367/KV%20Declaration%20Form/Zertifizierter_Videodienstanbieter_Datenschutzcert_Formular.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/mkg/file/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1607434983/Transparence_des_liens_-_LAP_-_de%CC%81claration_V4_m11n9b.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1697629985/legal/Certification_HAS_du_LAP_Doctolib_20231017.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:55:57 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1695113836/legal/B2B-Conditionsderogatoires-CA-SEP23-FR.pdf
+2026-09-02 16:55:57 | INFO | DONE | Pers_Id=1188728 | 9.3s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 16:55:58 | INFO | SEARCH API OK | serper | "MARIA VITTORIA ABALSAMO" medico "ROMA" | 8 risultati
+2026-09-02 16:55:58 | INFO | HIT SUMMARY | Pers_Id=436708 | query=1 | grezzi=8 | rilevanti=2 | provider={'serper': 21, 'brave': 0}
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1738603917/legal/Per_saperne_di_pi%C3%B9_sui_servizi_personalizzati.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1747059391/legal/Per_saperne_di_pi%C3%B9_sulla_ricerca_e_lo_sviluppo_di_prodotti_innovativi.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://esante.gouv.fr/sites/default/files/media_entity/documents/%5BINS%20au%20quotidien%5D%20Conduite%20à%20tenir%20en%20fonction%20du%20retour%20d%27INSi.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1708014384/legal/Adyen_CGU_ITA.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1642696847/PrivacyPolicy-B2B-january-2022-Vdef_jx0yux.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1643797392/Privacy-policy-B2B-ITA-Jan22-vdef_pkciyb.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1614251120/legal/D%C3%89FINITIONS_patients.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1657277812/legal/B2C-PrivacyPolicy-July-22-ITA.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1745330410/legal/B2C-VDEF-PP-APR-25-FR.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1753974148/legal/B2C-PrivacyPolicy-JULY_25-DE.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1584379505/pms_training/intellio_teletransmission_fsedegradee.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_tcs.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1586961367/KV%20Declaration%20Form/Zertifizierter_Videodienstanbieter_Datenschutzcert_Formular.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/mkg/file/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1607434983/Transparence_des_liens_-_LAP_-_de%CC%81claration_V4_m11n9b.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1697629985/legal/Certification_HAS_du_LAP_Doctolib_20231017.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:56:00 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1695113836/legal/B2B-Conditionsderogatoires-CA-SEP23-FR.pdf
+2026-09-02 16:56:00 | INFO | DONE | Pers_Id=436708 | 3.4s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 16:56:01 | INFO | SEARCH API OK | serper | "MARIA ABASCHINA" medico "MONTELUPONE" | 2 risultati
+2026-09-02 16:56:01 | INFO | HIT SUMMARY | Pers_Id=1219520 | query=1 | grezzi=2 | rilevanti=1 | provider={'serper': 22, 'brave': 0}
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1738603917/legal/Per_saperne_di_pi%C3%B9_sui_servizi_personalizzati.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1747059391/legal/Per_saperne_di_pi%C3%B9_sulla_ricerca_e_lo_sviluppo_di_prodotti_innovativi.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://esante.gouv.fr/sites/default/files/media_entity/documents/%5BINS%20au%20quotidien%5D%20Conduite%20à%20tenir%20en%20fonction%20du%20retour%20d%27INSi.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1708014384/legal/Adyen_CGU_ITA.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1642696847/PrivacyPolicy-B2B-january-2022-Vdef_jx0yux.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1643797392/Privacy-policy-B2B-ITA-Jan22-vdef_pkciyb.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1614251120/legal/D%C3%89FINITIONS_patients.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1657277812/legal/B2C-PrivacyPolicy-July-22-ITA.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1745330410/legal/B2C-VDEF-PP-APR-25-FR.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1753974148/legal/B2C-PrivacyPolicy-JULY_25-DE.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1584379505/pms_training/intellio_teletransmission_fsedegradee.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_tcs.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1586961367/KV%20Declaration%20Form/Zertifizierter_Videodienstanbieter_Datenschutzcert_Formular.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/mkg/file/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1607434983/Transparence_des_liens_-_LAP_-_de%CC%81claration_V4_m11n9b.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1697629985/legal/Certification_HAS_du_LAP_Doctolib_20231017.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:56:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1695113836/legal/B2B-Conditionsderogatoires-CA-SEP23-FR.pdf
+2026-09-02 16:56:03 | INFO | DONE | Pers_Id=1219520 | 2.9s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 16:56:23 | INFO | CHECKPOINT | 10/40 | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 16:56:23 | INFO | PROGRESS | 10/40 | 6.96 medici/min | ETA 4.3 min | {'SPECIALITA_TROVATA': 6, 'DA_VERIFICARE': 1, 'NESSUN_RISULTATO': 3} | API={'serper': 22, 'brave': 0}
+2026-09-02 16:56:24 | INFO | SEARCH API OK | serper | "NATALIYA VOLODYMYRIVNA ABASKALOVA" medico "Grosseto" | 0 risultati
+2026-09-02 16:56:27 | INFO | SEARCH API OK | serper | "NATALIYA VOLODYMYRIVNA ABASKALOVA" medico specialista ospedale | 0 risultati
+2026-09-02 16:56:30 | INFO | SEARCH API OK | serper | "NATALIYA VOLODYMYRIVNA ABASKALOVA" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-02 16:56:30 | INFO | HIT SUMMARY | Pers_Id=1784532 | query=3 | grezzi=1 | rilevanti=0 | provider={'serper': 25, 'brave': 0}
+2026-09-02 16:56:30 | INFO | DONE | Pers_Id=1784532 | 6.8s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:56:31 | INFO | SEARCH API OK | serper | "GIULIO ABATANGELO" medico "Padova" | 3 risultati
+2026-09-02 16:56:33 | INFO | SEARCH API OK | serper | "GIULIO ABATANGELO" medico specialista ospedale | 1 risultati
+2026-09-02 16:56:35 | INFO | SEARCH API OK | serper | "GIULIO ABATANGELO" specializzazione OR specialista OR "medico di" | 4 risultati
+2026-09-02 16:56:35 | INFO | HIT SUMMARY | Pers_Id=2806591 | query=3 | grezzi=6 | rilevanti=0 | provider={'serper': 28, 'brave': 0}
+2026-09-02 16:56:35 | INFO | DONE | Pers_Id=2806591 | 4.8s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:56:36 | INFO | SEARCH API OK | serper | "SILVIA ABATANGELO" medico "Prato" | 6 risultati
+2026-09-02 16:56:38 | INFO | SEARCH API OK | serper | "SILVIA ABATANGELO" medico specialista ospedale | 2 risultati
+2026-09-02 16:56:39 | INFO | SEARCH API OK | serper | "SILVIA ABATANGELO" specializzazione OR specialista OR "medico di" | 4 risultati
+2026-09-02 16:56:39 | INFO | HIT SUMMARY | Pers_Id=2745192 | query=3 | grezzi=9 | rilevanti=0 | provider={'serper': 31, 'brave': 0}
+2026-09-02 16:56:39 | INFO | DONE | Pers_Id=2745192 | 4.5s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:56:41 | INFO | SEARCH API OK | serper | "ANDREA ABATE" medico "Milano" | 8 risultati
+2026-09-02 16:56:42 | INFO | SEARCH API OK | serper | "ANDREA ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:56:42 | INFO | HIT SUMMARY | Pers_Id=2607465 | query=2 | grezzi=14 | rilevanti=3 | provider={'serper': 33, 'brave': 0}
+2026-09-02 16:56:48 | INFO | CV SCARTATO | 2607465 | https://portale.fnomceo.it/wp-content/uploads/2018/09/PROGRAMMA-INTEGRALE-FORUMRISK13_WEB.pdf | Nome del target assente dall'intestazione del CV.
+2026-09-02 16:56:52 | INFO | DONE | Pers_Id=2607465 | 12.4s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:56:53 | INFO | SEARCH API OK | serper | "ANGELA MARIA ABATE" medico "MONCALIERI" | 0 risultati
+2026-09-02 16:56:55 | INFO | SEARCH API OK | serper | "ANGELA MARIA ABATE" medico specialista ospedale | 0 risultati
+2026-09-02 16:56:57 | INFO | SEARCH API OK | serper | "ANGELA MARIA ABATE" specializzazione OR specialista OR "medico di" | 3 risultati
+2026-09-02 16:56:57 | INFO | HIT SUMMARY | Pers_Id=1222252 | query=3 | grezzi=3 | rilevanti=2 | provider={'serper': 36, 'brave': 0}
+2026-09-02 16:56:58 | INFO | PDF PRE-SCARTATO | landing non-CV | https://1337ugc.de/wp-content/uploads/1337_UGC_Mediakit.pdf
+2026-09-02 16:56:58 | INFO | PDF PRE-SCARTATO | markup non-CV | https://1337ugc.de/wp-content/uploads/1337_UGC_Mediakit.pdf
+2026-09-02 16:56:58 | INFO | PDF PRE-SCARTATO | Pers_Id=1222252 | filtro finale landing | https://www.oraridiapertura24.it/filiale/Nichelino-Dott.ssa%2520Abate%2520Angela%2520Maria-3828217V.html
+2026-09-02 16:56:59 | INFO | PDF PRE-SCARTATO | landing non-CV | https://1337ugc.de/wp-content/uploads/1337_UGC_Mediakit.pdf
+2026-09-02 16:56:59 | INFO | PDF PRE-SCARTATO | markup non-CV | https://1337ugc.de/wp-content/uploads/1337_UGC_Mediakit.pdf
+2026-09-02 16:56:59 | INFO | PDF PRE-SCARTATO | Pers_Id=1222252 | filtro finale landing | https://www.oraridiapertura24.it/filiale/Nichelino-Dott.ssa%2520Abate%2520Angela%2520Maria-2929555U.html
+2026-09-02 16:56:59 | INFO | DONE | Pers_Id=1222252 | 7.6s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:56:59 | INFO | PROGRESS | 15/40 | 7.35 medici/min | ETA 3.4 min | {'SPECIALITA_TROVATA': 6, 'DA_VERIFICARE': 3, 'NESSUN_RISULTATO': 6} | API={'serper': 36, 'brave': 0}
+2026-09-02 16:57:03 | INFO | SEARCH API OK | serper | "ANTONIO HERMES ABATE" medico "Verona" | 0 risultati
+2026-09-02 16:57:06 | INFO | SEARCH API OK | serper | "ANTONIO HERMES ABATE" medico specialista ospedale | 0 risultati
+2026-09-02 16:57:07 | INFO | SEARCH API OK | serper | "ANTONIO HERMES ABATE" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-02 16:57:07 | INFO | HIT SUMMARY | Pers_Id=2463758 | query=3 | grezzi=1 | rilevanti=0 | provider={'serper': 39, 'brave': 0}
+2026-09-02 16:57:08 | INFO | DONE | Pers_Id=2463758 | 8.2s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:57:09 | INFO | SEARCH API OK | serper | "ASSUNTA ABATE" medico "FIRENZE" | 8 risultati
+2026-09-02 16:57:11 | INFO | SEARCH API OK | serper | "ASSUNTA ABATE" medico specialista ospedale | 7 risultati
+2026-09-02 16:57:13 | INFO | SEARCH API OK | serper | "ASSUNTA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:57:13 | INFO | HIT SUMMARY | Pers_Id=2162965 | query=3 | grezzi=17 | rilevanti=1 | provider={'serper': 42, 'brave': 0}
+2026-09-02 16:57:15 | INFO | DONE | Pers_Id=2162965 | 7.1s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:57:16 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico "Montesarchio" | 4 risultati
+2026-09-02 16:57:18 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:57:19 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:57:19 | INFO | HIT SUMMARY | Pers_Id=2607461 | query=3 | grezzi=16 | rilevanti=0 | provider={'serper': 45, 'brave': 0}
+2026-09-02 16:57:20 | INFO | DONE | Pers_Id=2607461 | 4.9s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:57:22 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico "Agrigento" | 2 risultati
+2026-09-02 16:57:24 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:57:28 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:57:28 | INFO | HIT SUMMARY | Pers_Id=2806593 | query=3 | grezzi=18 | rilevanti=0 | provider={'serper': 48, 'brave': 0}
+2026-09-02 16:57:28 | INFO | DONE | Pers_Id=2806593 | 8.5s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:57:29 | INFO | SEARCH API OK | serper | "CLAUDIA ABATE" medico "Milazzo" | 4 risultati
+2026-09-02 16:57:31 | INFO | SEARCH API OK | serper | "CLAUDIA ABATE" medico specialista ospedale | 7 risultati
+2026-09-02 16:57:33 | INFO | SEARCH API OK | serper | "CLAUDIA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:57:33 | INFO | HIT SUMMARY | Pers_Id=2607462 | query=3 | grezzi=17 | rilevanti=5 | provider={'serper': 51, 'brave': 0}
+2026-09-02 16:57:34 | INFO | CV SCARTATO | 2607462 | https://www.asllanusei.it/documenti/4_170_20180206134238.pdf | PDF senza testo estraibile
+2026-09-02 16:57:46 | INFO | LANDING SCARTATA | Pers_Id=2607462 | pagina senza testo | https://professionisti.quotidianosanitaclub.it/medico/claudia-abate-1538232
+2026-09-02 16:57:51 | INFO | LANDING SCARTATA | Pers_Id=2607462 | fonte sanitaria con identita solo incidentale | https://www.aslogliastra.it/servizio/psicologia
+2026-09-02 16:57:56 | INFO | LANDING SCARTATA | Pers_Id=2607462 | ruolo incompatibile vicino al nome: possibile omonimo | https://www.aslogliastra.it/servizio/disturbi-della-nutrizione-e-dellalimentazione
+2026-09-02 16:57:57 | INFO | LANDING SCARTATA | Pers_Id=2607462 | fonte sanitaria con identita solo incidentale | https://www.qsalute.it/ortopedia-ospedale-marino
+2026-09-02 16:57:57 | INFO | DONE | Pers_Id=2607462 | 29.0s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:58:19 | INFO | CHECKPOINT | 20/40 | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 16:58:19 | INFO | PROGRESS | 20/40 | 5.92 medici/min | ETA 3.4 min | {'SPECIALITA_TROVATA': 6, 'DA_VERIFICARE': 4, 'NESSUN_RISULTATO': 10} | API={'serper': 51, 'brave': 0}
+2026-09-02 16:58:21 | INFO | SEARCH API OK | serper | "DAVIDE ANTONIO ABATE" medico "PADOVA" | 7 risultati
+2026-09-02 16:58:22 | INFO | SEARCH API OK | serper | "DAVIDE ANTONIO ABATE" medico specialista ospedale | 2 risultati
+2026-09-02 16:58:24 | INFO | SEARCH API OK | serper | "DAVIDE ANTONIO ABATE" specializzazione OR specialista OR "medico di" | 3 risultati
+2026-09-02 16:58:24 | INFO | HIT SUMMARY | Pers_Id=1136949 | query=3 | grezzi=10 | rilevanti=4 | provider={'serper': 54, 'brave': 0}
+2026-09-02 16:58:28 | INFO | LANDING SCARTATA | Pers_Id=1136949 | fonte generica con identita solo incidentale | https://medicina.elearning.unipd.it/blocks/course_managers/manager.php?id=170&b=87044
+2026-09-02 16:58:30 | INFO | LANDING SCARTATA | Pers_Id=1136949 | fonte generica con identita solo incidentale | https://www.medicinachirurgia.unipd.it/offerta-didattica/corsi-di-laurea?tipo=L&ordinamento=2011&key=ME3065
+2026-09-02 16:58:30 | INFO | LANDING SCARTATA | Pers_Id=1136949 | fonte generica con identita solo incidentale | https://www.medicinamolecolare.unipd.it/category/ruoli/personale-docente
+2026-09-02 16:58:31 | INFO | DONE | Pers_Id=1136949 | 11.1s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:58:32 | INFO | SEARCH API OK | serper | "ELIO ABATE" medico "APRIGLIANO" | 2 risultati
+2026-09-02 16:58:33 | INFO | SEARCH API OK | serper | "ELIO ABATE" medico specialista ospedale | 2 risultati
+2026-09-02 16:58:33 | INFO | HIT SUMMARY | Pers_Id=236060 | query=2 | grezzi=3 | rilevanti=1 | provider={'serper': 56, 'brave': 0}
+2026-09-02 16:58:40 | INFO | CV SCARTATO | 236060 | https://www.regione.campania.it/assets/documents/scheda-assessore-fortini-aggiornata-1-bimestre-2020.pdf | Nome del target assente dall'intestazione del CV.
+2026-09-02 16:58:40 | INFO | DONE | Pers_Id=236060 | 9.4s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:58:41 | INFO | SEARCH API OK | serper | "ESTHER ABATE" medico "Trapani" | 3 risultati
+2026-09-02 16:58:43 | INFO | SEARCH API OK | serper | "ESTHER ABATE" medico specialista ospedale | 1 risultati
+2026-09-02 16:58:44 | INFO | SEARCH API OK | serper | "ESTHER ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:58:44 | INFO | HIT SUMMARY | Pers_Id=2745185 | query=3 | grezzi=11 | rilevanti=0 | provider={'serper': 59, 'brave': 0}
+2026-09-02 16:58:44 | INFO | DONE | Pers_Id=2745185 | 4.3s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:58:46 | INFO | SEARCH API OK | serper | "FILOMENA ABATE" medico "San Martino Valle Caudina" | 8 risultati
+2026-09-02 16:58:47 | INFO | SEARCH API OK | serper | "FILOMENA ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:58:49 | INFO | SEARCH API OK | serper | "FILOMENA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:58:49 | INFO | HIT SUMMARY | Pers_Id=2162961 | query=3 | grezzi=22 | rilevanti=1 | provider={'serper': 62, 'brave': 0}
+2026-09-02 16:58:50 | INFO | PDF PRE-SCARTATO | Pers_Id=2162961 | filtro finale landing | https://www.centropromedical.it/neurologiadiagnostica-neurofisiopatologia#abate
+2026-09-02 16:58:50 | INFO | DONE | Pers_Id=2162961 | 5.6s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:58:51 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico "CROTONE" | 8 risultati
+2026-09-02 16:58:53 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:58:53 | INFO | HIT SUMMARY | Pers_Id=1812842 | query=2 | grezzi=15 | rilevanti=2 | provider={'serper': 64, 'brave': 0}
+2026-09-02 16:58:56 | INFO | CV SCARTATO | 1812842 | https://aress.sanita.puglia.it/documents/25176/889630/CDS_2026-05-25_0316_ASL+Lecce.pdf/3fc2a827-daa1-41d2-82a0-3a43568482a2 | Nome del target assente dall'intestazione del CV.
+2026-09-02 16:58:58 | INFO | LANDING SCARTATA | Pers_Id=1812842 | fonte generica con identita solo incidentale | https://www.asp.crotone.it/?page_id=5790
+2026-09-02 16:58:58 | INFO | DONE | Pers_Id=1812842 | 8.6s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:58:58 | INFO | PROGRESS | 25/40 | 6.21 medici/min | ETA 2.4 min | {'SPECIALITA_TROVATA': 6, 'DA_VERIFICARE': 6, 'NESSUN_RISULTATO': 13} | API={'serper': 64, 'brave': 0}
+2026-09-02 16:59:01 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico "MODENA" | 8 risultati
+2026-09-02 16:59:01 | INFO | HIT SUMMARY | Pers_Id=1812843 | query=1 | grezzi=8 | rilevanti=3 | provider={'serper': 65, 'brave': 0}
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1738603917/legal/Per_saperne_di_pi%C3%B9_sui_servizi_personalizzati.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1747059391/legal/Per_saperne_di_pi%C3%B9_sulla_ricerca_e_lo_sviluppo_di_prodotti_innovativi.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://esante.gouv.fr/sites/default/files/media_entity/documents/%5BINS%20au%20quotidien%5D%20Conduite%20à%20tenir%20en%20fonction%20du%20retour%20d%27INSi.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1708014384/legal/Adyen_CGU_ITA.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1642696847/PrivacyPolicy-B2B-january-2022-Vdef_jx0yux.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1643797392/Privacy-policy-B2B-ITA-Jan22-vdef_pkciyb.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1614251120/legal/D%C3%89FINITIONS_patients.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1657277812/legal/B2C-PrivacyPolicy-July-22-ITA.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1745330410/legal/B2C-VDEF-PP-APR-25-FR.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1753974148/legal/B2C-PrivacyPolicy-JULY_25-DE.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1584379505/pms_training/intellio_teletransmission_fsedegradee.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_tcs.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1586961367/KV%20Declaration%20Form/Zertifizierter_Videodienstanbieter_Datenschutzcert_Formular.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/mkg/file/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1607434983/Transparence_des_liens_-_LAP_-_de%CC%81claration_V4_m11n9b.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1697629985/legal/Certification_HAS_du_LAP_Doctolib_20231017.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:59:03 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1695113836/legal/B2B-Conditionsderogatoires-CA-SEP23-FR.pdf
+2026-09-02 16:59:07 | INFO | DONE | Pers_Id=1812843 | 8.2s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 16:59:09 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico "Guardia Sanframondi" | 0 risultati
+2026-09-02 16:59:11 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:59:11 | INFO | HIT SUMMARY | Pers_Id=2607463 | query=2 | grezzi=8 | rilevanti=1 | provider={'serper': 67, 'brave': 0}
+2026-09-02 16:59:14 | INFO | CV SCARTATO | 2607463 | https://aress.sanita.puglia.it/documents/25176/889630/CDS_2026-05-25_0316_ASL+Lecce.pdf/3fc2a827-daa1-41d2-82a0-3a43568482a2 | Nome del target assente dall'intestazione del CV.
+2026-09-02 16:59:14 | INFO | DONE | Pers_Id=2607463 | 7.1s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:59:16 | INFO | SEARCH API OK | serper | "GESSICA ABATE" medico "Guardia Sanframondi" | 8 risultati
+2026-09-02 16:59:18 | INFO | SEARCH API OK | serper | "GESSICA ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:59:20 | INFO | SEARCH API OK | serper | "GESSICA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 16:59:20 | INFO | HIT SUMMARY | Pers_Id=1180356 | query=3 | grezzi=22 | rilevanti=1 | provider={'serper': 70, 'brave': 0}
+2026-09-02 16:59:22 | INFO | DONE | Pers_Id=1180356 | 8.5s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:59:24 | INFO | SEARCH API OK | serper | "GIOVANNA ABATE" medico "Montalto Uffugo" | 6 risultati
+2026-09-02 16:59:24 | INFO | HIT SUMMARY | Pers_Id=395436 | query=1 | grezzi=6 | rilevanti=1 | provider={'serper': 71, 'brave': 0}
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1738603917/legal/Per_saperne_di_pi%C3%B9_sui_servizi_personalizzati.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://media.doctolib.com/image/upload/v1747059391/legal/Per_saperne_di_pi%C3%B9_sulla_ricerca_e_lo_sviluppo_di_prodotti_innovativi.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://esante.gouv.fr/sites/default/files/media_entity/documents/%5BINS%20au%20quotidien%5D%20Conduite%20à%20tenir%20en%20fonction%20du%20retour%20d%27INSi.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1708014384/legal/Adyen_CGU_ITA.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1642696847/PrivacyPolicy-B2B-january-2022-Vdef_jx0yux.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1643797392/Privacy-policy-B2B-ITA-Jan22-vdef_pkciyb.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1614251120/legal/D%C3%89FINITIONS_patients.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1657277812/legal/B2C-PrivacyPolicy-July-22-ITA.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1745330410/legal/B2C-VDEF-PP-APR-25-FR.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1753974148/legal/B2C-PrivacyPolicy-JULY_25-DE.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1733825817/legal/B2C-PrivacyPolicy-DEC24-ITA.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1584379505/pms_training/intellio_teletransmission_fsedegradee.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_tcs.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1649341216/tuv%20certifications/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1586961367/KV%20Declaration%20Form/Zertifizierter_Videodienstanbieter_Datenschutzcert_Formular.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/mkg/file/doctolib_tuevit_dataprivacy.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1607434983/Transparence_des_liens_-_LAP_-_de%CC%81claration_V4_m11n9b.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1697629985/legal/Certification_HAS_du_LAP_Doctolib_20231017.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1679994602/legal/B2B_CA_ACCETTAZIONEART.1341E1342C.C._GEN23_ITA.pdf
+2026-09-02 16:59:25 | INFO | PDF PRE-SCARTATO | markup non-CV | https://%{media_root_url}/image/upload/v1695113836/legal/B2B-Conditionsderogatoires-CA-SEP23-FR.pdf
+2026-09-02 16:59:25 | INFO | DONE | Pers_Id=395436 | 2.6s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 16:59:27 | INFO | SEARCH API OK | serper | "MARCO ABATE" medico "Caivano" | 8 risultati
+2026-09-02 16:59:29 | INFO | SEARCH API OK | serper | "MARCO ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 16:59:29 | INFO | HIT SUMMARY | Pers_Id=2607464 | query=2 | grezzi=15 | rilevanti=1 | provider={'serper': 73, 'brave': 0}
+2026-09-02 16:59:34 | INFO | CV SCARTATO | 2607464 | https://aress.sanita.puglia.it/documents/25176/350159/24+settembre+2014+%2824+settembre+2014.pdf%29/747ab780-79b5-46c9-8380-87d91fce2cfa | Nome del target assente dall'intestazione del CV.
+2026-09-02 16:59:34 | INFO | DONE | Pers_Id=2607464 | 9.2s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 16:59:54 | INFO | CHECKPOINT | 30/40 | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 16:59:54 | INFO | PROGRESS | 30/40 | 6.05 medici/min | ETA 1.7 min | {'SPECIALITA_TROVATA': 8, 'DA_VERIFICARE': 7, 'NESSUN_RISULTATO': 15} | API={'serper': 73, 'brave': 0}
+2026-09-02 16:59:56 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico "MONTEVAGO" | 4 risultati
+2026-09-02 16:59:57 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 17:00:01 | INFO | SEARCH API OK | serper | "MARIA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 17:00:01 | INFO | HIT SUMMARY | Pers_Id=289911 | query=3 | grezzi=19 | rilevanti=5 | provider={'serper': 76, 'brave': 0}
+2026-09-02 17:00:01 | INFO | LANDING SCARTATA | Pers_Id=289911 | citta profilo incompatibile: massarosa != montevago | https://www.doctolib.it/medico-di-medicina-generale/massarosa/maria-abate
+2026-09-02 17:00:12 | INFO | LANDING SCARTATA | Pers_Id=289911 | fonte sanitaria con identita solo incidentale | https://www.qsalute.it/villa-santa-chiara-verona
+2026-09-02 17:00:12 | INFO | DONE | Pers_Id=289911 | 17.8s | SPECIALITA_TROVATA | specialita=psicoterapia psicodrammatica le abbiamo rivolto alcun | cv=NO | cv_review=0
+2026-09-02 17:00:14 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico "Torelli-torrette" | 0 risultati
+2026-09-02 17:00:15 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 17:00:17 | INFO | SEARCH API OK | serper | "MARIA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 17:00:17 | INFO | HIT SUMMARY | Pers_Id=1222042 | query=3 | grezzi=15 | rilevanti=5 | provider={'serper': 79, 'brave': 0}
+2026-09-02 17:00:18 | INFO | LANDING SCARTATA | Pers_Id=1222042 | citta profilo incompatibile: massarosa != torelli torrette | https://www.doctolib.it/medico-di-medicina-generale/massarosa/maria-abate
+2026-09-02 17:00:27 | INFO | LANDING SCARTATA | Pers_Id=1222042 | fonte sanitaria con identita solo incidentale | https://www.qsalute.it/villa-santa-chiara-verona
+2026-09-02 17:00:27 | INFO | DONE | Pers_Id=1222042 | 15.4s | SPECIALITA_TROVATA | specialita=psicoterapia psicodrammatica le abbiamo rivolto alcun | cv=NO | cv_review=0
+2026-09-02 17:00:29 | INFO | SEARCH API OK | serper | "MARIA GIULIA ABATE" medico "MONZA" | 7 risultati
+2026-09-02 17:00:29 | INFO | HIT SUMMARY | Pers_Id=950077 | query=1 | grezzi=7 | rilevanti=4 | provider={'serper': 80, 'brave': 0}
+2026-09-02 17:00:30 | INFO | LANDING SCARTATA | Pers_Id=950077 | pagina senza testo | https://www.irccs-sangerardo.it/terapia-intensiva-a-indirizzo-neurologico-neurochirurgico
+2026-09-02 17:00:31 | INFO | DONE | Pers_Id=950077 | 3.8s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 17:00:33 | INFO | SEARCH API OK | serper | "MATTEO ABATE" medico "Alcamo" | 2 risultati
+2026-09-02 17:00:35 | INFO | SEARCH API OK | serper | "MATTEO ABATE" medico specialista ospedale | 8 risultati
+2026-09-02 17:00:37 | INFO | SEARCH API OK | serper | "MATTEO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 17:00:37 | INFO | HIT SUMMARY | Pers_Id=1189072 | query=3 | grezzi=16 | rilevanti=2 | provider={'serper': 83, 'brave': 0}
+2026-09-02 17:00:37 | INFO | LANDING SCARTATA | Pers_Id=1189072 | pagina senza testo | https://lecconotizie.com/montagna/lecco-montagna/lecco-matteo-abate-realizza-il-suo-sogno-e-apre-il-rifugio-camposecco
+2026-09-02 17:00:39 | INFO | LANDING SCARTATA | Pers_Id=1189072 | fonte sanitaria con identita solo incidentale | https://archiviodistatotorino.cultura.gov.it/titolari
+2026-09-02 17:00:39 | INFO | DONE | Pers_Id=1189072 | 7.9s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 17:00:41 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" medico "Avellino" | 8 risultati
+2026-09-02 17:00:43 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" medico specialista ospedale | 7 risultati
+2026-09-02 17:00:44 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 17:00:44 | INFO | HIT SUMMARY | Pers_Id=306924 | query=3 | grezzi=21 | rilevanti=5 | provider={'serper': 86, 'brave': 0}
+2026-09-02 17:01:00 | INFO | PDF PRE-SCARTATO | Pers_Id=306924 | filtro finale landing | https://amamedis.it/wp-content/uploads/2021/02/CV-formato-europeo-ornella.doc
+2026-09-02 17:01:14 | INFO | PDF PRE-SCARTATO | landing non-CV | https://www.sicpre.it/wp-content/uploads/2024/04/codice-etico-sicpre_2024-2_240426_102717_240426_110358.pdf
+2026-09-02 17:01:14 | INFO | PDF PRE-SCARTATO | markup non-CV | https://www.sicpre.it/wp-content/uploads/2024/04/codice-etico-sicpre_2024-2_240426_102717_240426_110358.pdf
+2026-09-02 17:01:23 | INFO | DONE | Pers_Id=306924 | 43.7s | SPECIALITA_TROVATA | specialita=Chirurgia Generale | cv=NO | cv_review=0
+2026-09-02 17:01:23 | INFO | PROGRESS | 35/40 | 5.44 medici/min | ETA 0.9 min | {'SPECIALITA_TROVATA': 11, 'DA_VERIFICARE': 8, 'NESSUN_RISULTATO': 16} | API={'serper': 86, 'brave': 0}
+2026-09-02 17:01:25 | INFO | SEARCH API OK | serper | "RAFFAELA ABATE" medico "MERCATO SAN SEVERINO" | 0 risultati
+2026-09-02 17:01:27 | INFO | SEARCH API OK | serper | "RAFFAELA ABATE" medico specialista ospedale | 7 risultati
+2026-09-02 17:01:29 | INFO | SEARCH API OK | serper | "RAFFAELA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-02 17:01:29 | INFO | HIT SUMMARY | Pers_Id=1784607 | query=3 | grezzi=15 | rilevanti=1 | provider={'serper': 89, 'brave': 0}
+2026-09-02 17:01:33 | INFO | DONE | Pers_Id=1784607 | 9.7s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-02 17:01:34 | INFO | SEARCH API OK | serper | "ROBERTA ABATE" medico "Andria" | 1 risultati
+2026-09-02 17:01:37 | INFO | SEARCH API OK | serper | "ROBERTA ABATE" medico specialista ospedale | 8 risultati
