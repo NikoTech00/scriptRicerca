@@ -1,0 +1,243 @@
+2026-09-02 12:52:31 | INFO | ==============================================================================
+2026-09-02 12:52:31 | INFO | V3.4 MEDICI - RELEVANCE FALLBACK + GOOGLE FIRST
+2026-09-02 12:52:31 | INFO | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-02 12:52:31 | INFO | Output: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 12:52:31 | INFO | Engine: auto
+2026-09-02 12:52:31 | INFO | Headless: False
+2026-09-02 12:52:31 | INFO | Deep: True
+2026-09-02 12:52:31 | INFO | Search results: 8
+2026-09-02 12:52:31 | INFO | Delay: 1.2 - 2.8 sec
+2026-09-02 12:52:31 | INFO | Browser profile: C:\Dev\Niko\scriptRicerca\browser_medici
+2026-09-02 12:52:31 | INFO | CV sicuri dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-02 12:52:31 | INFO | CV da verificare dir: C:\Dev\Niko\scriptRicerca\cv_medici_da_verificare
+2026-09-02 12:52:31 | INFO | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-02 12:52:31 | INFO | Log: logs\run_medici_20260902_125127.log
+2026-09-02 12:52:31 | INFO | ==============================================================================
+2026-09-02 12:52:31 | INFO | Medici da elaborare: 5
+2026-09-02 12:52:35 | INFO | SEARCH OK | google | "YASAMIN AAZAM RAHIMIAN" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:52:35 | WARNING | SEARCH EMPTY | google | "YASAMIN AAZAM RAHIMIAN" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS
+2026-09-02 12:52:39 | INFO | SEARCH OK | bing | "YASAMIN AAZAM RAHIMIAN" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 10 risultati
+2026-09-02 12:52:41 | INFO | SEARCH OK | google | "YASAMIN AAZAM RAHIMIAN" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:52:41 | WARNING | SEARCH EMPTY | google | "YASAMIN AAZAM RAHIMIAN" "curriculum vitae" filetype:pdf medico
+2026-09-02 12:52:45 | INFO | SEARCH OK | bing | "YASAMIN AAZAM RAHIMIAN" "curriculum vitae" filetype:pdf medico | 10 risultati
+2026-09-02 12:52:47 | INFO | SEARCH OK | google | "AAZAM RAHIMIAN YASAMIN" medico specialista curriculum | 0 risultati
+2026-09-02 12:52:47 | WARNING | SEARCH EMPTY | google | "AAZAM RAHIMIAN YASAMIN" medico specialista curriculum
+2026-09-02 12:52:50 | INFO | SEARCH OK | bing | "AAZAM RAHIMIAN YASAMIN" medico specialista curriculum | 10 risultati
+2026-09-02 12:52:52 | INFO | SEARCH OK | google | "YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:52:52 | WARNING | SEARCH EMPTY | google | "YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA" specializzazione OR curriculum
+2026-09-02 12:52:55 | INFO | SEARCH OK | bing | "YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA" specializzazione OR curriculum | 10 risultati
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.t-online.de
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.t-online.de/nachrichten
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: de.wikipedia.org |  | https://de.wikipedia.org/wiki/T-online
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.spiegel.de/thema/t_online
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://suche.t-online.de
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.telekom.de/e-mail/zum-e-mail-center
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: www.youtube.com |  | https://www.youtube.com/channel/UCCjde5pZkCzVXIjodNXu-WA
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://kommunikationsdienste.t-online.de/emailcenter/info/index.html
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.cookham.com/cookhamnow/bustrain/police/crime20140718.htm
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=70 | identità/fonte insufficienti |  | https://www.cookham.com/community/equitable/pomay2008.pdf
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.cookham.com/cookhamnow/parishcouncil/interest.htm
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.cookham.com/cookhamnow/nature/general/midspring2009.htm
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.cookham.com/cookhamnow/bustrain/elisabethhouse/Thegalleryatelizabeth_house/contact_carolyn_beale.html
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=70 | identità/fonte insufficienti |  | https://www.cookham.com/cookhamnow/clubssocieties/cookhamsociety/newsletters/newsletter2020July.pdf
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=70 | identità/fonte insufficienti |  | https://www.cookham.com/cookhamnow/clubssocieties/cookhamsociety/newsletters/newsletter2020Feb.pdf
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.cookham.com/cookhamnow/clubssocieties/twinning/twinningpage.htm
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: www.tiktok.com |  | https://www.tiktok.com/@ghxsting_xoxo
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: www.tiktok.com |  | https://www.tiktok.com/@ghxsting_xoxo/video/7666862644040666400
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.twitch.tv/ghxsting_
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.twitch.tv/ghxsting_/videos
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: www.instagram.com |  | https://www.instagram.com/ghxsting.xo
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: www.instagram.com |  | https://www.instagram.com/ghxsting._
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: www.youtube.com |  | https://www.youtube.com/@ghxstinggd
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=-500 | dominio irrilevante: www.tiktok.com |  | https://www.tiktok.com/@ghxsting_xoxo/video/7622716667461635350
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=70 | identità/fonte insufficienti |  | https://www.scs.co.uk/on/demandware.static/-/Sites-SCS-Library/default/v47d18f1e950ba79dc26e1aa3ddae4e8ed5766720/pdf_docs/A4%20SOFA%20GUARD%20FLYER.pdf?version=1,621,510,554,000
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=70 | identità/fonte insufficienti |  | https://www.scs.co.uk/on/demandware.static/-/Library-Sites-scsSharedLibrary/default/v7976cebde675d3328af416e95d545955ca17a8d5/inspiration-hub/care-guides/Italian-sofas-instructions-maintenance/INSTRUCTIONS%20FOR%20USE%20AND%20MAINTENANCE_Italian.pdf?version=1,727,707,434,818
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.scs.co.uk/ostellato-2-seater-sofa-with-adjustable-back-rest/OL069061_EDERA-MEDIUM-BEIGE-025_METAL-LEG--MAS01-.html
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.scs.co.uk/saliceto-3-seater-sofa/OL069594_ZAMIA-ANTHRACITE-910_WALNUT-FEET--MAS01-.html
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.scs.co.uk/cleveley-2-seater-sofa/OL068512_ETIENNE-540_PLASTIC-FEET--MAS01-.html
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.scs.co.uk/chalbury-2-seater-power-recliner-sofa-with-cup-holders/OL068794_CALLISIA-BLUE-540_PLASTIC-FEET--MAS01-.html
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.scs.co.uk/viserba-3-seater-power-recliner-sofa-with-manual-head-tilt/OL068846_ACACIA-BEIGE-006_STAINLESS-STEEL-FEET--PRE03-.html
+2026-09-02 12:52:55 | INFO | HIT SCARTATO | Pers_Id=2467194 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.scs.co.uk/ossett-2-seater-manual-recliner-sofa/OL063798_CAMEDRIA-LIGHT-GREY-890_BLACK-GLIDES--PRE03-.html
+2026-09-02 12:52:55 | WARNING | RELEVANCE FALLBACK | Pers_Id=2467194 | nessun hit rilevante; provo google
+2026-09-02 12:52:57 | INFO | SEARCH OK | google | "YASAMIN AAZAM RAHIMIAN" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:52:59 | INFO | SEARCH OK | google | "YASAMIN AAZAM RAHIMIAN" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:53:02 | INFO | SEARCH OK | google | "AAZAM RAHIMIAN YASAMIN" medico specialista curriculum | 0 risultati
+2026-09-02 12:53:06 | INFO | SEARCH OK | google | "YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:53:06 | INFO | HIT SUMMARY | Pers_Id=2467194 | grezzi=32 | rilevanti=0 | engines={'bing': 32}
+2026-09-02 12:53:06 | INFO | DONE | Pers_Id=2467194 | 32.7s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 12:53:09 | INFO | SEARCH OK | google | "ERNESTO MARTIN ABAD AGUIAR" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:53:09 | WARNING | SEARCH EMPTY | google | "ERNESTO MARTIN ABAD AGUIAR" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS
+2026-09-02 12:53:12 | INFO | SEARCH OK | bing | "ERNESTO MARTIN ABAD AGUIAR" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 10 risultati
+2026-09-02 12:53:15 | INFO | SEARCH OK | google | "ERNESTO MARTIN ABAD AGUIAR" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:53:15 | WARNING | SEARCH EMPTY | google | "ERNESTO MARTIN ABAD AGUIAR" "curriculum vitae" filetype:pdf medico
+2026-09-02 12:53:18 | INFO | SEARCH OK | bing | "ERNESTO MARTIN ABAD AGUIAR" "curriculum vitae" filetype:pdf medico | 10 risultati
+2026-09-02 12:53:21 | INFO | SEARCH OK | google | "ABAD AGUIAR ERNESTO MARTIN" medico specialista curriculum | 0 risultati
+2026-09-02 12:53:21 | WARNING | SEARCH EMPTY | google | "ABAD AGUIAR ERNESTO MARTIN" medico specialista curriculum
+2026-09-02 12:53:24 | INFO | SEARCH OK | bing | "ABAD AGUIAR ERNESTO MARTIN" medico specialista curriculum | 6 risultati
+2026-09-02 12:53:27 | INFO | SEARCH OK | google | "ERNESTO MARTIN ABAD AGUIAR" medico "Nuoro" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:53:27 | WARNING | SEARCH EMPTY | google | "ERNESTO MARTIN ABAD AGUIAR" medico "Nuoro" specializzazione OR curriculum
+2026-09-02 12:53:31 | INFO | SEARCH OK | bing | "ERNESTO MARTIN ABAD AGUIAR" medico "Nuoro" specializzazione OR curriculum | 10 risultati
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://mtnsat.com
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://mtnsat.com/blogs/press-releases/fmc-globalsat-partners-with-seaport-capital
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: en.wikipedia.org |  | https://en.wikipedia.org/wiki/Maritime_Telecommunications_Network
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.fibercop.com/en/comunicati-stampa/fibercop-and-fmc-globalsat-mtn-seal-strategic-partnership-to-develop-hybrid-terrestrial-satellite-network-architectures-in-italy
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://customer.mtnsat.com/login
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://finance.yahoo.com/news/fmc-globalsat-acquires-100-anuvu-162700772.html
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://noc.fmcglobalsat.com
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=70 | identità/fonte insufficienti |  | https://www.fibercop.com/wp-content/uploads/2025/11/Press-Release-FiberCop-GlobalSat_eng-_4nov.pdf
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://support.google.com/chrome/answer/95346?hl=ko-kr&co=GENIE.Platform%3DDesktop
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://support.google.com/chrome/answer/16738344?hl=ar
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: www.reddit.com |  | https://www.reddit.com/r/browsers/comments/1d2xonl/what_is_an_antiai_alternative_to_google_chrome
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: www.reddit.com |  | https://www.reddit.com/r/linuxquestions/comments/bfftgp/chrome_vs_chromium_what_should_i_preferuse
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://support.google.com/chrome/answer/95346?hl=en-IN&co=GENIE.Platform%3DDesktop
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://support.google.com/chrome/answer/95346?hl=zh-au&co=GENIE.Platform%3DDesktop
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://support.google.com/chrome/answer/16608973?hl=en&co=GENIE.Platform%3DDesktop
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://support.google.com/chrome/answer/95346?hl=hu-US&co=GENIE.Platform%3DDesktop
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: www.reddit.com |  | https://www.reddit.com/r/Scams/comments/wip14o/unsolicited_your_new_account_on_xnxx_gold_email
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: www.reddit.com |  | https://www.reddit.com/r/TikTok
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.typologycentral.com/threads/world-of-warcraft-classes-matching-archetypes-with-archetypes.21665
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.typologycentral.com/threads/im-a-really-special-4w5-i-dont-want-to-be-special.57825
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: www.reddit.com |  | https://www.reddit.com/r/datingoverfifty
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: www.reddit.com |  | https://www.reddit.com/r/iranian
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://ya.ru
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: ru.wikipedia.org |  | https://ru.wikipedia.org/wiki/%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://yandex.ru
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://yandex.com
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://play.google.com/store/apps/details?id=ru.yandex.searchplugin&hl=ru
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=-500 | dominio irrilevante: www.youtube.com |  | https://www.youtube.com/@yandex
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://yandex.ru/chrome/newtab
+2026-09-02 12:53:31 | INFO | HIT SCARTATO | Pers_Id=2606079 | engine=bing | score=0 | identità/fonte insufficienti |  | https://browser.yandex.ru
+2026-09-02 12:53:31 | WARNING | RELEVANCE FALLBACK | Pers_Id=2606079 | nessun hit rilevante; provo google
+2026-09-02 12:53:33 | INFO | SEARCH OK | google | "ERNESTO MARTIN ABAD AGUIAR" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:53:36 | INFO | SEARCH OK | google | "ERNESTO MARTIN ABAD AGUIAR" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:53:38 | INFO | SEARCH OK | google | "ABAD AGUIAR ERNESTO MARTIN" medico specialista curriculum | 0 risultati
+2026-09-02 12:53:41 | INFO | SEARCH OK | google | "ERNESTO MARTIN ABAD AGUIAR" medico "Nuoro" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:53:41 | INFO | HIT SUMMARY | Pers_Id=2606079 | grezzi=30 | rilevanti=0 | engines={'bing': 30}
+2026-09-02 12:53:41 | INFO | DONE | Pers_Id=2606079 | 34.9s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 12:53:43 | INFO | SEARCH OK | google | "CHIARA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:53:43 | WARNING | SEARCH EMPTY | google | "CHIARA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS
+2026-09-02 12:53:45 | INFO | SEARCH OK | bing | "CHIARA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 7 risultati
+2026-09-02 12:53:49 | INFO | SEARCH OK | google | "CHIARA ABAGNALE" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:53:49 | WARNING | SEARCH EMPTY | google | "CHIARA ABAGNALE" "curriculum vitae" filetype:pdf medico
+2026-09-02 12:53:51 | INFO | SEARCH OK | bing | "CHIARA ABAGNALE" "curriculum vitae" filetype:pdf medico | 7 risultati
+2026-09-02 12:53:53 | INFO | SEARCH OK | google | "ABAGNALE CHIARA" medico specialista curriculum | 0 risultati
+2026-09-02 12:53:53 | WARNING | SEARCH EMPTY | google | "ABAGNALE CHIARA" medico specialista curriculum
+2026-09-02 12:53:56 | INFO | SEARCH OK | bing | "ABAGNALE CHIARA" medico specialista curriculum | 10 risultati
+2026-09-02 12:53:59 | INFO | SEARCH OK | google | "CHIARA ABAGNALE" medico "San felice Circeo" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:53:59 | WARNING | SEARCH EMPTY | google | "CHIARA ABAGNALE" medico "San felice Circeo" specializzazione OR curriculum
+2026-09-02 12:54:02 | INFO | SEARCH OK | bing | "CHIARA ABAGNALE" medico "San felice Circeo" specializzazione OR curriculum | 7 risultati
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: it.wikipedia.org |  | https://it.wikipedia.org/wiki/Chiara
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: www.instagram.com |  | https://www.instagram.com/chiaraferragni
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.paginainizio.com/significato-nome/chiara.html
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: it.wikipedia.org |  | https://it.wikipedia.org/wiki/Chiara_Galiazzo
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=0 | identità/fonte insufficienti |  | https://chiaraferragnibrand.com/it
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: en.wikipedia.org |  | https://en.wikipedia.org/wiki/Chiara_(name)
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: www.facebook.com |  | https://www.facebook.com/ChiaraGaliazzoOfficial
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=45 | identità/fonte insufficienti |  | https://fratelliabagnale.it
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: it.m.wikipedia.org |  | https://it.m.wikipedia.org/wiki/Frank_Abagnale
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: en.m.wikipedia.org |  | https://en.m.wikipedia.org/wiki/Frank_Abagnale
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=45 | identità/fonte insufficienti |  | https://biografieonline.it/biografia-frank-abagnale
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=45 | identità/fonte insufficienti |  | https://www.abagnalesrl.com
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=-500 | dominio irrilevante: www.facebook.com |  | https://www.facebook.com/AbagnaleSrl
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=45 | identità/fonte insufficienti |  | https://fratelliabagnale.it/chi-siamo
+2026-09-02 12:54:02 | INFO | HIT SCARTATO | Pers_Id=2606149 | engine=bing | score=45 | identità/fonte insufficienti |  | https://www.marinaabagnale.it
+2026-09-02 12:54:02 | WARNING | RELEVANCE FALLBACK | Pers_Id=2606149 | nessun hit rilevante; provo google
+2026-09-02 12:54:04 | INFO | SEARCH OK | google | "CHIARA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:54:07 | INFO | SEARCH OK | google | "CHIARA ABAGNALE" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:54:11 | INFO | SEARCH OK | google | "ABAGNALE CHIARA" medico specialista curriculum | 0 risultati
+2026-09-02 12:54:13 | INFO | SEARCH OK | google | "CHIARA ABAGNALE" medico "San felice Circeo" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:54:13 | INFO | HIT SUMMARY | Pers_Id=2606149 | grezzi=15 | rilevanti=0 | engines={'bing': 15}
+2026-09-02 12:54:13 | INFO | DONE | Pers_Id=2606149 | 32.3s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 12:54:15 | INFO | SEARCH OK | google | "FEDERICA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:54:15 | WARNING | SEARCH EMPTY | google | "FEDERICA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS
+2026-09-02 12:54:18 | INFO | SEARCH OK | bing | "FEDERICA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 10 risultati
+2026-09-02 12:54:22 | INFO | SEARCH OK | google | "FEDERICA ABAGNALE" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:54:22 | WARNING | SEARCH EMPTY | google | "FEDERICA ABAGNALE" "curriculum vitae" filetype:pdf medico
+2026-09-02 12:54:25 | INFO | SEARCH OK | bing | "FEDERICA ABAGNALE" "curriculum vitae" filetype:pdf medico | 10 risultati
+2026-09-02 12:54:28 | WARNING | SEARCH FAIL | google | "ABAGNALE FEDERICA" medico specialista curriculum | Error: Page.goto: Navigation to "https://www.google.com/search?q=%22ABAGNALE+FEDERICA%22+medico+specialista+curriculum&hl=it&gl=it&num=10" is interrupted by another navigation to "https://www.bing.com/search?q=%22FEDERICA+ABAGNALE%22+%22curriculum+vitae%22+filetype%3Apdf+medico&setlang=it-IT&cc=it&rdr=1&rdrig=C8CFA4F5663F4C06838B0119CCF27AAB"
+Call log:
+  - navigating to "https://www.google.com/search?q=%22ABAGNALE+FEDERICA%22+medico+specialista+curriculum&hl=it&gl=it&num=10", waiting until "domcontentloaded"
+
+2026-09-02 12:54:32 | INFO | SEARCH OK | bing | "ABAGNALE FEDERICA" medico specialista curriculum | 10 risultati
+2026-09-02 12:54:34 | INFO | SEARCH OK | google | "FEDERICA ABAGNALE" medico "Napoli" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:54:34 | WARNING | SEARCH EMPTY | google | "FEDERICA ABAGNALE" medico "Napoli" specializzazione OR curriculum
+2026-09-02 12:54:36 | INFO | SEARCH OK | bing | "FEDERICA ABAGNALE" medico "Napoli" specializzazione OR curriculum | 10 risultati
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://it.ign.com
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://it.ign.com/witch-hat-atelier/226822/witch-hat-atelier-la-recensione
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=-500 | dominio irrilevante: www.zhihu.com |  | https://www.zhihu.com/question/2022309673240392549
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=-500 | dominio irrilevante: www.zhihu.com |  | https://www.zhihu.com/question/1992901242779879301
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://it.ign.com/mortal-shell-ii-1/227351/mortal-shell-ii-la-recensione
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://it.ign.com/the-sinking-city-2/227356/the-sinking-city-2-la-recensione
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://it.ign.com/spider-noir/225755/spider-noir-la-recensione
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://it.ign.com/rhythm-heaven-groove/226471/rhythm-paradise-groove-la-recensione
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.google.es
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.google.com/?hl=es-ES
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.google.com/?
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.google.com.nf/webhp?hl=es-419&tab=ii
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://accounts.google.com/login?hl=es
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://support.google.com/chrome/answer/95346?hl=es&co=GENIE.Platform%3DDesktop
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=-500 | dominio irrilevante: es.wikipedia.org |  | https://es.wikipedia.org/wiki/Google
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.google.com/?hl=gl-ES
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=45 | identità/fonte insufficienti |  | https://fratelliabagnale.it
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=-500 | dominio irrilevante: it.m.wikipedia.org |  | https://it.m.wikipedia.org/wiki/Frank_Abagnale
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=-500 | dominio irrilevante: en.m.wikipedia.org |  | https://en.m.wikipedia.org/wiki/Frank_Abagnale
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=45 | identità/fonte insufficienti |  | https://biografieonline.it/biografia-frank-abagnale
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=45 | identità/fonte insufficienti |  | https://www.abagnalesrl.com
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=-500 | dominio irrilevante: www.facebook.com |  | https://www.facebook.com/AbagnaleSrl
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=45 | identità/fonte insufficienti |  | https://fratelliabagnale.it/chi-siamo
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=45 | identità/fonte insufficienti |  | https://www.marinaabagnale.it
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://openai.com/zh-Hans-CN/gpt-5
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://openai.com/ko-KR/gpt-5
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://platform.openai.com/onboarding?app=chat&callbackHost=chatgpt.com
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://developers.openai.com
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://help.openai.com/ja-jp/articles/7232927-how-do-i-cancel-my-chatgpt-subscription
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://help.openai.com/en/collections/3943089-account-login-and-billing
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://prism.openai.com
+2026-09-02 12:54:36 | INFO | HIT SCARTATO | Pers_Id=2744181 | engine=bing | score=0 | identità/fonte insufficienti |  | https://platform.openai.com/playground/chat?models=gpt-4o
+2026-09-02 12:54:36 | WARNING | RELEVANCE FALLBACK | Pers_Id=2744181 | nessun hit rilevante; provo google
+2026-09-02 12:54:39 | INFO | SEARCH OK | google | "FEDERICA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:54:42 | INFO | SEARCH OK | google | "FEDERICA ABAGNALE" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:54:44 | INFO | SEARCH OK | google | "ABAGNALE FEDERICA" medico specialista curriculum | 0 risultati
+2026-09-02 12:54:47 | INFO | SEARCH OK | google | "FEDERICA ABAGNALE" medico "Napoli" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:54:47 | INFO | HIT SUMMARY | Pers_Id=2744181 | grezzi=32 | rilevanti=0 | engines={'bing': 32}
+2026-09-02 12:54:47 | INFO | DONE | Pers_Id=2744181 | 34.2s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 12:54:50 | INFO | SEARCH OK | google | "GIOVANNA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:54:50 | WARNING | SEARCH EMPTY | google | "GIOVANNA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS
+2026-09-02 12:54:53 | INFO | SEARCH OK | bing | "GIOVANNA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 10 risultati
+2026-09-02 12:54:55 | INFO | SEARCH OK | google | "GIOVANNA ABAGNALE" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:54:55 | WARNING | SEARCH EMPTY | google | "GIOVANNA ABAGNALE" "curriculum vitae" filetype:pdf medico
+2026-09-02 12:54:58 | INFO | SEARCH OK | bing | "GIOVANNA ABAGNALE" "curriculum vitae" filetype:pdf medico | 10 risultati
+2026-09-02 12:55:00 | INFO | SEARCH OK | google | "ABAGNALE GIOVANNA" medico specialista curriculum | 0 risultati
+2026-09-02 12:55:00 | WARNING | SEARCH EMPTY | google | "ABAGNALE GIOVANNA" medico specialista curriculum
+2026-09-02 12:55:04 | INFO | SEARCH OK | bing | "ABAGNALE GIOVANNA" medico specialista curriculum | 10 risultati
+2026-09-02 12:55:06 | INFO | SEARCH OK | google | "GIOVANNA ABAGNALE" medico "Napoli" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:55:06 | WARNING | SEARCH EMPTY | google | "GIOVANNA ABAGNALE" medico "Napoli" specializzazione OR curriculum
+2026-09-02 12:55:09 | INFO | SEARCH OK | bing | "GIOVANNA ABAGNALE" medico "Napoli" specializzazione OR curriculum | 10 risultati
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=-500 | dominio irrilevante: it.wikipedia.org |  | https://it.wikipedia.org/wiki/Giovanna_(cantante)
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.libero.it/magazine/personaggi/giovanna-nocetti-153734
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=-500 | dominio irrilevante: it.wikipedia.org |  | https://it.wikipedia.org/wiki/Giovanna_(nome)
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.paginainizio.com/significato-nome/giovanna.html
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=0 | identità/fonte insufficienti |  | https://www.tag24.it/378725-giovanna-eta-marito-curiosita-sulla-cantante
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=-500 | dominio irrilevante: en.wikipedia.org |  | https://en.wikipedia.org/wiki/Giovanna_(singer)
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=-500 | dominio irrilevante: en.wikipedia.org |  | https://en.wikipedia.org/wiki/Giovanna
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=0 | identità/fonte insufficienti |  | https://amalfinotizie.it/chi-e-giovanna-nocetti-eta-marito-figli-vita-privata-e-dove-vive-la-cantante
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=45 | identità/fonte insufficienti |  | https://fratelliabagnale.it
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=-500 | dominio irrilevante: it.m.wikipedia.org |  | https://it.m.wikipedia.org/wiki/Frank_Abagnale
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=-500 | dominio irrilevante: en.m.wikipedia.org |  | https://en.m.wikipedia.org/wiki/Frank_Abagnale
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=45 | identità/fonte insufficienti |  | https://biografieonline.it/biografia-frank-abagnale
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=45 | identità/fonte insufficienti |  | https://www.abagnalesrl.com
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=-500 | dominio irrilevante: www.facebook.com |  | https://www.facebook.com/AbagnaleSrl
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=45 | identità/fonte insufficienti |  | https://fratelliabagnale.it/chi-siamo
+2026-09-02 12:55:09 | INFO | HIT SCARTATO | Pers_Id=2744182 | engine=bing | score=45 | identità/fonte insufficienti |  | https://www.marinaabagnale.it
+2026-09-02 12:55:09 | WARNING | RELEVANCE FALLBACK | Pers_Id=2744182 | nessun hit rilevante; provo google
+2026-09-02 12:55:13 | INFO | SEARCH OK | google | "GIOVANNA ABAGNALE" medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS | 0 risultati
+2026-09-02 12:55:15 | INFO | SEARCH OK | google | "GIOVANNA ABAGNALE" "curriculum vitae" filetype:pdf medico | 0 risultati
+2026-09-02 12:55:17 | INFO | SEARCH OK | google | "ABAGNALE GIOVANNA" medico specialista curriculum | 0 risultati
+2026-09-02 12:55:20 | INFO | SEARCH OK | google | "GIOVANNA ABAGNALE" medico "Napoli" specializzazione OR curriculum | 0 risultati
+2026-09-02 12:55:20 | INFO | HIT SUMMARY | Pers_Id=2744182 | grezzi=16 | rilevanti=0 | engines={'bing': 16}
+2026-09-02 12:55:20 | INFO | DONE | Pers_Id=2744182 | 32.5s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-02 12:55:20 | INFO | PROGRESS | 5/5 | 1.78 medici/min | ETA 0.0 min | {'NESSUN_RISULTATO': 5}
+2026-09-02 12:55:49 | INFO | ==============================================================================
+2026-09-02 12:55:49 | INFO | FINE | 3.3 min | {'NESSUN_RISULTATO': 5}
+2026-09-02 12:55:49 | INFO | OUTPUT | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 12:55:49 | INFO | ==============================================================================
