@@ -1,0 +1,243 @@
+2026-09-02 10:36:34 | INFO | MainThread | ====================================================================
+2026-09-02 10:36:34 | INFO | MainThread | V1.0 MEDICI - SPECIALITA + CV
+2026-09-02 10:36:34 | INFO | MainThread | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-02 10:36:34 | INFO | MainThread | Output: C:\Dev\Niko\scriptRicerca\risultatiMedici.xlsx
+2026-09-02 10:36:34 | INFO | MainThread | Foglio: Foglio1
+2026-09-02 10:36:34 | INFO | MainThread | CV dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-02 10:36:34 | INFO | MainThread | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-02 10:36:34 | INFO | MainThread | Workers: 6
+2026-09-02 10:36:34 | INFO | MainThread | Search concurrency: 3
+2026-09-02 10:36:34 | INFO | MainThread | Search backend fallback: duckduckgo
+2026-09-02 10:36:34 | INFO | MainThread | Serper: NO
+2026-09-02 10:36:34 | INFO | MainThread | Brave API: NO
+2026-09-02 10:36:34 | INFO | MainThread | Gemini AI: SI
+2026-09-02 10:36:34 | INFO | MainThread | Gemini model: gemini-3.7-flash
+2026-09-02 10:36:34 | INFO | MainThread | Log: logs\run_medici_20260902_103531.log
+2026-09-02 10:36:34 | INFO | MainThread | ====================================================================
+2026-09-02 10:36:34 | INFO | MainThread | Medici da elaborare: 20
+2026-09-02 10:36:34 | INFO | medico_0 | START | row=2 | Pers_Id=2467194 | Medico_Id=0 | YASAMIN AAZAM RAHIMIAN
+2026-09-02 10:36:34 | INFO | medico_1 | START | row=3 | Pers_Id=2606079 | Medico_Id=0 | ERNESTO MARTIN ABAD AGUIAR
+2026-09-02 10:36:34 | INFO | medico_2 | START | row=4 | Pers_Id=2606149 | Medico_Id=0 | CHIARA ABAGNALE
+2026-09-02 10:36:34 | INFO | medico_3 | START | row=5 | Pers_Id=2744181 | Medico_Id=0 | FEDERICA ABAGNALE
+2026-09-02 10:36:34 | INFO | medico_4 | START | row=6 | Pers_Id=2744182 | Medico_Id=0 | GIOVANNA ABAGNALE
+2026-09-02 10:36:34 | INFO | medico_5 | START | row=7 | Pers_Id=359717 | Medico_Id=0 | GIUSEPPE ABAGNALE
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:36 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:36 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 200
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:36 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:36 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | medico_2 | DONE | Pers_Id=2606149 | 2.7s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:36:37 | INFO | medico_1 | DONE | Pers_Id=2606079 | 2.7s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:36:37 | INFO | medico_2 | START | row=8 | Pers_Id=2606156 | Medico_Id=0 | LUCIA ABAGNALE
+2026-09-02 10:36:37 | INFO | medico_1 | START | row=9 | Pers_Id=1188728 | Medico_Id=0 | CHIARA ABALOTTI
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | medico_0 | DONE | Pers_Id=2467194 | 3.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:36:37 | INFO | medico_0 | START | row=10 | Pers_Id=436708 | Medico_Id=152081 | MARIA VITTORIA ABALSAMO
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:37 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:37 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | medico_5 | DONE | Pers_Id=359717 | 3.7s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:36:38 | INFO | medico_5 | START | row=11 | Pers_Id=1219520 | Medico_Id=0 | MARIA ABASCHINA
+2026-09-02 10:36:38 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | medico_4 | DONE | Pers_Id=2744182 | 3.7s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:36:38 | INFO | medico_4 | START | row=12 | Pers_Id=1784532 | Medico_Id=0 | NATALIYA VOLODYMYRIVNA ABASKALOVA
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | INFO | DDGS_0 | response: https://html.duckduckgo.com/html/ 202
+2026-09-02 10:36:38 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:38 | WARNING | DDGS_0 | h2 connection driver error: connection reset
+2026-09-02 10:36:38 | INFO | medico_3 | Error in engine duckduckgo: DDGSException("RequestError: RequestError('error sending request for url (https://html.duckduckgo.com/html/) > connection reset')")
+2026-09-02 10:36:38 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | RequestError: RequestError('error sending request for url (https://html.duckduckgo.com/html/) > connection reset')
+2026-09-02 10:36:38 | WARNING | DDGS_0 | h2 connection driver error: connection reset
+2026-09-02 10:36:38 | INFO | medico_0 | Error in engine duckduckgo: DDGSException("RequestError: RequestError('error sending request for url (https://html.duckduckgo.com/html/) > connection reset')")
+2026-09-02 10:36:38 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | RequestError: RequestError('error sending request for url (https://html.duckduckgo.com/html/) > connection reset')
+2026-09-02 10:36:38 | INFO | medico_3 | DONE | Pers_Id=2744181 | 4.0s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:36:38 | INFO | medico_3 | START | row=13 | Pers_Id=2806591 | Medico_Id=0 | GIULIO ABATANGELO
+2026-09-02 10:36:46 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:46 | INFO | medico_5 | Error in engine duckduckgo: TimeoutException(TimeoutError('error sending request for url (https://html.duckduckgo.com/html/) > operation timed out'))
+2026-09-02 10:36:46 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | TimeoutException | error sending request for url (https://html.duckduckgo.com/html/) > operation timed out
+2026-09-02 10:36:46 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:54 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:54 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:36:54 | INFO | medico_0 | Error in engine duckduckgo: TimeoutException(TimeoutError('error sending request for url (https://html.duckduckgo.com/html/) > operation timed out'))
+2026-09-02 10:36:54 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | TimeoutException | error sending request for url (https://html.duckduckgo.com/html/) > operation timed out
+2026-09-02 10:37:02 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:02 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:02 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:10 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:10 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:10 | INFO | medico_2 | DONE | Pers_Id=2606156 | 33.3s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:37:10 | INFO | medico_2 | START | row=14 | Pers_Id=2745192 | Medico_Id=0 | SILVIA ABATANGELO
+2026-09-02 10:37:10 | INFO | medico_0 | Error in engine duckduckgo: TimeoutException(TimeoutError('error sending request for url (https://html.duckduckgo.com/html/) > operation timed out'))
+2026-09-02 10:37:10 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | TimeoutException | error sending request for url (https://html.duckduckgo.com/html/) > operation timed out
+2026-09-02 10:37:10 | INFO | medico_0 | DONE | Pers_Id=436708 | 33.0s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:37:10 | INFO | medico_0 | START | row=15 | Pers_Id=2607465 | Medico_Id=0 | ANDREA ABATE
+2026-09-02 10:37:18 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:18 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:18 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:26 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:26 | INFO | medico_5 | Error in engine duckduckgo: TimeoutException(TimeoutError('error sending request for url (https://html.duckduckgo.com/html/) > operation timed out'))
+2026-09-02 10:37:26 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | TimeoutException | error sending request for url (https://html.duckduckgo.com/html/) > operation timed out
+2026-09-02 10:37:26 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:34 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:34 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:34 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:42 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:42 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:42 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:42 | INFO | medico_5 | DONE | Pers_Id=1219520 | 64.4s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:37:42 | INFO | medico_5 | START | row=16 | Pers_Id=1222252 | Medico_Id=0 | ANGELA MARIA ABATE
+2026-09-02 10:37:50 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:50 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:50 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:58 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:58 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:58 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:37:58 | INFO | medico_1 | DONE | Pers_Id=1188728 | 81.4s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:37:58 | INFO | MainThread | PROGRESS | 10/20 | 7.1 medici/min | ETA 1.4 min | {'NESSUN_RISULTATO': 10}
+2026-09-02 10:37:58 | INFO | medico_1 | START | row=17 | Pers_Id=2463758 | Medico_Id=0 | ANTONIO HERMES ABATE
+2026-09-02 10:37:58 | INFO | medico_3 | DONE | Pers_Id=2806591 | 80.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:37:58 | INFO | medico_3 | START | row=18 | Pers_Id=2162965 | Medico_Id=0 | ASSUNTA ABATE
+2026-09-02 10:38:06 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:06 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:06 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:14 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:14 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:14 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:22 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:22 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:22 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:30 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:30 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:30 | INFO | medico_5 | Error in engine duckduckgo: TimeoutException(TimeoutError('error sending request for url (https://html.duckduckgo.com/html/) > operation timed out'))
+2026-09-02 10:38:30 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | TimeoutException | error sending request for url (https://html.duckduckgo.com/html/) > operation timed out
+2026-09-02 10:38:30 | INFO | medico_4 | DONE | Pers_Id=1784532 | 112.4s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:38:30 | INFO | medico_4 | START | row=19 | Pers_Id=2607461 | Medico_Id=0 | BIAGIO ABATE
+2026-09-02 10:38:38 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:38 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:38 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:46 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:46 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:46 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:46 | INFO | medico_2 | DONE | Pers_Id=2745192 | 96.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:38:46 | INFO | medico_2 | START | row=20 | Pers_Id=2806593 | Medico_Id=0 | BIAGIO ABATE
+2026-09-02 10:38:54 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:54 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:38:54 | INFO | medico_1 | Error in engine duckduckgo: TimeoutException(TimeoutError('error sending request for url (https://html.duckduckgo.com/html/) > operation timed out'))
+2026-09-02 10:38:54 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | TimeoutException | error sending request for url (https://html.duckduckgo.com/html/) > operation timed out
+2026-09-02 10:39:02 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:02 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:02 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:02 | INFO | medico_5 | DONE | Pers_Id=1222252 | 80.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:39:02 | INFO | medico_5 | START | row=21 | Pers_Id=2607462 | Medico_Id=0 | CLAUDIA ABATE
+2026-09-02 10:39:10 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:10 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:10 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:18 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:18 | WARNING | medico_1 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:18 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:18 | INFO | medico_1 | DONE | Pers_Id=2463758 | 80.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:39:26 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:26 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:26 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:34 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:34 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:34 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:42 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:42 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:42 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:50 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:50 | WARNING | medico_3 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:50 | WARNING | medico_4 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:50 | INFO | medico_4 | DONE | Pers_Id=2607461 | 80.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:39:50 | INFO | medico_3 | DONE | Pers_Id=2162965 | 112.2s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:39:58 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:58 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:39:58 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:06 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:06 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:06 | WARNING | medico_2 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:06 | INFO | medico_2 | DONE | Pers_Id=2806593 | 80.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:40:14 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:14 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:22 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:22 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:30 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:30 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:38 | WARNING | medico_0 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:38 | WARNING | medico_5 | SEARCH FAIL | provider=ddgs | DDGSException | No results found.
+2026-09-02 10:40:39 | INFO | medico_5 | DONE | Pers_Id=2607462 | 96.1s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:40:39 | INFO | medico_0 | DONE | Pers_Id=2607465 | 208.3s | stato=NESSUN_RISULTATO | specialita=N/D | cv=NO
+2026-09-02 10:41:06 | INFO | MainThread | CHECKPOINT | 20/20
+2026-09-02 10:41:06 | INFO | MainThread | PROGRESS | 20/20 | 4.4 medici/min | ETA 0.0 min | {'NESSUN_RISULTATO': 20}
+2026-09-02 10:41:33 | INFO | MainThread | ====================================================================
+2026-09-02 10:41:33 | INFO | MainThread | FINE V1.0 MEDICI - SPECIALITA + CV
+2026-09-02 10:41:33 | INFO | MainThread | Elaborati: 20
+2026-09-02 10:41:33 | INFO | MainThread | Tempo: 5.0 min
+2026-09-02 10:41:33 | INFO | MainThread | Velocita media: 4.0 medici/min
+2026-09-02 10:41:33 | INFO | MainThread | Stati: {'NESSUN_RISULTATO': 20}
+2026-09-02 10:41:33 | INFO | MainThread | Output: C:\Dev\Niko\scriptRicerca\risultatiMedici.xlsx
+2026-09-02 10:41:33 | INFO | MainThread | CV: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-02 10:41:33 | INFO | MainThread | Cache: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-02 10:41:33 | INFO | MainThread | ====================================================================

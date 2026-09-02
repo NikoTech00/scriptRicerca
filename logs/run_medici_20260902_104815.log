@@ -1,0 +1,30 @@
+2026-09-02 10:49:18 | INFO | MainThread | ====================================================================
+2026-09-02 10:49:18 | INFO | MainThread | V1.0 MEDICI - SPECIALITA + CV
+2026-09-02 10:49:18 | INFO | MainThread | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-02 10:49:18 | INFO | MainThread | Output: C:\Dev\Niko\scriptRicerca\risultatiMedici.xlsx
+2026-09-02 10:49:18 | INFO | MainThread | Foglio: Foglio1
+2026-09-02 10:49:18 | INFO | MainThread | CV dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-02 10:49:18 | INFO | MainThread | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-02 10:49:18 | INFO | MainThread | Workers: 6
+2026-09-02 10:49:18 | INFO | MainThread | Search concurrency: 3
+2026-09-02 10:49:18 | INFO | MainThread | Search backend fallback: duckduckgo
+2026-09-02 10:49:18 | INFO | MainThread | Serper: NO
+2026-09-02 10:49:18 | INFO | MainThread | Brave API: NO
+2026-09-02 10:49:18 | INFO | MainThread | Gemini AI: SI
+2026-09-02 10:49:18 | INFO | MainThread | Gemini model: gemini-3.7-flash
+2026-09-02 10:49:18 | INFO | MainThread | Log: logs\run_medici_20260902_104815.log
+2026-09-02 10:49:18 | INFO | MainThread | ====================================================================
+2026-09-02 10:49:18 | INFO | MainThread | Medici da elaborare: 20
+2026-09-02 10:49:18 | INFO | MainThread | PROGRESS | 10/20 | 38114.4 medici/min | ETA 0.0 min | {'NESSUN_RISULTATO': 10}
+2026-09-02 10:49:45 | INFO | MainThread | CHECKPOINT | 20/20
+2026-09-02 10:49:45 | INFO | MainThread | PROGRESS | 20/20 | 44.4 medici/min | ETA 0.0 min | {'NESSUN_RISULTATO': 20}
+2026-09-02 10:50:12 | INFO | MainThread | ====================================================================
+2026-09-02 10:50:12 | INFO | MainThread | FINE V1.0 MEDICI - SPECIALITA + CV
+2026-09-02 10:50:12 | INFO | MainThread | Elaborati: 20
+2026-09-02 10:50:12 | INFO | MainThread | Tempo: 0.9 min
+2026-09-02 10:50:12 | INFO | MainThread | Velocita media: 22.4 medici/min
+2026-09-02 10:50:12 | INFO | MainThread | Stati: {'NESSUN_RISULTATO': 20}
+2026-09-02 10:50:12 | INFO | MainThread | Output: C:\Dev\Niko\scriptRicerca\risultatiMedici.xlsx
+2026-09-02 10:50:12 | INFO | MainThread | CV: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-02 10:50:12 | INFO | MainThread | Cache: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-02 10:50:12 | INFO | MainThread | ====================================================================
