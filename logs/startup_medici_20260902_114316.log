@@ -1,0 +1,11 @@
+2026-09-02 11:43:16 | INFO | Excel iniziale: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-02 11:43:18 | OK | Dipendenze caricate.
+2026-09-02 11:44:21 | FATAL | Error: BrowserType.launch_persistent_context: Executable doesn't exist at C:\Users\Administrator\AppData\Local\ms-playwright\chromium-1234\chrome-win64\chrome.exe
+╔════════════════════════════════════════════════════════════╗
+║ Looks like Playwright was just installed or updated.       ║
+║ Please run the following command to download new browsers: ║
+║                                                            ║
+║     playwright install                                     ║
+║                                                            ║
+║ <3 Playwright Team                                         ║
+╚════════════════════════════════════════════════════════════╝
