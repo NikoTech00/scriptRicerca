@@ -1825,4 +1825,3 @@ if __name__ == "__main__":
         print(f"\nERRORE FATALE: {type(exc).__name__}: {exc}")
         print(f"Log diagnostico: {startup_log.resolve()}")
         raise
-#
