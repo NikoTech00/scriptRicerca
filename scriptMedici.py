@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V3.1 MEDICI - BROWSER SEARCH NO API + CV REVIEW"
+VERSION = "V3.2 MEDICI - BROWSER SEARCH NO API + DEEP CV DISCOVERY"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -30,7 +30,7 @@ PdfReader = None
 sync_playwright = None
 
 DEFAULT_SHEET = "Foglio1"
-DEFAULT_ENGINE = "bing"
+DEFAULT_ENGINE = "auto"
 DEFAULT_SEARCH_RESULTS = 8
 DEFAULT_SAVE_EVERY = 10
 DEFAULT_DELAY_MIN = 1.2
@@ -42,6 +42,9 @@ MAX_HTML_BYTES = 5 * 1024 * 1024
 MAX_PDF_PAGES = 100
 MAX_PDF_TEXT = 120_000
 MAX_PAGE_TEXT = 70_000
+MAX_LANDING_PAGES_PER_PERSON = 8
+MAX_PDF_CANDIDATES_PER_PERSON = 16
+MAX_PDF_LINKS_PER_LANDING = 25
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -267,7 +270,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--limit", "--max-rows", dest="limit", type=int)
     p.add_argument("--start-row", type=int, default=2)
 
-    p.add_argument("--engine", choices=("bing", "google", "auto"), default=DEFAULT_ENGINE)
+    p.add_argument("--engine", choices=("bing", "google", "auto"), default=DEFAULT_ENGINE,
+                   help="Motore preferito; l'altro viene usato automaticamente come fallback.")
     p.add_argument("--search-results", type=int, default=DEFAULT_SEARCH_RESULTS)
     p.add_argument("--headless", action="store_true",
                    help="Avvia Chromium senza finestra. Per i primi test consiglio di NON usarlo.")
@@ -517,7 +521,12 @@ class BrowserSearch:
             return False
 
     def search(self, query: str) -> list[WebHit]:
-        engines = [self.engine] if self.engine != "auto" else ["bing", "google"]
+        # Il motore scelto è quello preferito; l'altro è sempre fallback
+        # in caso di errore, blocco o zero risultati.
+        if self.engine == "google":
+            engines = ["google", "bing"]
+        else:
+            engines = ["bing", "google"]
 
         for engine in engines:
             if engine in self.blocked_engines:
@@ -526,6 +535,7 @@ class BrowserSearch:
                 hits = self._search_engine(engine, query)
                 if hits:
                     return hits
+                logging.warning("SEARCH EMPTY | %s | %s", engine, query)
             except RuntimeError as exc:
                 if "BLOCCO_BROWSER" in str(exc):
                     self.blocked_engines.add(engine)
@@ -933,6 +943,83 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path,
     return None
 
 
+def hit_looks_pdf(hit: WebHit) -> bool:
+    blob = normalize(f"{hit.title} {hit.snippet} {hit.url}")
+    return ".pdf" in hit.url.casefold() or "curriculum" in blob or "europass" in blob
+
+
+def landing_pdf_links(url: str, person: Person) -> list[str]:
+    """
+    Apre una landing page via HTTP e raccoglie PDF plausibili.
+    Non richiede che nome e cognome siano già nello snippet del motore.
+    """
+    got = get_bytes(url, MAX_HTML_BYTES)
+    if not got:
+        return []
+    r, raw = got
+    try:
+        ctype = normalize(r.headers.get("Content-Type", ""))
+        if raw.startswith(b"%PDF") or "application/pdf" in ctype:
+            return [url]
+
+        soup = BeautifulSoup(raw, "html.parser")
+        scored = []
+
+        for a in soup.select("a[href]"):
+            href = clean(a.get("href"))
+            if not href:
+                continue
+            candidate = urljoin(url, href)
+            if not candidate.startswith(("http://", "https://")):
+                continue
+
+            label = normalize(f"{a.get_text(' ', strip=True)} {candidate}")
+            score = 0
+            if ".pdf" in candidate.casefold():
+                score += 80
+            if "curriculum" in label or "europass" in label or " cv " in f" {label} ":
+                score += 120
+            if normalize(person.surname) in label:
+                score += 55
+            if normalize(person.name) in label:
+                score += 35
+            if any(x in label for x in CV_NEGATIVE):
+                score -= 100
+
+            if score >= 70:
+                scored.append((score, candidate))
+
+        html = raw.decode("utf-8", errors="ignore")
+        pdf_url_pattern = r"https?://[^\"'<> ]+?\.pdf(?:\?[^\"'<> ]*)?"
+        for m in re.findall(pdf_url_pattern, html, flags=re.I):
+            score = 75
+            nm = normalize(m)
+            if normalize(person.surname) in nm:
+                score += 40
+            if normalize(person.name) in nm:
+                score += 25
+            if "curriculum" in nm or "cv" in nm:
+                score += 60
+            scored.append((score, m))
+
+        out = []
+        seen = set()
+        for _, candidate in sorted(scored, reverse=True):
+            key = canonical_url(candidate)
+            if key and key not in seen:
+                seen.add(key)
+                out.append(candidate)
+            if len(out) >= MAX_PDF_LINKS_PER_LANDING:
+                break
+        return out
+    finally:
+        r.close()
+
+
+def inspect_pdf_candidate(url: str, person: Person, cv_dir: Path, review_dir: Path):
+    return try_pdf_url(url, person, cv_dir, review_dir)
+
+
 # ============================================================
 # SPECIALITÀ
 # ============================================================
@@ -1075,42 +1162,27 @@ def email_domain(email: str) -> str:
     return d
 
 
-def cv_queries(person: Person, deep: bool) -> list[str]:
+def research_queries(person: Person, deep: bool) -> list[str]:
+    """
+    Query ridotte ma più larghe: la ricerca porta a landing page e PDF
+    che vengono poi analizzati localmente.
+    """
     full = f'"{person.full_name}"'
     qs = [
-        f'{full} medico "curriculum vitae"',
+        f'{full} medico curriculum specialista',
         f'{full} medico curriculum filetype:pdf',
     ]
-    if person.city:
-        qs.append(f'{full} medico "{person.city}" curriculum')
+
     d = email_domain(person.email)
     if d:
-        qs.append(f'{full} site:{d} curriculum')
-    if deep:
-        qs.extend([
-            f'{full} "curriculum professionale"',
-            f'{full} "amministrazione trasparente" curriculum',
-        ])
-    return qs
+        qs.append(f'{full} site:{d} curriculum OR specialista')
+    elif person.city:
+        qs.append(f'{full} medico "{person.city}" curriculum OR specializzazione')
 
-
-def specialty_queries(person: Person, deep: bool) -> list[str]:
-    full = f'"{person.full_name}"'
-    qs = [
-        f'{full} medico "specialista in"',
-        f'{full} medico "specializzazione in"',
-    ]
-    if person.city:
-        qs.append(f'{full} medico "{person.city}" specialista')
-    d = email_domain(person.email)
-    if d:
-        qs.append(f'{full} site:{d} specialista')
     if deep:
-        qs.extend([
-            f'{full} medico ospedale specializzazione',
-            f'{full} "diploma di specializzazione"',
-        ])
-    return qs
+        qs.append(f'{full} "curriculum vitae" OR "specializzazione in" OR "specialista in"')
+
+    return qs[:4]
 
 
 # ============================================================
@@ -1149,70 +1221,132 @@ def research_person(person: Person, args: argparse.Namespace,
     cv_review_paths = []
     cv_review_urls = []
 
-    # -------- CV FIRST --------
-    cv_hits = []
-    for q in cv_queries(person, args.deep):
+    # -------- DISCOVERY UNIFICATA: 3-4 QUERY + ANALISI PROFONDA --------
+    all_hits = []
+    for q in research_queries(person, args.deep):
         hits = browser.search(q)
-        cv_hits.extend(hits)
-        sources.extend(h.url for h in hits[:4])
+        all_hits.extend(hits)
+        sources.extend(h.url for h in hits[:args.search_results])
 
-        ranked = sorted(hits, key=lambda h: score_hit_for_person(h, person), reverse=True)
-        for hit in ranked[:5]:
-            # Un risultato con solo cognome/nome nel titolo/snippet può comunque portare al CV.
-            if score_hit_for_person(hit, person) < 180:
+    all_hits = dedupe_hits(all_hits)
+
+    ranked_hits = sorted(
+        all_hits,
+        key=lambda h: (
+            1 if hit_looks_pdf(h) else 0,
+            score_hit_for_person(h, person)
+        ),
+        reverse=True,
+    )
+
+    pdf_seen = set()
+    pdf_checked = 0
+
+    # 1) PDF diretti dai risultati.
+    for hit in ranked_hits:
+        if pdf_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
+            break
+        if ".pdf" not in hit.url.casefold():
+            continue
+
+        key = canonical_url(hit.url)
+        if not key or key in pdf_seen:
+            continue
+        pdf_seen.add(key)
+        pdf_checked += 1
+
+        found = inspect_pdf_candidate(hit.url, person, cv_dir, review_dir)
+        if not found:
+            continue
+
+        kind, found_path, cv_text, found_conf, reason = found
+        sources.insert(0, hit.url)
+
+        if kind == "verified":
+            cv_path, cv_url, cv_conf = found_path, hit.url, found_conf
+            notes.append("CV verificato trovato direttamente dai risultati.")
+            specialty_pool.extend(specialty_candidates(cv_text, person, hit.url))
+            break
+        else:
+            if found_path not in cv_review_paths:
+                cv_review_paths.append(found_path)
+            if hit.url not in cv_review_urls:
+                cv_review_urls.append(hit.url)
+            notes.append("PDF candidato salvato per verifica manuale.")
+            specialty_pool.extend(specialty_candidates(cv_text, person, hit.url))
+
+    # 2) Landing page: analizziamo i migliori risultati anche senza identità
+    # già perfettamente visibile nello snippet.
+    landing_checked = 0
+    for hit in ranked_hits:
+        if cv_path:
+            break
+        if landing_checked >= MAX_LANDING_PAGES_PER_PERSON:
+            break
+        if ".pdf" in hit.url.casefold():
+            continue
+
+        rank_score = score_hit_for_person(hit, person)
+        blob = normalize(f"{hit.title} {hit.snippet} {hit.url}")
+        if rank_score < 80 and not any(
+            x in blob for x in (
+                "curriculum", "medico", "osped", "asl", "ausl",
+                "asst", "aou", "irccs", "policlin"
+            )
+        ):
+            continue
+
+        landing_checked += 1
+        sources.append(hit.url)
+
+        text = page_text(hit.url)
+        if text:
+            specialty_pool.extend(specialty_candidates(text, person, hit.url))
+
+        for candidate in landing_pdf_links(hit.url, person):
+            if pdf_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
+                break
+
+            key = canonical_url(candidate)
+            if not key or key in pdf_seen:
                 continue
-            found = try_cv_candidate(hit.url, person, cv_dir, review_dir)
-            if found:
-                kind, found_path, found_url, cv_text, found_conf = found
-                sources.insert(0, found_url)
+            pdf_seen.add(key)
+            pdf_checked += 1
 
-                if kind == "verified":
-                    cv_path, cv_url, cv_conf = found_path, found_url, found_conf
-                    notes.append("CV trovato e verificato sul contenuto.")
-                    specialty_pool.extend(specialty_candidates(cv_text, person, cv_url))
-                    break
-                else:
-                    if found_path not in cv_review_paths:
-                        cv_review_paths.append(found_path)
-                    if found_url not in cv_review_urls:
-                        cv_review_urls.append(found_url)
-                    notes.append("Trovato almeno un CV candidato salvato per verifica manuale.")
-                    specialty_pool.extend(specialty_candidates(cv_text, person, found_url))
+            found = inspect_pdf_candidate(candidate, person, cv_dir, review_dir)
+            if not found:
+                continue
+
+            kind, found_path, cv_text, found_conf, reason = found
+            sources.insert(0, candidate)
+
+            if kind == "verified":
+                cv_path, cv_url, cv_conf = found_path, candidate, found_conf
+                notes.append("CV verificato trovato tramite landing page.")
+                specialty_pool.extend(specialty_candidates(cv_text, person, candidate))
+                break
+            else:
+                if found_path not in cv_review_paths:
+                    cv_review_paths.append(found_path)
+                if candidate not in cv_review_urls:
+                    cv_review_urls.append(candidate)
+                notes.append("CV candidato da landing page salvato per verifica manuale.")
+                specialty_pool.extend(specialty_candidates(cv_text, person, candidate))
+
         if cv_path:
             break
 
-    # -------- SPECIALITÀ --------
-    specialty_hits = []
-    for q in specialty_queries(person, args.deep):
-        hits = browser.search(q)
-        specialty_hits.extend(hits)
-        sources.extend(h.url for h in hits[:4])
-
-        # Snippet
-        for hit in hits:
-            blob = f"{person.full_name}\n{hit.title}\n{hit.snippet}"
-            specialty_pool.extend(specialty_candidates(blob, person, hit.url))
-
-        # Pagine reali: priorità ai risultati più forti.
-        ranked = sorted(hits, key=lambda h: score_hit_for_person(h, person), reverse=True)
-        for hit in ranked[:4]:
-            if score_hit_for_person(hit, person) < 180:
-                continue
-            text = page_text(hit.url)
-            if text:
-                specialty_pool.extend(specialty_candidates(text, person, hit.url))
-
-        spec, spec_conf, spec_src, spec_ev = choose_specialty(specialty_pool)
-        if spec:
-            break
+    # 3) Specialità anche dagli snippet raccolti.
+    for hit in ranked_hits:
+        blob = f"{person.full_name}\n{hit.title}\n{hit.snippet}"
+        specialty_pool.extend(specialty_candidates(blob, person, hit.url))
 
     specialty, specialty_conf, specialty_source, specialty_evidence = choose_specialty(specialty_pool)
     if specialty_source:
         sources.insert(0, specialty_source)
 
     # Se il browser è stato bloccato su tutti i motori disponibili, segnala chiaramente.
-    engines_expected = {args.engine} if args.engine != "auto" else {"bing", "google"}
-    browser_blocked = engines_expected.issubset(browser.blocked_engines)
+    browser_blocked = {"bing", "google"}.issubset(browser.blocked_engines)
 
     if specialty and cv_path:
         status = "COMPLETATO"
@@ -1251,9 +1385,9 @@ def research_person(person: Person, args: argparse.Namespace,
     write_cache(person, cache_dir, result)
 
     logging.info(
-        "DONE | Pers_Id=%s | %.1fs | %s | specialita=%s | cv=%s",
+        "DONE | Pers_Id=%s | %.1fs | %s | specialita=%s | cv=%s | cv_review=%s",
         person.pers_id, result["elapsed"], status,
-        specialty or "N/D", "SI" if cv_path else "NO"
+        specialty or "N/D", "SI" if cv_path else "NO", len(cv_review_paths)
     )
     return result
 
@@ -1390,8 +1524,7 @@ def main() -> int:
                 )
 
             # Se il browser viene bloccato, salviamo subito e interrompiamo:
-            expected = {args.engine} if args.engine != "auto" else {"bing", "google"}
-            if expected.issubset(browser.blocked_engines):
+            if {"bing", "google"}.issubset(browser.blocked_engines):
                 logging.error("STOP | Tutti i motori richiesti risultano bloccati/CAPTCHA.")
                 break
 
