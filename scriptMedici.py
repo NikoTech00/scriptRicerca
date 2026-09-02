@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V3.0 MEDICI - BROWSER SEARCH NO API"
+VERSION = "V3.1 MEDICI - BROWSER SEARCH NO API + CV REVIEW"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -57,6 +57,8 @@ OUTPUT_COLUMNS = (
     "CV_Salvato",
     "CV_URL",
     "CV_Confidenza",
+    "CV_Da_Verificare",
+    "CV_Da_Verificare_URL",
     "Fonti_Ricerca",
     "Ricerca_Metodo",
     "Ricerca_Note",
@@ -280,6 +282,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--ignore-cache", action="store_true")
 
     p.add_argument("--cv-dir", type=Path, default=Path("cv_medici"))
+    p.add_argument("--cv-review-dir", type=Path, default=Path("cv_medici_da_verificare"))
     p.add_argument("--cache-dir", type=Path, default=Path("cache_medici"))
     p.add_argument("--browser-data-dir", type=Path, default=Path("browser_medici"))
     p.add_argument("--log-dir", type=Path, default=Path("logs"))
@@ -405,6 +408,8 @@ def set_result(ws, headers: dict[str, int], row: int, result: dict[str, Any]) ->
         "CV_Salvato": result.get("cv_path", ""),
         "CV_URL": result.get("cv_url", ""),
         "CV_Confidenza": result.get("cv_confidence", ""),
+        "CV_Da_Verificare": result.get("cv_review_paths", ""),
+        "CV_Da_Verificare_URL": result.get("cv_review_urls", ""),
         "Fonti_Ricerca": result.get("sources", ""),
         "Ricerca_Metodo": result.get("method", ""),
         "Ricerca_Note": result.get("notes", ""),
@@ -799,7 +804,45 @@ def cv_destination(person: Person, cv_dir: Path) -> Path:
     return cv_dir / f"{safe_part(person.output_code)}-{safe_part(person.surname)}-{safe_part(person.name)}.pdf"
 
 
-def try_pdf_url(url: str, person: Person, cv_dir: Path) -> tuple[str, str, str] | None:
+def unique_review_destination(person: Person, review_dir: Path, raw: bytes) -> Path:
+    review_dir.mkdir(parents=True, exist_ok=True)
+    base = f"{safe_part(person.output_code)}-{safe_part(person.surname)}-{safe_part(person.name)}"
+    digest = hashlib.sha1(raw).hexdigest()[:10]
+    candidate = review_dir / f"{base}-{digest}.pdf"
+    return candidate
+
+
+def looks_like_cv(text: str) -> tuple[bool, str]:
+    n = normalize(text)
+    pos = sum(1 for x in CV_POSITIVE if x in n)
+    neg = sum(1 for x in CV_NEGATIVE if x in n)
+    med = sum(1 for x in MEDICAL_TERMS if x in n)
+
+    if "curriculum vitae" in n or "europass" in n:
+        return True, "Titolo/struttura CV rilevata."
+    if pos >= 2 and med >= 1 and neg < 4:
+        return True, "Struttura compatibile con un CV medico."
+    if pos >= 3 and neg < 3:
+        return True, "Documento con più sezioni tipiche da CV."
+    return False, "Documento non sufficientemente compatibile con un CV."
+
+
+def save_review_candidate(raw: bytes, text: str, url: str, person: Person,
+                          review_dir: Path, reason: str) -> tuple[str, str] | None:
+    plausible, why = looks_like_cv(text)
+    if not plausible:
+        logging.info("CV SCARTATO | %s | %s | %s", person.pers_id, url, reason or why)
+        return None
+
+    dest = unique_review_destination(person, review_dir, raw)
+    if not dest.exists():
+        dest.write_bytes(raw)
+    logging.info("CV DA VERIFICARE SALVATO | %s | %s | %s", person.pers_id, dest, reason or why)
+    return str(dest), url
+
+
+def try_pdf_url(url: str, person: Person, cv_dir: Path,
+                review_dir: Path) -> tuple[str, str, str, str, str] | None:
     got = get_bytes(url, MAX_PDF_BYTES)
     if not got:
         return None
@@ -811,27 +854,33 @@ def try_pdf_url(url: str, person: Person, cv_dir: Path) -> tuple[str, str, str] 
 
         text = pdf_text(raw)
         if not text:
+            logging.info("CV SCARTATO | %s | %s | PDF senza testo estraibile", person.pers_id, url)
             return None
 
         ok, conf, reason = verify_cv(text, person)
-        if not ok:
-            logging.info("CV SCARTATO | %s | %s", url, reason)
-            return None
+        if ok:
+            cv_dir.mkdir(parents=True, exist_ok=True)
+            dest = cv_destination(person, cv_dir)
+            dest.write_bytes(raw)
+            logging.info("CV VERIFICATO | %s | %s | confidenza=%s", person.pers_id, dest, conf)
+            return "verified", str(dest), text, conf, ""
 
-        cv_dir.mkdir(parents=True, exist_ok=True)
-        dest = cv_destination(person, cv_dir)
-        dest.write_bytes(raw)
-        logging.info("CV VERIFICATO | %s | %s", person.pers_id, dest)
-        return str(dest), text, conf
+        review = save_review_candidate(raw, text, url, person, review_dir, reason)
+        if review:
+            review_path, _ = review
+            return "review", review_path, text, "bassa", reason
+
+        return None
     finally:
         r.close()
 
 
-def try_cv_candidate(url: str, person: Person, cv_dir: Path) -> tuple[str, str, str, str] | None:
-    direct = try_pdf_url(url, person, cv_dir)
+def try_cv_candidate(url: str, person: Person, cv_dir: Path,
+                     review_dir: Path) -> tuple[str, str, str, str, str] | None:
+    direct = try_pdf_url(url, person, cv_dir, review_dir)
     if direct:
-        path, text, conf = direct
-        return path, url, text, conf
+        kind, path, text, conf, reason = direct
+        return kind, path, url, text, conf
 
     got = get_bytes(url, MAX_HTML_BYTES)
     if not got:
@@ -841,6 +890,7 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path) -> tuple[str, str, 
         soup = BeautifulSoup(raw, "html.parser")
         links = []
 
+        # Link espliciti
         for a in soup.select("a[href]"):
             href = clean(a.get("href"))
             if not href:
@@ -850,29 +900,34 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path) -> tuple[str, str, 
 
             score = 0
             if ".pdf" in candidate.casefold():
-                score += 50
+                score += 60
             if "curriculum" in label or "europass" in label:
-                score += 100
+                score += 120
             if normalize(person.surname) in label:
-                score += 40
+                score += 50
             if normalize(person.name) in label:
-                score += 25
+                score += 30
             if any(x in label for x in CV_NEGATIVE):
-                score -= 100
+                score -= 120
 
-            if score >= 80:
+            if score >= 60:
                 links.append((score, candidate))
 
+        # URL PDF scritti nel markup/testo ma non necessariamente dentro <a>
+        html = raw.decode("utf-8", errors="ignore")
+        for m in re.findall(r'https?://[^"\'<> ]+?\.pdf(?:\?[^"\'<> ]*)?', html, flags=re.I):
+            links.append((70, m))
+
         seen = set()
-        for _, candidate in sorted(links, reverse=True)[:12]:
+        for _, candidate in sorted(links, reverse=True)[:20]:
             key = canonical_url(candidate)
             if key in seen:
                 continue
             seen.add(key)
-            found = try_pdf_url(candidate, person, cv_dir)
+            found = try_pdf_url(candidate, person, cv_dir, review_dir)
             if found:
-                path, text, conf = found
-                return path, candidate, text, conf
+                kind, path, text, conf, reason = found
+                return kind, path, candidate, text, conf
     finally:
         r.close()
     return None
@@ -1074,7 +1129,8 @@ def score_hit_for_person(hit: WebHit, person: Person) -> int:
 
 
 def research_person(person: Person, args: argparse.Namespace,
-                    browser: BrowserSearch, cv_dir: Path, cache_dir: Path) -> dict[str, Any]:
+                    browser: BrowserSearch, cv_dir: Path, review_dir: Path,
+                    cache_dir: Path) -> dict[str, Any]:
     if not args.ignore_cache:
         cached = read_cache(person, cache_dir)
         if cached:
@@ -1090,6 +1146,8 @@ def research_person(person: Person, args: argparse.Namespace,
     cv_path = ""
     cv_url = ""
     cv_conf = "nessuna"
+    cv_review_paths = []
+    cv_review_urls = []
 
     # -------- CV FIRST --------
     cv_hits = []
@@ -1103,13 +1161,23 @@ def research_person(person: Person, args: argparse.Namespace,
             # Un risultato con solo cognome/nome nel titolo/snippet può comunque portare al CV.
             if score_hit_for_person(hit, person) < 180:
                 continue
-            found = try_cv_candidate(hit.url, person, cv_dir)
+            found = try_cv_candidate(hit.url, person, cv_dir, review_dir)
             if found:
-                cv_path, cv_url, cv_text, cv_conf = found
-                sources.insert(0, cv_url)
-                notes.append("CV trovato e verificato sul contenuto.")
-                specialty_pool.extend(specialty_candidates(cv_text, person, cv_url))
-                break
+                kind, found_path, found_url, cv_text, found_conf = found
+                sources.insert(0, found_url)
+
+                if kind == "verified":
+                    cv_path, cv_url, cv_conf = found_path, found_url, found_conf
+                    notes.append("CV trovato e verificato sul contenuto.")
+                    specialty_pool.extend(specialty_candidates(cv_text, person, cv_url))
+                    break
+                else:
+                    if found_path not in cv_review_paths:
+                        cv_review_paths.append(found_path)
+                    if found_url not in cv_review_urls:
+                        cv_review_urls.append(found_url)
+                    notes.append("Trovato almeno un CV candidato salvato per verifica manuale.")
+                    specialty_pool.extend(specialty_candidates(cv_text, person, found_url))
         if cv_path:
             break
 
@@ -1170,6 +1238,8 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_path": cv_path,
         "cv_url": cv_url,
         "cv_confidence": cv_conf,
+        "cv_review_paths": "\n".join(cv_review_paths[:20]),
+        "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
         "method": f"Playwright browser search ({args.engine})",
         "notes": " ".join(notes),
@@ -1203,6 +1273,7 @@ def main() -> int:
         else default_output_path(input_path).resolve()
     )
     cv_dir = args.cv_dir.expanduser().resolve()
+    review_dir = args.cv_review_dir.expanduser().resolve()
     cache_dir = args.cache_dir.expanduser().resolve()
     browser_data_dir = args.browser_data_dir.expanduser().resolve()
 
@@ -1231,7 +1302,8 @@ def main() -> int:
     logging.info("Search results: %s", args.search_results)
     logging.info("Delay: %.1f - %.1f sec", args.delay_min, args.delay_max)
     logging.info("Browser profile: %s", browser_data_dir)
-    logging.info("CV dir: %s", cv_dir)
+    logging.info("CV sicuri dir: %s", cv_dir)
+    logging.info("CV da verificare dir: %s", review_dir)
     logging.info("Cache dir: %s", cache_dir)
     logging.info("Log: %s", log_file)
     logging.info("=" * 78)
@@ -1277,7 +1349,7 @@ def main() -> int:
 
         for i, person in enumerate(people, start=1):
             try:
-                result = research_person(person, args, browser, cv_dir, cache_dir)
+                result = research_person(person, args, browser, cv_dir, review_dir, cache_dir)
             except Exception as exc:
                 logging.exception("ERRORE PERSONA | %s | %s", person.pers_id, person.full_name)
                 result = {
@@ -1289,6 +1361,8 @@ def main() -> int:
                     "cv_path": "",
                     "cv_url": "",
                     "cv_confidence": "nessuna",
+                    "cv_review_paths": "",
+                    "cv_review_urls": "",
                     "sources": "",
                     "method": f"Playwright browser search ({args.engine})",
                     "notes": "",
@@ -1332,7 +1406,8 @@ def main() -> int:
     print("")
     print(f"Excel salvato in: {output_path}")
     print(f"Log esecuzione: {log_file.resolve()}")
-    print(f"CV salvati in: {cv_dir}")
+    print(f"CV sicuri salvati in: {cv_dir}")
+    print(f"CV da verificare salvati in: {review_dir}")
     return 0
 
 
