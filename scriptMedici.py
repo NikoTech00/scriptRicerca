@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V3.3 MEDICI - SOURCE FILTERING + BING URL DECODE"
+VERSION = "V3.4 MEDICI - RELEVANCE FALLBACK + GOOGLE FIRST"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -234,7 +234,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v3_3.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v3_4.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -565,9 +565,8 @@ class BrowserSearch:
             return False
 
     def search(self, query: str) -> list[WebHit]:
-        # Il motore scelto è quello preferito; l'altro è sempre fallback
-        # in caso di errore, blocco o zero risultati.
-        if self.engine == "google":
+        # AUTO: Google prima. Bing resta fallback tecnico.
+        if self.engine in {"google", "auto"}:
             engines = ["google", "bing"]
         else:
             engines = ["bing", "google"]
@@ -589,6 +588,28 @@ class BrowserSearch:
             except Exception as exc:
                 logging.warning("SEARCH FAIL | %s | %s | %s: %s",
                                 engine, query, type(exc).__name__, exc)
+        return []
+
+    def search_specific(self, engine: str, query: str) -> list[WebHit]:
+        """
+        Ricerca esplicita su un singolo motore. Serve quando il motore primario
+        restituisce risultati tecnicamente validi ma semanticamente irrilevanti.
+        """
+        if engine in self.blocked_engines:
+            return []
+        try:
+            return self._search_engine(engine, query)
+        except RuntimeError as exc:
+            if "BLOCCO_BROWSER" in str(exc):
+                self.blocked_engines.add(engine)
+                logging.error("BROWSER BLOCCATO | %s | %s", engine, exc)
+            else:
+                logging.warning("SEARCH FAIL | %s | %s | %s", engine, query, exc)
+        except Exception as exc:
+            logging.warning(
+                "SEARCH FAIL | %s | %s | %s: %s",
+                engine, query, type(exc).__name__, exc
+            )
         return []
 
     def _search_engine(self, engine: str, query: str) -> list[WebHit]:
@@ -1347,30 +1368,63 @@ def research_person(person: Person, args: argparse.Namespace,
     cv_review_urls = []
 
     # -------- DISCOVERY UNIFICATA: 3-4 QUERY + ANALISI PROFONDA --------
+    queries = research_queries(person, args.deep)
     all_hits = []
-    for q in research_queries(person, args.deep):
+
+    # Primo passaggio: motore preferito (AUTO = Google).
+    for q in queries:
         hits = browser.search(q)
         all_hits.extend(hits)
 
     all_hits = dedupe_hits(all_hits)
 
-    relevant_hits = []
-    for hit in all_hits:
-        ok, rel_score, reason = hit_relevance(hit, person)
-        if ok:
-            relevant_hits.append(hit)
-            logging.info(
-                "HIT ACCETTATO | Pers_Id=%s | score=%s | %s | %s",
-                person.pers_id, rel_score, hit.title[:120], hit.url
-            )
+    def filter_relevant(hits_to_filter):
+        accepted = []
+        for hit in hits_to_filter:
+            ok, rel_score, reason = hit_relevance(hit, person)
+            if ok:
+                accepted.append(hit)
+                logging.info(
+                    "HIT ACCETTATO | Pers_Id=%s | engine=%s | score=%s | %s | %s",
+                    person.pers_id, hit.engine, rel_score, hit.title[:120], hit.url
+                )
+            else:
+                logging.info(
+                    "HIT SCARTATO | Pers_Id=%s | engine=%s | score=%s | %s | %s | %s",
+                    person.pers_id, hit.engine, rel_score, reason, hit.title[:100], hit.url
+                )
+        return accepted
+
+    relevant_hits = filter_relevant(all_hits)
+
+    # Fallback SEMANTICO: se il motore ha restituito 10 risultati ma tutti
+    # irrilevanti, proviamo esplicitamente l'altro motore. Nella V3.3 questo
+    # non succedeva perché Bing "aveva risultati" e impediva il fallback.
+    if not relevant_hits:
+        engines_seen = {h.engine for h in all_hits}
+        if "google" in engines_seen:
+            alternate = "bing"
         else:
-            logging.info(
-                "HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s | %s",
-                person.pers_id, rel_score, reason, hit.title[:100], hit.url
+            alternate = "google"
+
+        if alternate not in browser.blocked_engines:
+            logging.warning(
+                "RELEVANCE FALLBACK | Pers_Id=%s | nessun hit rilevante; provo %s",
+                person.pers_id, alternate
             )
+            alt_hits = []
+            for q in queries:
+                alt_hits.extend(browser.search_specific(alternate, q))
+
+            alt_hits = dedupe_hits(alt_hits)
+            # Evitiamo duplicati fra i due motori.
+            existing = {normalize_result_url(h.url) for h in all_hits}
+            alt_hits = [h for h in alt_hits if normalize_result_url(h.url) not in existing]
+            all_hits.extend(alt_hits)
+            relevant_hits.extend(filter_relevant(alt_hits))
 
     ranked_hits = sorted(
-        relevant_hits,
+        dedupe_hits(relevant_hits),
         key=lambda h: (
             1 if hit_looks_pdf(h) else 0,
             score_hit_for_person(h, person)
@@ -1380,9 +1434,13 @@ def research_person(person: Person, args: argparse.Namespace,
 
     # Solo fonti realmente rilevanti finiscono nell'Excel.
     sources.extend(h.url for h in ranked_hits[:args.search_results * 2])
+    engine_counts = {}
+    for h in all_hits:
+        engine_counts[h.engine] = engine_counts.get(h.engine, 0) + 1
+
     logging.info(
-        "HIT SUMMARY | Pers_Id=%s | grezzi=%s | rilevanti=%s",
-        person.pers_id, len(all_hits), len(ranked_hits)
+        "HIT SUMMARY | Pers_Id=%s | grezzi=%s | rilevanti=%s | engines=%s",
+        person.pers_id, len(all_hits), len(ranked_hits), engine_counts
     )
 
     pdf_seen = set()
@@ -1526,7 +1584,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Playwright browser search V3.3 ({args.engine})",
+        "method": f"Playwright browser search V3.4 ({args.engine})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -1649,7 +1707,7 @@ def main() -> int:
                     "cv_review_paths": "",
                     "cv_review_urls": "",
                     "sources": "",
-                    "method": f"Playwright browser search V3.3 ({args.engine})",
+                    "method": f"Playwright browser search V3.4 ({args.engine})",
                     "notes": "",
                     "updated": utc_now(),
                     "error": f"{type(exc).__name__}: {exc}",
