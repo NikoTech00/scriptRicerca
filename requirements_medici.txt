@@ -1,7 +1,7 @@
 requests>=2.32
 beautifulsoup4>=4.12
-ddgs>=9.0
 python-dotenv>=1.0
-google-genai>=1.0
+google-genai>=2.0.0
 openpyxl>=3.1
 pypdf>=5.0
+ddgs>=9.0

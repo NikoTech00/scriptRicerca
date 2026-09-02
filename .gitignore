@@ -10,3 +10,5 @@ env/
 ._*
 .Spotlight-V100
 .Trashes
+# Output generati
+cache_medici/
