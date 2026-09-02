@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import ipaddress
 import json
@@ -18,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs
 
-VERSION = "V3.2 MEDICI - BROWSER SEARCH NO API + DEEP CV DISCOVERY"
+VERSION = "V3.3 MEDICI - SOURCE FILTERING + BING URL DECODE"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -142,6 +143,49 @@ def canonical_url(url: str) -> str:
     return clean(url).split("#", 1)[0].rstrip("/")
 
 
+def decode_bing_redirect(url: str) -> str:
+    """
+    Decodifica i redirect Bing del tipo /ck/a?...&u=a1BASE64...
+    Restituisce l'URL reale quando possibile.
+    """
+    raw = clean(url)
+    try:
+        p = urlparse(raw)
+        host = (p.hostname or "").casefold()
+        if "bing.com" not in host:
+            return raw
+
+        qs = parse_qs(p.query)
+        values = qs.get("u", [])
+        if not values:
+            return raw
+
+        value = clean(values[0])
+        # Bing usa spesso prefisso a1 + Base64 URL-safe.
+        payload = value[2:] if value.startswith("a1") else value
+        padding = "=" * (-len(payload) % 4)
+
+        try:
+            decoded = base64.urlsafe_b64decode(payload + padding).decode("utf-8", errors="ignore")
+            if decoded.startswith(("http://", "https://")):
+                return decoded
+        except Exception:
+            pass
+
+        # In alcuni casi il valore è già percent-encoded o contiene direttamente URL.
+        if value.startswith(("http://", "https://")):
+            return value
+    except Exception:
+        pass
+
+    return raw
+
+
+def normalize_result_url(url: str) -> str:
+    u = decode_bing_redirect(url)
+    return canonical_url(u)
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -190,7 +234,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v3.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v3_3.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -572,6 +616,7 @@ class BrowserSearch:
                 a = li.locator("h2 a").first
                 title = clean(a.inner_text(timeout=1500))
                 url = clean(a.get_attribute("href"))
+                url = normalize_result_url(url)
                 snippet = ""
                 p = li.locator(".b_caption p")
                 if p.count():
@@ -613,10 +658,11 @@ def dedupe_hits(hits: Iterable[WebHit]) -> list[WebHit]:
     out = []
     seen = set()
     for hit in hits:
-        key = canonical_url(hit.url)
+        real_url = normalize_result_url(hit.url)
+        key = canonical_url(real_url)
         if key and key not in seen:
             seen.add(key)
-            out.append(hit)
+            out.append(WebHit(hit.title, real_url, hit.snippet, hit.engine))
     return out
 
 
@@ -732,6 +778,19 @@ MEDICAL_TERMS = (
     "medico", "medicina", "chirurgo", "specialista", "specializzazione",
     "ospedale", "azienda sanitaria", "asl", "ausl", "asst", "aou",
     "irccs", "policlinico", "ordine dei medici",
+)
+
+
+TRUSTED_MEDICAL_DOMAIN_HINTS = (
+    "asl", "ausl", "asst", "ats", "aou", "ao-", "osped", "policlin",
+    "irccs", "sanita", "salute", "regione", "univ", "universita",
+    "ordinemedici", "fnomceo", "gov.it",
+)
+
+JUNK_DOMAIN_HINTS = (
+    "amazon.", "reddit.", "zhihu.", "baidu.", "qiwa.", "spartex.",
+    "facebook.", "instagram.", "tiktok.", "pinterest.", "youtube.",
+    "linkedin.", "wikipedia.", "ebay.", "aliexpress.",
 )
 
 
@@ -930,7 +989,7 @@ def try_cv_candidate(url: str, person: Person, cv_dir: Path,
 
         seen = set()
         for _, candidate in sorted(links, reverse=True)[:20]:
-            key = canonical_url(candidate)
+            key = normalize_result_url(candidate)
             if key in seen:
                 continue
             seen.add(key)
@@ -1005,7 +1064,7 @@ def landing_pdf_links(url: str, person: Person) -> list[str]:
         out = []
         seen = set()
         for _, candidate in sorted(scored, reverse=True):
-            key = canonical_url(candidate)
+            key = normalize_result_url(candidate)
             if key and key not in seen:
                 seen.add(key)
                 out.append(candidate)
@@ -1164,24 +1223,26 @@ def email_domain(email: str) -> str:
 
 def research_queries(person: Person, deep: bool) -> list[str]:
     """
-    Query ridotte ma più larghe: la ricerca porta a landing page e PDF
-    che vengono poi analizzati localmente.
+    Query più selettive: identità esatta + contesto sanitario + CV.
     """
     full = f'"{person.full_name}"'
-    qs = [
-        f'{full} medico curriculum specialista',
-        f'{full} medico curriculum filetype:pdf',
-    ]
+    reverse = f'"{person.surname} {person.name}"'
+    qs = []
 
     d = email_domain(person.email)
     if d:
-        qs.append(f'{full} site:{d} curriculum OR specialista')
-    elif person.city:
-        qs.append(f'{full} medico "{person.city}" curriculum OR specializzazione')
+        qs.append(f'{full} site:{d} curriculum OR specialista OR medico')
 
-    if deep:
-        qs.append(f'{full} "curriculum vitae" OR "specializzazione in" OR "specialista in"')
+    qs.extend([
+        f'{full} medico ospedale OR ASL OR AUSL OR ASST OR AOU OR IRCCS',
+        f'{full} "curriculum vitae" filetype:pdf medico',
+        f'{reverse} medico specialista curriculum',
+    ])
 
+    if deep and person.city:
+        qs.append(f'{full} medico "{person.city}" specializzazione OR curriculum')
+
+    # Massimo 4 query: meno rumore e meno rischio blocco.
     return qs[:4]
 
 
@@ -1189,14 +1250,78 @@ def research_queries(person: Person, deep: bool) -> list[str]:
 # PIPELINE
 # ============================================================
 
-def score_hit_for_person(hit: WebHit, person: Person) -> int:
-    text = f"{hit.title} {hit.snippet}"
-    score = identity_score(text, person)
-    d = domain(hit.url)
-    if any(x in d for x in ("asl", "ausl", "asst", "aou", "irccs", "osped", "policlin", "univ", "ordinemedici")):
-        score += 120
-    if "curriculum" in normalize(text + " " + hit.url):
+def is_junk_domain(url: str) -> bool:
+    d = domain(url)
+    return any(x in d for x in JUNK_DOMAIN_HINTS)
+
+
+def trusted_medical_domain(url: str) -> bool:
+    d = domain(url)
+    return any(x in d for x in TRUSTED_MEDICAL_DOMAIN_HINTS)
+
+
+def hit_relevance(hit: WebHit, person: Person) -> tuple[bool, int, str]:
+    """
+    Filtra i risultati palesemente estranei prima di aprire pagine/PDF.
+    """
+    real_url = normalize_result_url(hit.url)
+    d = domain(real_url)
+    blob = normalize(f"{hit.title} {hit.snippet} {real_url}")
+
+    if not d:
+        return False, -999, "dominio assente"
+
+    if is_junk_domain(real_url):
+        return False, -500, f"dominio irrilevante: {d}"
+
+    surname = normalize(person.surname)
+    name = normalize(person.name)
+    full = normalize(person.full_name)
+    reverse = normalize(f"{person.surname} {person.name}")
+
+    has_full = bool(full and full in blob) or bool(reverse and reverse in blob)
+    has_surname = bool(surname and surname in blob)
+    has_name = bool(name and name in blob)
+    medical_context = any(x in blob for x in MEDICAL_TERMS)
+    trusted = trusted_medical_domain(real_url)
+    professional_domain = email_domain(person.email)
+    same_prof_domain = bool(professional_domain and (d == professional_domain or d.endswith("." + professional_domain)))
+
+    score = 0
+    if has_full:
+        score += 220
+    elif has_surname and has_name:
+        score += 130
+    elif has_surname:
+        score += 45
+
+    if medical_context:
         score += 80
+    if trusted:
+        score += 120
+    if same_prof_domain:
+        score += 220
+    if "curriculum" in blob or "europass" in blob or ".pdf" in real_url.casefold():
+        score += 70
+    if person.city and normalize(person.city) in blob:
+        score += 30
+
+    # Accettiamo:
+    # - identità forte;
+    # - cognome + fonte sanitaria affidabile;
+    # - dominio professionale noto.
+    relevant = has_full or (has_surname and trusted) or same_prof_domain
+
+    if not relevant:
+        return False, score, "identità/fonte insufficienti"
+
+    return True, score, "ok"
+
+
+def score_hit_for_person(hit: WebHit, person: Person) -> int:
+    ok, score, _ = hit_relevance(hit, person)
+    if not ok:
+        score -= 300
     return score
 
 
@@ -1226,17 +1351,38 @@ def research_person(person: Person, args: argparse.Namespace,
     for q in research_queries(person, args.deep):
         hits = browser.search(q)
         all_hits.extend(hits)
-        sources.extend(h.url for h in hits[:args.search_results])
 
     all_hits = dedupe_hits(all_hits)
 
+    relevant_hits = []
+    for hit in all_hits:
+        ok, rel_score, reason = hit_relevance(hit, person)
+        if ok:
+            relevant_hits.append(hit)
+            logging.info(
+                "HIT ACCETTATO | Pers_Id=%s | score=%s | %s | %s",
+                person.pers_id, rel_score, hit.title[:120], hit.url
+            )
+        else:
+            logging.info(
+                "HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s | %s",
+                person.pers_id, rel_score, reason, hit.title[:100], hit.url
+            )
+
     ranked_hits = sorted(
-        all_hits,
+        relevant_hits,
         key=lambda h: (
             1 if hit_looks_pdf(h) else 0,
             score_hit_for_person(h, person)
         ),
         reverse=True,
+    )
+
+    # Solo fonti realmente rilevanti finiscono nell'Excel.
+    sources.extend(h.url for h in ranked_hits[:args.search_results * 2])
+    logging.info(
+        "HIT SUMMARY | Pers_Id=%s | grezzi=%s | rilevanti=%s",
+        person.pers_id, len(all_hits), len(ranked_hits)
     )
 
     pdf_seen = set()
@@ -1249,7 +1395,7 @@ def research_person(person: Person, args: argparse.Namespace,
         if ".pdf" not in hit.url.casefold():
             continue
 
-        key = canonical_url(hit.url)
+        key = normalize_result_url(hit.url)
         if not key or key in pdf_seen:
             continue
         pdf_seen.add(key)
@@ -1307,7 +1453,7 @@ def research_person(person: Person, args: argparse.Namespace,
             if pdf_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
                 break
 
-            key = canonical_url(candidate)
+            key = normalize_result_url(candidate)
             if not key or key in pdf_seen:
                 continue
             pdf_seen.add(key)
@@ -1341,6 +1487,9 @@ def research_person(person: Person, args: argparse.Namespace,
         blob = f"{person.full_name}\n{hit.title}\n{hit.snippet}"
         specialty_pool.extend(specialty_candidates(blob, person, hit.url))
 
+    if all_hits and not ranked_hits:
+        notes.append("I motori hanno restituito risultati, ma nessuno ha superato il filtro identità/fonte sanitaria.")
+
     specialty, specialty_conf, specialty_source, specialty_evidence = choose_specialty(specialty_pool)
     if specialty_source:
         sources.insert(0, specialty_source)
@@ -1356,12 +1505,14 @@ def research_person(person: Person, args: argparse.Namespace,
         status = "CV_TROVATO_SPECIALITA_DA_VERIFICARE"
     elif browser_blocked:
         status = "BLOCCATO_BROWSER"
-    elif sources:
+    elif cv_review_paths:
+        status = "DA_VERIFICARE"
+    elif sources and ranked_hits:
         status = "DA_VERIFICARE"
     else:
         status = "NESSUN_RISULTATO"
 
-    sources = list(dict.fromkeys(canonical_url(u) for u in sources if u.startswith(("http://", "https://"))))
+    sources = list(dict.fromkeys(normalize_result_url(u) for u in sources if u.startswith(("http://", "https://"))))
 
     result = {
         "row": person.row,
@@ -1375,7 +1526,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Playwright browser search ({args.engine})",
+        "method": f"Playwright browser search V3.3 ({args.engine})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -1498,7 +1649,7 @@ def main() -> int:
                     "cv_review_paths": "",
                     "cv_review_urls": "",
                     "sources": "",
-                    "method": f"Playwright browser search ({args.engine})",
+                    "method": f"Playwright browser search V3.3 ({args.engine})",
                     "notes": "",
                     "updated": utc_now(),
                     "error": f"{type(exc).__name__}: {exc}",
