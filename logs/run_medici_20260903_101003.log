@@ -1,0 +1,33 @@
+2026-09-03 10:11:06 | INFO | ==============================================================================
+2026-09-03 10:11:06 | INFO | V4.9 MEDICI - LEGACY DOC EXTRACTION + TARGETED CV SEARCH
+2026-09-03 10:11:06 | INFO | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-03 10:11:06 | INFO | Output: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:11:06 | INFO | Provider: serper
+2026-09-03 10:11:06 | INFO | Deep: False
+2026-09-03 10:11:06 | INFO | Search results: 8
+2026-09-03 10:11:06 | INFO | Max searches/persona: 3 (+1 con --deep)
+2026-09-03 10:11:06 | INFO | Delay: 0.1 - 0.3 sec
+2026-09-03 10:11:06 | INFO | CV sicuri dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-03 10:11:06 | INFO | CV da verificare dir: C:\Dev\Niko\scriptRicerca\cv_medici_da_verificare
+2026-09-03 10:11:06 | INFO | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-03 10:11:06 | INFO | Log: logs\run_medici_20260903_101003.log
+2026-09-03 10:11:06 | INFO | ==============================================================================
+2026-09-03 10:11:06 | INFO | Medici da elaborare: 1
+2026-09-03 10:11:08 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" medico "Avellino" | 8 risultati
+2026-09-03 10:11:09 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" medico specialista ospedale | 7 risultati
+2026-09-03 10:11:11 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:11:11 | INFO | CV SEARCH GATE | Pers_Id=306924 | mode=broad | allowed=True | reason=modalità broad | existing_cv=True
+2026-09-03 10:11:11 | INFO | HIT SUMMARY | Pers_Id=306924 | query=3 | cv_query=0 | grezzi=21 | rilevanti=5 | provider={'serper': 3, 'brave': 0}
+2026-09-03 10:11:14 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=306924 | formato=.html | estrazione=html | chars=9036 | url=https://amamedis.it/cv-ornellaabate
+2026-09-03 10:11:14 | INFO | CV SCARTATO | Pers_Id=306924 | formato=.html | motivo=Documento non sufficientemente compatibile con un CV. | url=https://amamedis.it/cv-ornellaabate
+2026-09-03 10:11:19 | INFO | CV LINK LANDING | Pers_Id=306924 | score=320 | formato=html | label=Vai al contenuto | url=https://amamedis.it/cv-ornellaabate#content
+2026-09-03 10:11:20 | INFO | CV LINK LANDING | Pers_Id=306924 | score=320 | formato=.doc | label=Scarica curriculum | url=https://amamedis.it/wp-content/uploads/2021/02/CV-formato-europeo-ornella.doc
+2026-09-03 10:12:03 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=306924 | formato=.doc | estrazione=word-com | chars=9061 | url=https://amamedis.it/wp-content/uploads/2021/02/CV-formato-europeo-ornella.doc
+2026-09-03 10:12:03 | INFO | CV VERIFICATO | Pers_Id=306924 | formato=.doc | estrazione=word-com | confidenza=media | file=C:\Dev\Niko\scriptRicerca\cv_medici\306924-ABATE-ORNELLA.doc | url=https://amamedis.it/wp-content/uploads/2021/02/CV-formato-europeo-ornella.doc
+2026-09-03 10:12:03 | INFO | DONE | Pers_Id=306924 | 56.7s | CV_TROVATO_SPECIALITA_DA_VERIFICARE | specialita=N/D | cv=SI | cv_review=0
+2026-09-03 10:12:03 | INFO | PROGRESS | 1/1 | 1.06 medici/min | ETA 0.0 min | {'CV_TROVATO_SPECIALITA_DA_VERIFICARE': 1} | API={'serper': 3, 'brave': 0}
+2026-09-03 10:12:29 | INFO | ==============================================================================
+2026-09-03 10:12:29 | INFO | FINE | 1.4 min | {'CV_TROVATO_SPECIALITA_DA_VERIFICARE': 1}
+2026-09-03 10:12:29 | INFO | API REQUESTS | totale=3 | {'serper': 3, 'brave': 0}
+2026-09-03 10:12:29 | INFO | OUTPUT | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:12:29 | INFO | ==============================================================================
