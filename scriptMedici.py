@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
-VERSION = "V5.3 MEDICI - DUAL RELEVANCE RECOVERY GATE"
+VERSION = "V6.0 MEDICI - PRODUCTION CANDIDATE SEARCH + VERIFIED CV SPECIALTY"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -234,7 +234,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v5_3.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v6_0.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -2177,15 +2177,264 @@ def adaptive_can_stop(
     return False, "serve ulteriore conferma"
 
 
+
+def specialty_discovery_query(
+    person: Person,
+    recovery_hits: list[WebHit] | None = None,
+) -> str:
+    """
+    V6.0 Q3: query semanticamente diversa da Q1/Q2.
+    Se abbiamo già un profilo promettente, usa il dominio come pivot.
+    Altrimenti cerca direttamente titoli specialistici.
+    """
+    full = f'"{person.full_name}"'
+    city = f' "{person.city}"' if person.city else ""
+
+    pivot_domain = ""
+    for hit in (recovery_hits or []):
+        d = domain(hit.url)
+        if (
+            d
+            and not is_junk_domain(hit.url)
+            and (
+                is_profile_directory(hit.url)
+                or trusted_medical_domain(hit.url)
+            )
+        ):
+            pivot_domain = d
+            break
+
+    role_group = (
+        '(neurologo OR fisiatra OR chirurgo OR cardiologo OR pediatra '
+        'OR psichiatra OR ortopedico OR ginecologo OR dermatologo '
+        'OR anestesista OR specialista)'
+    )
+
+    if pivot_domain:
+        return f'site:{pivot_domain} {full} {role_group}'
+
+    return f'{full}{city} {role_group}'
+
+
+def page_geo_support_text(text: str, person: Person) -> tuple[bool, str]:
+    """
+    Geografia/identità dal contenuto della pagina, non solo dalla SERP.
+    """
+    if not person.city:
+        return True, "nessuna città record"
+
+    n = normalize(text)
+    city = normalize(person.city)
+    if city and city in n:
+        return True, "città esatta nella pagina"
+
+    tokens = _city_tokens(person.city)
+    if len(tokens) >= 2 and sum(1 for tok in tokens if tok in n) >= 2:
+        return True, "città multi-token nella pagina"
+
+    if person.fiscal_code and normalize(person.fiscal_code) in n:
+        return True, "codice fiscale nella pagina"
+
+    if person.birth_date:
+        variants = [normalize(v) for v in date_variants(person.birth_date)]
+        if any(v and v in n for v in variants):
+            return True, "data di nascita nella pagina"
+
+    return False, "pagina senza disambiguazione geografica forte"
+
+
+def promote_recovery_hits_by_page(
+    recovery_hits: list[WebHit],
+    relevant_hits: list[WebHit],
+    person: Person,
+    max_pages: int = 2,
+) -> tuple[list[WebHit], list[str]]:
+    """
+    V6.0: usa HTTP diretto (nessun credito Serper) per verificare i migliori
+    recovery_identity_hits. Se la pagina conferma identità + geografia, il
+    risultato viene promosso a relevant_hit.
+    """
+    promoted = []
+    notes = []
+    seen = {
+        normalize_result_url(h.url)
+        for h in relevant_hits
+        if h.url
+    }
+
+    checked = 0
+    for hit in recovery_hits:
+        if checked >= max_pages:
+            break
+        key = normalize_result_url(hit.url)
+        if not key or key in seen:
+            continue
+        if ".pdf" in key.casefold():
+            continue
+
+        checked += 1
+        text = page_text(hit.url)
+        if not text:
+            continue
+
+        if not (
+            exact_identity_in(text, person)
+            or exact_identity_in(hit.title, person)
+            or url_identity_match(hit.url, person)
+        ):
+            continue
+
+        if target_role_conflict(text, person, radius=150):
+            continue
+
+        geo_ok, geo_reason = page_geo_support_text(text, person)
+
+        # Trusted/structured pages still require geo support when the record
+        # has a city. This prevents reintroducing homonyms such as Raffaela.
+        if person.city and not geo_ok:
+            logging.info(
+                "RECOVERY PAGE NOT PROMOTED | Pers_Id=%s | reason=%s | url=%s",
+                person.pers_id, geo_reason, hit.url
+            )
+            continue
+
+        # Put enough page text into the snippet so downstream geo/specialty
+        # checks can use the verified landing-page evidence.
+        promoted_hit = WebHit(
+            title=hit.title,
+            url=hit.url,
+            snippet=clean(text)[:3500],
+            engine=hit.engine,
+        )
+        promoted.append(promoted_hit)
+        seen.add(key)
+        notes.append(
+            f"profilo promosso da pagina: {domain(hit.url)} ({geo_reason})"
+        )
+        logging.info(
+            "RECOVERY PAGE PROMOTED | Pers_Id=%s | reason=%s | url=%s",
+            person.pers_id, geo_reason, hit.url
+        )
+
+    return dedupe_hits(promoted), notes
+
+
+def verified_cv_specialty_candidates(
+    text: str,
+    person: Person,
+    source_url: str,
+) -> list[tuple[int, str, str, str]]:
+    """
+    Estrazione dedicata a documenti CV già verificati come appartenenti al
+    target. A differenza di specialty_candidates(), non richiede che il nome
+    sia vicino alla specialità: l'ownership è già stata verificata.
+
+    Le evidenze esplicite (specializzazione/specialista/disciplina/qualifica)
+    hanno priorità. Le sole occorrenze di titoli professionali ricevono score
+    più basso.
+    """
+    if not text:
+        return []
+
+    out = []
+    seen = set()
+
+    def add(score: int, spec: str, evidence: str):
+        spec = clean(spec)
+        if not spec:
+            return
+        key = normalize(spec)
+        if not key or key in seen:
+            return
+        seen.add(key)
+        out.append((score, spec, source_url, clean(evidence)[:500]))
+
+    # 1) Pattern espliciti già esistenti, ma globali sul CV verificato.
+    for pat in EXPLICIT_PATTERNS:
+        for m in pat.finditer(text):
+            raw = clean(m.group(1))
+            spec = normalize_specialty(raw)
+            if spec:
+                add(980, spec, m.group(0))
+
+    # 2) Pattern tipici dei CV sanitari italiani.
+    cv_patterns = (
+        re.compile(
+            r"\b(?:disciplina|qualifica|profilo\s+professionale|incarico)\s*"
+            r"[:\-]\s*([^.;\n|•]{3,100})",
+            re.I,
+        ),
+        re.compile(
+            r"\bdirigente\s+medico(?:\s+di|\s+in|\s*[-:])\s*"
+            r"([^.;\n|•]{3,100})",
+            re.I,
+        ),
+        re.compile(
+            r"\b(?:u\.?\s*o\.?|unit[aà]\s+operativa|reparto)\s+"
+            r"(?:di\s+)?([^.;\n|•]{3,100})",
+            re.I,
+        ),
+    )
+    for pat in cv_patterns:
+        for m in pat.finditer(text):
+            raw = clean(m.group(1))
+            spec = normalize_specialty(raw)
+            if spec:
+                add(900, spec, m.group(0))
+
+    # 3) Righe professionali contenenti un alias/titolo specialistico.
+    lines = [
+        clean(x)
+        for x in re.split(r"[\r\n]+", text)
+        if clean(x)
+    ]
+    professional_markers = (
+        "specialista", "specializzazione", "dirigente medico",
+        "disciplina", "qualifica", "incarico", "reparto",
+        "unità operativa", "unita operativa", "u.o.",
+        "attività professionale", "attivita professionale",
+    )
+
+    aliases = sorted(
+        SPECIALTY_ALIASES.items(),
+        key=lambda x: len(x[0]),
+        reverse=True,
+    )
+
+    for line in lines:
+        nline = normalize(line)
+        if not any(m in nline for m in professional_markers):
+            continue
+        for alias, canonical in aliases:
+            if alias in nline:
+                add(820, canonical, line)
+
+    # 4) Titolo professionale diretto nel CV verificato: fallback prudente.
+    # Richiede parole di contesto clinico nella stessa frase.
+    sentences = re.split(r"(?<=[.;])\s+|\n+", text)
+    for sent in sentences:
+        ns = normalize(sent)
+        if not ns:
+            continue
+        context = any(
+            x in ns for x in (
+                "medico", "medica", "dott", "osped", "clinica",
+                "asl", "ausl", "asst", "azienda sanitaria",
+                "responsabile", "dirigente", "specialista",
+            )
+        )
+        if not context:
+            continue
+        for alias, canonical in aliases:
+            if alias in ns:
+                add(700, canonical, sent)
+
+    return sorted(out, key=lambda x: x[0], reverse=True)
+
 def recovery_query_for_weak_recall(person: Person) -> str:
-    bits = [f'"{person.name} {person.surname}"']
-    if person.city:
-        bits.append(f'"{person.city}"')
-    bits.extend([
-        "medico OR dottoressa OR dottore",
-        "specialista OR specializzazione OR specializzato OR specializzata",
-    ])
-    return " ".join(bits)
+    # Compatibilità con il resto della pipeline. V6 usa una query di vera
+    # specialty discovery anche quando non passa recovery hits espliciti.
+    return specialty_discovery_query(person, [])
 
 
 def should_use_recovery_query(
@@ -2825,6 +3074,68 @@ SPECIALTY_ALIASES = {
     "neuropsichiatria infantile": "Neuropsichiatria Infantile",
     "fisiatra": "Medicina Fisica e Riabilitativa",
 }
+
+
+# V6.0: titoli professionali espliciti usati come sinonimi di specialità.
+# Non vengono mai usati da soli per indovinare l'identità: valgono soltanto
+# dopo le normali verifiche di identità/geografia oppure dentro un CV verificato.
+SPECIALTY_ALIASES.update({
+    "anestesista": "Anestesia e Rianimazione",
+    "rianimatore": "Anestesia e Rianimazione",
+    "cardiologo": "Cardiologia",
+    "cardiologa": "Cardiologia",
+    "chirurgo vascolare": "Chirurgia Vascolare",
+    "dermatologo": "Dermatologia e Venereologia",
+    "dermatologa": "Dermatologia e Venereologia",
+    "ematologo": "Ematologia",
+    "ematologa": "Ematologia",
+    "endocrinologo": "Endocrinologia",
+    "endocrinologa": "Endocrinologia",
+    "gastroenterologo": "Gastroenterologia",
+    "gastroenterologa": "Gastroenterologia",
+    "geriatra": "Geriatria",
+    "ginecologo": "Ginecologia e Ostetricia",
+    "ginecologa": "Ginecologia e Ostetricia",
+    "infettivologo": "Malattie Infettive",
+    "infettivologa": "Malattie Infettive",
+    "medico del lavoro": "Medicina del Lavoro",
+    "medico dello sport": "Medicina dello Sport",
+    "internista": "Medicina Interna",
+    "medico legale": "Medicina Legale",
+    "nefrologo": "Nefrologia",
+    "nefrologa": "Nefrologia",
+    "neurologo": "Neurologia",
+    "neurologa": "Neurologia",
+    "neurochirurgo": "Neurochirurgia",
+    "neurochirurga": "Neurochirurgia",
+    "oculista": "Oftalmologia",
+    "oftalmologo": "Oftalmologia",
+    "oftalmologa": "Oftalmologia",
+    "oncologo": "Oncologia Medica",
+    "oncologa": "Oncologia Medica",
+    "ortopedico": "Ortopedia e Traumatologia",
+    "ortopedica": "Ortopedia e Traumatologia",
+    "otorino": "Otorinolaringoiatria",
+    "otorinolaringoiatra": "Otorinolaringoiatria",
+    "pediatra": "Pediatria",
+    "pneumologo": "Malattie dell'Apparato Respiratorio",
+    "pneumologa": "Malattie dell'Apparato Respiratorio",
+    "psichiatra": "Psichiatria",
+    "radiologo": "Radiodiagnostica",
+    "radiologa": "Radiodiagnostica",
+    "reumatologo": "Reumatologia",
+    "reumatologa": "Reumatologia",
+    "urologo": "Urologia",
+    "urologa": "Urologia",
+})
+
+SPECIALTY_DISCOVERY_ROLE_TERMS = (
+    "neurologo", "fisiatra", "chirurgo", "cardiologo", "pediatra",
+    "psichiatra", "ortopedico", "ginecologo", "dermatologo",
+    "anestesista", "oncologo", "urologo", "oculista",
+    "otorinolaringoiatra", "endocrinologo", "gastroenterologo",
+    "nefrologo", "pneumologo", "reumatologo", "ematologo",
+)
 
 EXPLICIT_PATTERNS = (
     re.compile(r"\bspecialista\s+in\s+([^.;:\n]{3,100})", re.I),
@@ -3502,6 +3813,16 @@ def research_person(person: Person, args: argparse.Namespace,
             if specialty_preview or strong_doc:
                 break
 
+    # V6.0: prima di spendere Q3 proviamo a verificare direttamente
+    # fino a 2 recovery hits. Nessun credito Serper aggiuntivo.
+    if recovery_identity_hits:
+        promoted_hits, promotion_notes = promote_recovery_hits_by_page(
+            recovery_identity_hits, relevant_hits, person, max_pages=2
+        )
+        if promoted_hits:
+            relevant_hits = dedupe_hits(relevant_hits + promoted_hits)
+            notes.extend(promotion_notes)
+
     if (
         args.search_mode == "adaptive"
         and args.selective_third_query
@@ -3517,7 +3838,7 @@ def research_person(person: Person, args: argparse.Namespace,
             len(relevant_hits), len(recovery_identity_hits)
         )
         if use_third:
-            q = recovery_query_for_weak_recall(person)
+            q = specialty_discovery_query(person, recovery_identity_hits)
             logging.info(
                 "SEARCH SELECTIVE THIRD QUERY | Pers_Id=%s | q=%s",
                 person.pers_id, q
@@ -3529,12 +3850,22 @@ def research_person(person: Person, args: argparse.Namespace,
             all_hits.extend(hits)
             _refresh_relevant()
 
+            if recovery_identity_hits:
+                promoted_hits, promotion_notes = promote_recovery_hits_by_page(
+                    recovery_identity_hits, relevant_hits, person, max_pages=2
+                )
+                if promoted_hits:
+                    relevant_hits = dedupe_hits(
+                        relevant_hits + promoted_hits
+                    )
+                    notes.extend(promotion_notes)
+
     elif (
         args.search_mode == "adaptive"
         and queries_used < budget
         and should_use_recovery_query(relevant_hits, person)
     ):
-        q = recovery_query_for_weak_recall(person)
+        q = specialty_discovery_query(person, recovery_identity_hits)
         logging.info(
             "SEARCH RECOVERY QUERY | Pers_Id=%s | q=%s",
             person.pers_id, q
@@ -3651,7 +3982,7 @@ def research_person(person: Person, args: argparse.Namespace,
             )
             if cv_text:
                 specialty_pool.extend(
-                    specialty_candidates(cv_text, person, hit.url)
+                    verified_cv_specialty_candidates(cv_text, person, hit.url)
                 )
             break
 
@@ -3735,7 +4066,7 @@ def research_person(person: Person, args: argparse.Namespace,
                 )
                 if cv_text:
                     specialty_pool.extend(
-                        specialty_candidates(cv_text, person, candidate)
+                        verified_cv_specialty_candidates(cv_text, person, candidate)
                     )
                 break
 
@@ -3798,7 +4129,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V5.3 ({args.provider})",
+        "method": f"Search API V6.0 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -3863,7 +4194,7 @@ def main() -> int:
             sorted(previous_methods)[:8]
         )
         logging.warning(
-            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV5_3.xlsx"
+            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV6_0.xlsx"
         )
 
     atomic_save(wb, output_path)
@@ -3939,7 +4270,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.3 ({args.provider})",
+                "method": f"Search API V6.0 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3959,7 +4290,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.3 ({args.provider})",
+                "method": f"Search API V6.0 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3978,7 +4309,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.3 ({args.provider})",
+                "method": f"Search API V6.0 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
