@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
-VERSION = "V5.1 MEDICI - SELECTIVE THIRD QUERY + FINAL GEO GUARD"
+VERSION = "V5.2 MEDICI - RELAXED Q3 GATE + CLEAN QUERY METRICS"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -234,7 +234,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v5_1.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v5_2.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -1063,8 +1063,12 @@ def directory_geo_conflict(
     person: Person,
 ) -> tuple[bool, str]:
     """
-    Per nomi potenzialmente omonimi, rifiuta un profilo directory quando
-    lo slug espone una città diversa da quella del record.
+    Rifiuta un profilo directory quando lo slug espone una località diversa
+    da quella del record.
+
+    Supporta entrambi i layout:
+      /specialita/citta/nome-cognome
+      /nome-cognome/citta
     """
     if not is_profile_directory(hit.url) or not person.city:
         return False, ""
@@ -1076,13 +1080,71 @@ def directory_geo_conflict(
     blob = normalized_for_proximity(
         f"{unquote(hit.url)} {hit.title} {hit.snippet}"
     )
-
     if target_city in blob:
         return False, ""
 
+    path = unquote(urlparse(hit.url).path or "")
+    raw_segments = [x for x in path.split("/") if x]
+    segments = [normalized_for_proximity(x) for x in raw_segments]
+
+    name_tokens = set(normalized_for_proximity(person.name).split())
+    surname_tokens = set(normalized_for_proximity(person.surname).split())
+
+    specialty_terms = {
+        normalized_for_proximity(alias)
+        for alias in SPECIALTY_ALIASES
+    }
+    generic_parts = (
+        "medico", "dottore", "specialista", "chirurgo",
+        "professor", "profilo", "doctor", "dr",
+    )
+
+    def is_identity_segment(seg: str) -> bool:
+        toks = set(seg.split())
+        return bool(
+            name_tokens
+            and surname_tokens
+            and name_tokens.issubset(toks)
+            and surname_tokens.issubset(toks)
+        )
+
+    def city_like(seg: str) -> bool:
+        if not seg:
+            return False
+        if seg in specialty_terms:
+            return False
+        if any(g in seg for g in generic_parts):
+            return False
+        if is_identity_segment(seg):
+            return False
+        return True
+
+    identity_idx = -1
+    for i, seg in enumerate(segments):
+        if is_identity_segment(seg):
+            identity_idx = i
+            break
+
+    if identity_idx >= 0:
+        adjacent = []
+        if identity_idx > 0:
+            adjacent.append(segments[identity_idx - 1])
+        if identity_idx + 1 < len(segments):
+            adjacent.append(segments[identity_idx + 1])
+
+        for candidate in adjacent:
+            if city_like(candidate) and candidate != target_city:
+                return True, (
+                    f"citta profilo incompatibile: "
+                    f"{candidate} != {target_city}"
+                )
+
     profile_city = directory_profile_location(hit.url, person)
     if profile_city and profile_city != target_city:
-        return True, f"citta profilo incompatibile: {profile_city} != {target_city}"
+        return True, (
+            f"citta profilo incompatibile: "
+            f"{profile_city} != {target_city}"
+        )
 
     return False, ""
 
@@ -2159,49 +2221,64 @@ def strong_professional_identity(
     relevant_hits: list[WebHit],
     person: Person,
 ) -> tuple[bool, str]:
+    """
+    V5.2: gate Q3 più permissivo.
+
+    Serve solo a decidere se spendere una recovery query.
+    Non conferma specialità e non bypassa il final geo guard.
+    """
     if not relevant_hits:
         return False, "nessun hit rilevante"
 
+    best_reason = "identità professionale non abbastanza forte"
+
     for hit in relevant_hits:
         blob = f"{hit.title} {hit.snippet} {unquote(hit.url)}"
-        title_or_url = (
-            exact_identity_in(hit.title, person)
-            or url_identity_match(hit.url, person)
-        )
-        if not title_or_url:
-            continue
-
+        title_match = exact_identity_in(hit.title, person)
+        url_match = url_identity_match(hit.url, person)
+        title_or_url = title_match or url_match
         score = disambiguation_score(blob, person)
 
         if is_profile_directory(hit.url):
-            bad, _ = directory_geo_conflict(hit, person)
+            bad, reason = directory_geo_conflict(hit, person)
             if bad:
+                best_reason = reason
                 continue
-            if person.city:
-                geo_ok, _ = source_geo_support(hit, person)
-                if geo_ok and score >= 80:
-                    return True, "profilo strutturato + geo"
-                if score >= 120:
-                    return True, "profilo strutturato fortemente disambiguato"
-            elif score >= 80:
-                return True, "profilo strutturato"
+
+            if title_or_url:
+                return True, "profilo professionale con identità esatta"
+
+            if score >= 95:
+                return True, "profilo professionale ben disambiguato"
 
         if trusted_medical_domain(hit.url):
-            if person.city:
-                geo_ok, _ = source_geo_support(hit, person)
-                if geo_ok and score >= 90:
-                    return True, "fonte sanitaria forte + geo"
-            elif score >= 90:
-                return True, "fonte sanitaria forte"
+            if title_or_url:
+                return True, "fonte sanitaria con identità esatta"
+            if score >= 105:
+                return True, "fonte sanitaria ben disambiguata"
 
-        if score >= 135:
-            if not person.city:
-                return True, "identità fortemente disambiguata"
-            geo_ok, _ = source_geo_support(hit, person)
-            if geo_ok:
-                return True, "identità fortemente disambiguata + geo"
+        prof_blob = normalize(blob)
+        professional_signal = any(
+            term in prof_blob for term in (
+                "medico", "dottoressa", "dottore", "dr ",
+                "dr.", "specialista", "specializzazione",
+                "ospedale", "asl", "ausl", "asst", "ats",
+                "clinica", "policlinico", "universita",
+                "università", "neurolog", "chirurg",
+                "fisiatr", "pediatr", "psichiatr",
+                "cardiolog",
+            )
+        )
 
-    return False, "identità professionale non abbastanza forte"
+        # In V5.1 il city/DOB/CF score era troppo severo.
+        # Per COMPRARE una Q3 basta identità esatta + segnale professionale.
+        if title_or_url and professional_signal:
+            return True, "identità esatta + segnale professionale"
+
+        if title_or_url and score >= 115:
+            return True, "identità esatta fortemente disambiguata"
+
+    return False, best_reason
 
 
 def should_run_selective_third_query(
@@ -3192,6 +3269,7 @@ def research_person(person: Person, args: argparse.Namespace,
     all_hits = []
     relevant_hits = []
     queries_used = 0
+    base_queries_used = 0
     recovery_used = 0
     selective_third_used = 0
 
@@ -3232,6 +3310,7 @@ def research_person(person: Person, args: argparse.Namespace,
         )
         hits = search_client.search(q)
         queries_used += 1
+        base_queries_used += 1
         all_hits.extend(hits)
         _refresh_relevant()
 
@@ -3273,8 +3352,8 @@ def research_person(person: Person, args: argparse.Namespace,
             relevant_hits, person
         )
         logging.info(
-            "SELECTIVE THIRD CHECK | Pers_Id=%s | allowed=%s | reason=%s",
-            person.pers_id, use_third, third_reason
+            "SELECTIVE THIRD CHECK | Pers_Id=%s | allowed=%s | reason=%s | relevant_hits=%s",
+            person.pers_id, use_third, third_reason, len(relevant_hits)
         )
         if use_third:
             q = recovery_query_for_weak_recall(person)
@@ -3365,10 +3444,10 @@ def research_person(person: Person, args: argparse.Namespace,
     )
 
     logging.info(
-        "HIT SUMMARY | Pers_Id=%s | query=%s | recovery=%s | selective_third=%s | cv_query=%s | grezzi=%s | rilevanti=%s | provider=%s",
-        person.pers_id, queries_used, recovery_used,
-        selective_third_used, cv_queries_used,
-        len(all_hits), len(ranked_hits),
+        "HIT SUMMARY | Pers_Id=%s | standard_query=%s | recovery_query=%s | selective_third=%s | specialty_total=%s | cv_query=%s | grezzi=%s | rilevanti=%s | provider=%s",
+        person.pers_id, base_queries_used, recovery_used,
+        selective_third_used, queries_used,
+        cv_queries_used, len(all_hits), len(ranked_hits),
         search_client.requests_by_provider
     )
 
@@ -3557,7 +3636,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V5.1 ({args.provider})",
+        "method": f"Search API V5.2 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -3622,7 +3701,7 @@ def main() -> int:
             sorted(previous_methods)[:8]
         )
         logging.warning(
-            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV5_1.xlsx"
+            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV5_2.xlsx"
         )
 
     atomic_save(wb, output_path)
@@ -3698,7 +3777,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.1 ({args.provider})",
+                "method": f"Search API V5.2 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3718,7 +3797,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.1 ({args.provider})",
+                "method": f"Search API V5.2 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3737,7 +3816,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.1 ({args.provider})",
+                "method": f"Search API V5.2 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
