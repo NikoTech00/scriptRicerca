@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
-VERSION = "V5.0 MEDICI - ADAPTIVE SEARCH + GEO IDENTITY GUARD"
+VERSION = "V5.1 MEDICI - SELECTIVE THIRD QUERY + FINAL GEO GUARD"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -234,7 +234,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v5_0.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v5_1.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -337,6 +337,15 @@ def parse_args() -> argparse.Namespace:
             "adaptive = interrompe le query standard quando identità e "
             "specialità sono già abbastanza forti; fixed = usa il budget "
             "massimo configurato."
+        ),
+    )
+    p.add_argument(
+        "--selective-third-query",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help=(
+            "In adaptive mode riserva la terza query ai casi con identità "
+            "professionale forte ma specialità ancora irrisolta."
         ),
     )
     p.add_argument("--save-every", type=int, default=DEFAULT_SAVE_EVERY)
@@ -2145,6 +2154,107 @@ def should_use_recovery_query(
     return True
 
 
+
+def strong_professional_identity(
+    relevant_hits: list[WebHit],
+    person: Person,
+) -> tuple[bool, str]:
+    if not relevant_hits:
+        return False, "nessun hit rilevante"
+
+    for hit in relevant_hits:
+        blob = f"{hit.title} {hit.snippet} {unquote(hit.url)}"
+        title_or_url = (
+            exact_identity_in(hit.title, person)
+            or url_identity_match(hit.url, person)
+        )
+        if not title_or_url:
+            continue
+
+        score = disambiguation_score(blob, person)
+
+        if is_profile_directory(hit.url):
+            bad, _ = directory_geo_conflict(hit, person)
+            if bad:
+                continue
+            if person.city:
+                geo_ok, _ = source_geo_support(hit, person)
+                if geo_ok and score >= 80:
+                    return True, "profilo strutturato + geo"
+                if score >= 120:
+                    return True, "profilo strutturato fortemente disambiguato"
+            elif score >= 80:
+                return True, "profilo strutturato"
+
+        if trusted_medical_domain(hit.url):
+            if person.city:
+                geo_ok, _ = source_geo_support(hit, person)
+                if geo_ok and score >= 90:
+                    return True, "fonte sanitaria forte + geo"
+            elif score >= 90:
+                return True, "fonte sanitaria forte"
+
+        if score >= 135:
+            if not person.city:
+                return True, "identità fortemente disambiguata"
+            geo_ok, _ = source_geo_support(hit, person)
+            if geo_ok:
+                return True, "identità fortemente disambiguata + geo"
+
+    return False, "identità professionale non abbastanza forte"
+
+
+def should_run_selective_third_query(
+    relevant_hits: list[WebHit],
+    person: Person,
+) -> tuple[bool, str]:
+    identity_ok, identity_reason = strong_professional_identity(
+        relevant_hits, person
+    )
+    if not identity_ok:
+        return False, identity_reason
+
+    strong_specs = set()
+    for hit in relevant_hits:
+        ok, _ = specialty_hit_strong_enough(hit, person)
+        if not ok:
+            continue
+        for cand in specialty_candidates_from_hit(hit, person):
+            if cand[1]:
+                strong_specs.add(normalize(cand[1]))
+
+    if len(strong_specs) == 1:
+        return False, "specialità già forte"
+    if len(strong_specs) > 1:
+        return False, "conflitto specialistico già presente"
+
+    return True, "identità forte, specialità irrisolta"
+
+
+def candidate_geo_allowed(
+    hit: WebHit,
+    person: Person,
+) -> tuple[bool, str]:
+    if not person.city:
+        return True, "nessuna città record"
+
+    if is_profile_directory(hit.url):
+        bad, reason = directory_geo_conflict(hit, person)
+        if bad:
+            return False, reason
+
+    geo_ok, reason = source_geo_support(hit, person)
+    if geo_ok:
+        return True, reason
+
+    if trusted_medical_domain(hit.url):
+        blob = f"{hit.title} {hit.snippet} {unquote(hit.url)}"
+        if disambiguation_score(blob, person) >= 150:
+            return True, "fonte sanitaria con identità eccezionalmente forte"
+
+    return False, reason
+
+
 def cv_search_queries(person: Person) -> list[str]:
     full = f'"{person.full_name}"'
     qs = []
@@ -3078,20 +3188,42 @@ def research_person(person: Person, args: argparse.Namespace,
     cv_review_paths = []
     cv_review_urls = []
 
-    # -------- SEARCH API ADATTIVA V5.0 --------
+    # -------- SEARCH API ADATTIVA V5.1 --------
     all_hits = []
     relevant_hits = []
     queries_used = 0
     recovery_used = 0
+    selective_third_used = 0
 
     budget = args.max_searches_per_person + (
         1 if args.deep else 0
     )
-
     standard_queries = list(research_queries(person, args.deep))
 
+    def _refresh_relevant() -> None:
+        nonlocal all_hits, relevant_hits
+        all_hits = dedupe_hits(all_hits)
+        relevant_hits = []
+        for hit in all_hits:
+            ok, rel_score, reason = hit_relevance(hit, person)
+            if ok:
+                relevant_hits.append(hit)
+            else:
+                logging.debug(
+                    "HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s",
+                    person.pers_id, rel_score, reason, hit.url
+                )
+
+    normal_limit = budget
+    if (
+        args.search_mode == "adaptive"
+        and args.selective_third_query
+        and budget >= 3
+    ):
+        normal_limit = 2
+
     for q in standard_queries:
-        if queries_used >= budget:
+        if queries_used >= normal_limit:
             break
 
         logging.info(
@@ -3101,37 +3233,19 @@ def research_person(person: Person, args: argparse.Namespace,
         hits = search_client.search(q)
         queries_used += 1
         all_hits.extend(hits)
-        all_hits = dedupe_hits(all_hits)
+        _refresh_relevant()
 
-        relevant_hits = []
-        for hit in all_hits:
-            ok, rel_score, reason = hit_relevance(
-                hit, person
-            )
-            if ok:
-                relevant_hits.append(hit)
-            else:
-                logging.debug(
-                    "HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s",
-                    person.pers_id, rel_score, reason, hit.url
-                )
-
-        # In adaptive mode non basta "qualunque specialità":
-        # serve una fonte forte e geograficamente coerente.
         if args.search_mode == "adaptive" and relevant_hits:
             stop_ok, stop_reason = adaptive_can_stop(
                 relevant_hits, person
             )
             logging.info(
                 "SEARCH EARLY-STOP CHECK | Pers_Id=%s | query=%s | stop=%s | reason=%s",
-                person.pers_id, queries_used,
-                stop_ok, stop_reason
+                person.pers_id, queries_used, stop_ok, stop_reason
             )
             if stop_ok:
                 break
 
-        # Fixed mantiene il comportamento V4.9:
-        # stop su specialty preview o CV diretto plausibile.
         if args.search_mode == "fixed" and relevant_hits:
             specialty_preview = []
             for preview_hit in relevant_hits:
@@ -3140,26 +3254,45 @@ def research_person(person: Person, args: argparse.Namespace,
                         preview_hit, person
                     )
                 )
-
             strong_doc = any(
                 plausible_cv_document_url(
-                    h.url,
-                    f"{h.title} {h.snippet}",
-                    person,
+                    h.url, f"{h.title} {h.snippet}", person
                 )
                 for h in relevant_hits
             )
-
             if specialty_preview or strong_doc:
                 break
 
-    # Recovery mirata: usa solo budget standard residuo.
     if (
         args.search_mode == "adaptive"
+        and args.selective_third_query
+        and budget >= 3
         and queries_used < budget
-        and should_use_recovery_query(
+    ):
+        use_third, third_reason = should_run_selective_third_query(
             relevant_hits, person
         )
+        logging.info(
+            "SELECTIVE THIRD CHECK | Pers_Id=%s | allowed=%s | reason=%s",
+            person.pers_id, use_third, third_reason
+        )
+        if use_third:
+            q = recovery_query_for_weak_recall(person)
+            logging.info(
+                "SEARCH SELECTIVE THIRD QUERY | Pers_Id=%s | q=%s",
+                person.pers_id, q
+            )
+            hits = search_client.search(q)
+            queries_used += 1
+            recovery_used = 1
+            selective_third_used = 1
+            all_hits.extend(hits)
+            _refresh_relevant()
+
+    elif (
+        args.search_mode == "adaptive"
+        and queries_used < budget
+        and should_use_recovery_query(relevant_hits, person)
     ):
         q = recovery_query_for_weak_recall(person)
         logging.info(
@@ -3170,20 +3303,7 @@ def research_person(person: Person, args: argparse.Namespace,
         queries_used += 1
         recovery_used = 1
         all_hits.extend(hits)
-        all_hits = dedupe_hits(all_hits)
-
-        relevant_hits = []
-        for hit in all_hits:
-            ok, rel_score, reason = hit_relevance(
-                hit, person
-            )
-            if ok:
-                relevant_hits.append(hit)
-            else:
-                logging.debug(
-                    "RECOVERY HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s",
-                    person.pers_id, rel_score, reason, hit.url
-                )
+        _refresh_relevant()
 
     cv_queries_used = 0
     cv_gate_ok = False
@@ -3245,9 +3365,10 @@ def research_person(person: Person, args: argparse.Namespace,
     )
 
     logging.info(
-        "HIT SUMMARY | Pers_Id=%s | query=%s | recovery=%s | cv_query=%s | grezzi=%s | rilevanti=%s | provider=%s",
+        "HIT SUMMARY | Pers_Id=%s | query=%s | recovery=%s | selective_third=%s | cv_query=%s | grezzi=%s | rilevanti=%s | provider=%s",
         person.pers_id, queries_used, recovery_used,
-        cv_queries_used, len(all_hits), len(ranked_hits),
+        selective_third_used, cv_queries_used,
+        len(all_hits), len(ranked_hits),
         search_client.requests_by_provider
     )
 
@@ -3334,7 +3455,16 @@ def research_person(person: Person, args: argparse.Namespace,
             continue
 
         sources.append(hit.url)
-        specialty_pool.extend(specialty_candidates(text, person, hit.url))
+        geo_allowed, geo_reason = candidate_geo_allowed(hit, person)
+        if geo_allowed:
+            specialty_pool.extend(
+                specialty_candidates(text, person, hit.url)
+            )
+        else:
+            logging.info(
+                "SPECIALTY GEO REJECT | Pers_Id=%s | stage=landing | reason=%s | url=%s",
+                person.pers_id, geo_reason, hit.url
+            )
 
         for candidate in landing_cv_links(hit.url, person):
             if doc_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
@@ -3382,7 +3512,16 @@ def research_person(person: Person, args: argparse.Namespace,
     # 3) Specialità da SERP verificata.
     # Unica via SERP: parser V4.5 con prossimità e controllo identità.
     for hit in ranked_hits:
-        specialty_pool.extend(specialty_candidates_from_hit(hit, person))
+        geo_allowed, geo_reason = candidate_geo_allowed(hit, person)
+        if not geo_allowed:
+            logging.info(
+                "SPECIALTY GEO REJECT | Pers_Id=%s | stage=serp | reason=%s | url=%s",
+                person.pers_id, geo_reason, hit.url
+            )
+            continue
+        specialty_pool.extend(
+            specialty_candidates_from_hit(hit, person)
+        )
 
     if all_hits and not ranked_hits:
         notes.append("I motori hanno restituito risultati, ma nessuno ha superato il filtro identità/fonte sanitaria.")
@@ -3418,7 +3557,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V5.0 ({args.provider})",
+        "method": f"Search API V5.1 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -3483,7 +3622,7 @@ def main() -> int:
             sorted(previous_methods)[:8]
         )
         logging.warning(
-            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV5_0.xlsx"
+            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV5_1.xlsx"
         )
 
     atomic_save(wb, output_path)
@@ -3559,7 +3698,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.0 ({args.provider})",
+                "method": f"Search API V5.1 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3579,7 +3718,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.0 ({args.provider})",
+                "method": f"Search API V5.1 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3598,7 +3737,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V5.0 ({args.provider})",
+                "method": f"Search API V5.1 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
