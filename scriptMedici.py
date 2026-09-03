@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
-VERSION = "V4.7 MEDICI - IDENTITY BOUNDARIES + CONFLICT ENGINE"
+VERSION = "V4.8 MEDICI - CV DISCOVERY + DOCX/DOC/HTML SUPPORT"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -37,6 +37,7 @@ DEFAULT_DELAY_MAX = 0.35
 
 HTTP_TIMEOUT = 12
 MAX_PDF_BYTES = 25 * 1024 * 1024
+MAX_DOC_BYTES = 25 * 1024 * 1024
 MAX_HTML_BYTES = 5 * 1024 * 1024
 MAX_PDF_PAGES = 100
 MAX_PDF_TEXT = 120_000
@@ -44,6 +45,7 @@ MAX_PAGE_TEXT = 70_000
 MAX_LANDING_PAGES_PER_PERSON = 8
 MAX_PDF_CANDIDATES_PER_PERSON = 16
 MAX_PDF_LINKS_PER_LANDING = 25
+MAX_CV_LINKS_PER_LANDING = 30
 
 USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -232,7 +234,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_7.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_8.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -314,6 +316,10 @@ def parse_args() -> argparse.Namespace:
                    help="Budget massimo di query Search API per medico. Default 2.")
     p.add_argument("--deep", action="store_true",
                    help="Consente una terza query mirata solo se serve.")
+    p.add_argument(
+        "--cv-searches-per-person", type=int, default=1,
+        help="Query CV dedicate aggiuntive per medico. Default 1.",
+    )
     p.add_argument("--save-every", type=int, default=DEFAULT_SAVE_EVERY)
     p.add_argument("--delay-min", type=float, default=DEFAULT_DELAY_MIN)
     p.add_argument("--delay-max", type=float, default=DEFAULT_DELAY_MAX)
@@ -337,6 +343,8 @@ def parse_args() -> argparse.Namespace:
         p.error("--search-results deve essere > 0")
     if args.max_searches_per_person <= 0:
         p.error("--max-searches-per-person deve essere > 0")
+    if args.cv_searches_per_person < 0:
+        p.error("--cv-searches-per-person deve essere >= 0")
     if args.save_every <= 0:
         p.error("--save-every deve essere > 0")
     if args.delay_min < 0 or args.delay_max < args.delay_min:
@@ -1461,6 +1469,357 @@ def dedupe_hits(hits: Iterable[WebHit]) -> list[WebHit]:
 
 
 
+
+def cv_url_extension(url: str) -> str:
+    path = unquote(urlparse(url or "").path or "").casefold()
+    for ext in (".pdf", ".docx", ".doc"):
+        if path.endswith(ext):
+            return ext
+    return ""
+
+
+def looks_like_cv_url(url: str, label: str = "") -> bool:
+    blob = normalize(f"{unquote(url or '')} {label or ''}")
+    blob = re.sub(r"[_/\\?&=+%.-]+", " ", blob)
+    return any(x in f" {blob} " for x in (
+        "curriculum", "curriculum vitae", "europass",
+        " cv ", "cv medico", "cv dott", "cv dr",
+    ))
+
+
+def plausible_cv_document_url(
+    url: str, label: str = "", person: Person | None = None
+) -> bool:
+    decoded_url = unquote(url or "")
+    decoded_label = unquote(label or "")
+    raw = f"{decoded_url} {decoded_label}".casefold()
+    blob = re.sub(r"[_/\\?&=+%.-]+", " ", raw)
+    blob = re.sub(r"\s+", " ", blob).strip()
+
+    if any(normalize(x) in blob for x in CV_NEGATIVE):
+        return False
+
+    ext = cv_url_extension(decoded_url)
+    cv_signal = looks_like_cv_url(decoded_url, decoded_label)
+
+    has_person = False
+    if person is not None:
+        n, s = normalize(person.name), normalize(person.surname)
+        has_person = bool(n and s and n in blob and s in blob)
+
+    d = domain(decoded_url)
+    if d == "media.doctolib.com" or d.endswith(".media.doctolib.com"):
+        return cv_signal
+    if "/legal/" in decoded_url.casefold():
+        return cv_signal
+    if d == "esante.gouv.fr" or d.endswith(".esante.gouv.fr"):
+        return cv_signal
+
+    if ext in (".pdf", ".docx", ".doc"):
+        return cv_signal or has_person
+
+    return cv_signal and (has_person or person is None)
+
+
+def docx_text(raw: bytes) -> str:
+    import zipfile
+    import xml.etree.ElementTree as ET
+    import io
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+            chunks = []
+            for name in (
+                "word/document.xml",
+                "word/header1.xml",
+                "word/header2.xml",
+                "word/footer1.xml",
+            ):
+                if name not in zf.namelist():
+                    continue
+                root = ET.fromstring(zf.read(name))
+                vals = []
+                for node in root.iter():
+                    if node.tag.endswith("}t") and node.text:
+                        vals.append(node.text)
+                    elif node.tag.endswith("}br"):
+                        vals.append("\n")
+                if vals:
+                    chunks.append(" ".join(vals))
+            return "\n".join(chunks)[:MAX_PDF_TEXT]
+    except Exception:
+        return ""
+
+
+def legacy_doc_text(raw: bytes) -> str:
+    import subprocess
+    antiword = shutil.which("antiword")
+    if not antiword:
+        return ""
+
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".doc", delete=False) as tmp:
+            tmp.write(raw)
+            tmp_path = tmp.name
+
+        proc = subprocess.run(
+            [antiword, tmp_path], capture_output=True, timeout=20
+        )
+        if proc.returncode != 0:
+            return ""
+
+        text = proc.stdout.decode("utf-8", errors="ignore")
+        if not text.strip():
+            text = proc.stdout.decode("cp1252", errors="ignore")
+        return text[:MAX_PDF_TEXT]
+    except Exception:
+        return ""
+    finally:
+        if tmp_path:
+            try:
+                Path(tmp_path).unlink(missing_ok=True)
+            except Exception:
+                pass
+
+
+def content_extension(url: str, content_type: str, raw: bytes) -> str:
+    ext = cv_url_extension(url)
+    ctype = normalize(content_type)
+
+    if raw.startswith(b"%PDF") or "application/pdf" in ctype:
+        return ".pdf"
+    if raw.startswith(b"PK") and ("wordprocessingml" in ctype or ext == ".docx"):
+        return ".docx"
+    if "application/msword" in ctype or ext == ".doc":
+        return ".doc"
+    if "text/html" in ctype or raw.lstrip().startswith((b"<!DOCTYPE", b"<html", b"<HTML")):
+        return ".html"
+    return ext
+
+
+def extract_cv_document_text(raw: bytes, ext: str) -> str:
+    if ext == ".pdf":
+        return pdf_text(raw)
+    if ext == ".docx":
+        return docx_text(raw)
+    if ext == ".doc":
+        return legacy_doc_text(raw)
+    if ext == ".html":
+        return html_text(raw)
+    return ""
+
+
+def cv_destination_ext(person: Person, cv_dir: Path, ext: str) -> Path:
+    ext = ext if ext in (".pdf", ".docx", ".doc", ".html") else ".bin"
+    return cv_dir / (
+        f"{safe_part(person.output_code)}-"
+        f"{safe_part(person.surname)}-"
+        f"{safe_part(person.name)}{ext}"
+    )
+
+
+def unique_review_destination_ext(
+    person: Person, review_dir: Path, raw: bytes, ext: str
+) -> Path:
+    review_dir.mkdir(parents=True, exist_ok=True)
+    base = (
+        f"{safe_part(person.output_code)}-"
+        f"{safe_part(person.surname)}-"
+        f"{safe_part(person.name)}"
+    )
+    digest = hashlib.sha1(raw).hexdigest()[:10]
+    ext = ext if ext in (".pdf", ".docx", ".doc", ".html") else ".bin"
+    return review_dir / f"{base}-{digest}{ext}"
+
+
+def save_review_document(
+    raw: bytes, text: str, url: str, person: Person,
+    review_dir: Path, reason: str, ext: str
+):
+    plausible_text, why = looks_like_cv(text) if text else (False, "testo non estraibile")
+    explicit_url = plausible_cv_document_url(url, person=person)
+
+    if not plausible_text and not explicit_url:
+        logging.info(
+            "CV SCARTATO | %s | %s | %s",
+            person.pers_id, url, reason or why
+        )
+        return None
+
+    dest = unique_review_destination_ext(person, review_dir, raw, ext)
+    if not dest.exists():
+        dest.write_bytes(raw)
+
+    logging.info(
+        "CV DA VERIFICARE SALVATO | %s | %s | %s",
+        person.pers_id, dest, reason or why
+    )
+    return str(dest), url
+
+
+def inspect_cv_document(
+    url: str, person: Person, cv_dir: Path, review_dir: Path
+):
+    got = get_bytes(url, MAX_DOC_BYTES)
+    if not got:
+        return None
+
+    r, raw = got
+    try:
+        ext = content_extension(url, r.headers.get("Content-Type", ""), raw)
+        if ext not in (".pdf", ".docx", ".doc", ".html"):
+            return None
+
+        text = extract_cv_document_text(raw, ext)
+
+        if ext == ".doc" and not text:
+            review = save_review_document(
+                raw, "", url, person, review_dir,
+                "DOC legacy: testo non estraibile automaticamente; verifica manuale.",
+                ext,
+            )
+            if review:
+                return "review", review[0], "", "bassa", "DOC legacy da verificare"
+            return None
+
+        if not text:
+            return None
+
+        ok, conf, reason = verify_cv(text, person)
+        if ok:
+            cv_dir.mkdir(parents=True, exist_ok=True)
+            dest = cv_destination_ext(person, cv_dir, ext)
+            dest.write_bytes(raw)
+            logging.info(
+                "CV VERIFICATO | %s | %s | formato=%s | confidenza=%s",
+                person.pers_id, dest, ext, conf
+            )
+            return "verified", str(dest), text, conf, ""
+
+        review = save_review_document(
+            raw, text, url, person, review_dir, reason, ext
+        )
+        if review:
+            return "review", review[0], text, "bassa", reason
+        return None
+    finally:
+        r.close()
+
+
+def cv_search_queries(person: Person) -> list[str]:
+    full = f'"{person.full_name}"'
+    qs = []
+    if person.city:
+        qs.append(
+            f'{full} curriculum OR "curriculum vitae" medico "{person.city}"'
+        )
+    qs.append(
+        f'{full} curriculum OR "curriculum vitae" OR europass medico'
+    )
+    qs.append(
+        f'{full} CV medico ospedale ASL OR AUSL OR ASST OR AOU OR IRCCS'
+    )
+
+    out, seen = [], set()
+    for q in qs:
+        k = q.casefold()
+        if k not in seen:
+            seen.add(k)
+            out.append(q)
+    return out
+
+
+def cv_hit_relevance(hit: WebHit, person: Person):
+    url = normalize_result_url(hit.url)
+    blob = f"{hit.title} {hit.snippet} {unquote(url)}"
+
+    if is_junk_domain(url):
+        return False, -1000, "dominio irrilevante"
+
+    if not (
+        exact_identity_in(hit.title, person)
+        or url_identity_match(url, person)
+        or exact_identity_in(hit.snippet, person)
+    ):
+        return False, 0, "nome completo assente"
+
+    if not plausible_cv_document_url(url, blob, person):
+        return False, 0, "nessun segnale CV"
+
+    geo_bad, geo_reason = directory_geo_conflict(hit, person)
+    if geo_bad:
+        return False, 0, geo_reason
+
+    score = 300
+    if exact_identity_in(hit.title, person):
+        score += 180
+    if url_identity_match(url, person):
+        score += 180
+    if looks_like_cv_url(url, f"{hit.title} {hit.snippet}"):
+        score += 220
+    if trusted_medical_domain(url):
+        score += 140
+    if person.city and normalize(person.city) in normalize(blob):
+        score += 100
+
+    return True, score, "candidato CV coerente"
+
+
+def landing_cv_links(url: str, person: Person) -> list[str]:
+    got = get_bytes(url, MAX_HTML_BYTES)
+    if not got:
+        return []
+
+    r, raw = got
+    try:
+        ext = content_extension(url, r.headers.get("Content-Type", ""), raw)
+        if ext in (".pdf", ".docx", ".doc"):
+            return [url] if plausible_cv_document_url(url, person=person) else []
+
+        soup = BeautifulSoup(raw, "html.parser")
+        scored = []
+
+        for a in soup.select("a[href]"):
+            href = clean(a.get("href"))
+            if not href:
+                continue
+
+            candidate = urljoin(url, href)
+            if not candidate.startswith(("http://", "https://")):
+                continue
+
+            label = clean(a.get_text(" ", strip=True))
+            ext = cv_url_extension(candidate)
+            is_download = ext in (".pdf", ".docx", ".doc")
+            cv_signal = looks_like_cv_url(candidate, label)
+
+            if not (is_download or cv_signal):
+                continue
+            if not plausible_cv_document_url(candidate, label, person):
+                continue
+
+            blob = normalize(f"{label} {unquote(candidate)}")
+            score = (180 if cv_signal else 0) + (80 if is_download else 0)
+            if normalize(person.surname) in blob:
+                score += 80
+            if normalize(person.name) in blob:
+                score += 60
+            scored.append((score, candidate))
+
+        out, seen = [], set()
+        for _, candidate in sorted(scored, reverse=True):
+            key = normalize_result_url(candidate)
+            if key and key not in seen:
+                seen.add(key)
+                out.append(candidate)
+            if len(out) >= MAX_CV_LINKS_PER_LANDING:
+                break
+        return out
+    finally:
+        r.close()
+
+
 def plausible_cv_pdf_url(
     url: str,
     label: str = "",
@@ -1621,7 +1980,9 @@ def landing_pdf_links(url: str, person: Person) -> list[str]:
 
 
 def inspect_pdf_candidate(url: str, person: Person, cv_dir: Path, review_dir: Path):
-    return try_pdf_url(url, person, cv_dir, review_dir)
+    return inspect_cv_document(url, person, cv_dir, review_dir)
+
+
 
 
 # ============================================================
@@ -2320,45 +2681,75 @@ def research_person(person: Person, args: argparse.Namespace,
             if specialty_preview or strong_pdf:
                 break
 
+    cv_queries_used = 0
+    if relevant_hits and args.cv_searches_per_person > 0:
+        existing_cv = any(
+            plausible_cv_document_url(
+                h.url, f"{h.title} {h.snippet}", person
+            )
+            for h in relevant_hits
+        )
+
+        if not existing_cv:
+            for q in cv_search_queries(person):
+                if cv_queries_used >= args.cv_searches_per_person:
+                    break
+                hits = search_client.search(q)
+                cv_queries_used += 1
+                queries_used += 1
+
+                for hit in hits:
+                    ok, rel_score, reason = cv_hit_relevance(hit, person)
+                    if ok:
+                        relevant_hits.append(hit)
+                    else:
+                        logging.debug(
+                            "CV HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s",
+                            person.pers_id, rel_score, reason, hit.url
+                        )
+
     ranked_hits = sorted(
         dedupe_hits(relevant_hits),
         key=lambda h: (
-            1 if hit_looks_pdf(h) else 0,
+            1 if plausible_cv_document_url(
+                h.url, f"{h.title} {h.snippet}", person
+            ) else 0,
             score_hit_for_person(h, person)
         ),
         reverse=True,
     )
 
     logging.info(
-        "HIT SUMMARY | Pers_Id=%s | query=%s | grezzi=%s | rilevanti=%s | provider=%s",
-        person.pers_id, queries_used, len(all_hits), len(ranked_hits),
+        "HIT SUMMARY | Pers_Id=%s | query=%s | cv_query=%s | grezzi=%s | rilevanti=%s | provider=%s",
+        person.pers_id, queries_used, cv_queries_used, len(all_hits), len(ranked_hits),
         search_client.requests_by_provider
     )
 
-    pdf_seen = set()
-    pdf_checked = 0
+    # 1) CV/documenti diretti dai risultati: PDF, DOCX, DOC, HTML.
+    doc_seen = set()
+    doc_checked = 0
 
-    # 1) PDF diretti dai risultati.
     for hit in ranked_hits:
-        if pdf_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
+        if doc_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
             break
-        if ".pdf" not in hit.url.casefold():
-            continue
 
-        if not plausible_cv_pdf_url(hit.url, f"{hit.title} {hit.snippet}", person):
-            logging.info(
-                "PDF PRE-SCARTATO | Pers_Id=%s | non-CV evidente | %s",
-                person.pers_id, hit.url
-            )
+        label = f"{hit.title} {hit.snippet}"
+        ext = cv_url_extension(hit.url)
+        html_cv = not ext and looks_like_cv_url(hit.url, label)
+
+        if ext not in (".pdf", ".docx", ".doc") and not html_cv:
+            continue
+        if not plausible_cv_document_url(hit.url, label, person):
             continue
 
         key = normalize_result_url(hit.url)
-        if not key or key in pdf_seen:
+        if not key or key in doc_seen:
             continue
-        pdf_seen.add(key)
-        pdf_checked += 1
 
-        found = inspect_pdf_candidate(hit.url, person, cv_dir, review_dir)
+        doc_seen.add(key)
+        doc_checked += 1
+
+        found = inspect_cv_document(hit.url, person, cv_dir, review_dir)
         if not found:
             continue
 
@@ -2367,17 +2758,22 @@ def research_person(person: Person, args: argparse.Namespace,
 
         if kind == "verified":
             cv_path, cv_url, cv_conf = found_path, hit.url, found_conf
-            notes.append("CV verificato trovato direttamente dai risultati.")
-            specialty_pool.extend(
-                specialty_candidates(cv_text, person, hit.url)
+            notes.append(
+                f"CV verificato trovato direttamente ({Path(found_path).suffix})."
             )
+            if cv_text:
+                specialty_pool.extend(
+                    specialty_candidates(cv_text, person, hit.url)
+                )
             break
-        else:
-            if found_path not in cv_review_paths:
-                cv_review_paths.append(found_path)
-            if hit.url not in cv_review_urls:
-                cv_review_urls.append(hit.url)
-            notes.append("PDF candidato salvato per verifica manuale.")
+
+        if found_path not in cv_review_paths:
+            cv_review_paths.append(found_path)
+        if hit.url not in cv_review_urls:
+            cv_review_urls.append(hit.url)
+        notes.append(
+            f"Documento CV candidato salvato ({Path(found_path).suffix})."
+        )
 
     # 2) Landing page: analizziamo i migliori risultati anche senza identità
     # già perfettamente visibile nello snippet.
@@ -2414,24 +2810,21 @@ def research_person(person: Person, args: argparse.Namespace,
         sources.append(hit.url)
         specialty_pool.extend(specialty_candidates(text, person, hit.url))
 
-        for candidate in landing_pdf_links(hit.url, person):
-            if pdf_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
+        for candidate in landing_cv_links(hit.url, person):
+            if doc_checked >= MAX_PDF_CANDIDATES_PER_PERSON:
                 break
 
-            if not plausible_cv_pdf_url(candidate, person=person):
-                logging.info(
-                    "PDF PRE-SCARTATO | Pers_Id=%s | filtro finale landing | %s",
-                    person.pers_id, candidate
-                )
+            if not plausible_cv_document_url(candidate, person=person):
                 continue
 
             key = normalize_result_url(candidate)
-            if not key or key in pdf_seen:
+            if not key or key in doc_seen:
                 continue
-            pdf_seen.add(key)
-            pdf_checked += 1
 
-            found = inspect_pdf_candidate(candidate, person, cv_dir, review_dir)
+            doc_seen.add(key)
+            doc_checked += 1
+
+            found = inspect_cv_document(candidate, person, cv_dir, review_dir)
             if not found:
                 continue
 
@@ -2440,17 +2833,22 @@ def research_person(person: Person, args: argparse.Namespace,
 
             if kind == "verified":
                 cv_path, cv_url, cv_conf = found_path, candidate, found_conf
-                notes.append("CV verificato trovato tramite landing page.")
-                specialty_pool.extend(
-                    specialty_candidates(cv_text, person, candidate)
+                notes.append(
+                    f"CV verificato trovato tramite landing ({Path(found_path).suffix})."
                 )
+                if cv_text:
+                    specialty_pool.extend(
+                        specialty_candidates(cv_text, person, candidate)
+                    )
                 break
-            else:
-                if found_path not in cv_review_paths:
-                    cv_review_paths.append(found_path)
-                if candidate not in cv_review_urls:
-                    cv_review_urls.append(candidate)
-                notes.append("CV candidato da landing page salvato per verifica manuale.")
+
+            if found_path not in cv_review_paths:
+                cv_review_paths.append(found_path)
+            if candidate not in cv_review_urls:
+                cv_review_urls.append(candidate)
+            notes.append(
+                f"Documento CV da landing salvato ({Path(found_path).suffix})."
+            )
 
         if cv_path:
             break
@@ -2494,7 +2892,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V4.7 ({args.provider})",
+        "method": f"Search API V4.8 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -2553,13 +2951,13 @@ def main() -> int:
             if value:
                 previous_methods.add(value)
 
-    if previous_methods and not all("V4.7" in m for m in previous_methods):
+    if previous_methods and not all("V4.8" in m for m in previous_methods):
         logging.warning(
             "OUTPUT CONTIENE RISULTATI DI VERSIONI PRECEDENTI | %s",
             sorted(previous_methods)[:8]
         )
         logging.warning(
-            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_7.xlsx"
+            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_8.xlsx"
         )
 
     atomic_save(wb, output_path)
@@ -2635,7 +3033,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.7 ({args.provider})",
+                "method": f"Search API V4.8 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -2655,7 +3053,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.7 ({args.provider})",
+                "method": f"Search API V4.8 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -2674,7 +3072,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.7 ({args.provider})",
+                "method": f"Search API V4.8 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
