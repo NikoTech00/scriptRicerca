@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
-VERSION = "V4.6 MEDICI - STRUCTURED ROLE + GEO DISAMBIGUATION + VERIFIED PDF ONLY"
+VERSION = "V4.7 MEDICI - IDENTITY BOUNDARIES + CONFLICT ENGINE"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -232,7 +232,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_6.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_7.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -943,47 +943,7 @@ def specialty_near_identity(
     person: Person,
     max_gap: int = 110,
 ) -> list[tuple[str, str]]:
-    """
-    Restituisce discipline che compaiono realmente vicine al nome del target.
-    La distanza è calcolata tra fine/inizio del nome e alias della disciplina,
-    non su una finestra generica di centinaia di caratteri.
-    """
-    n = normalized_for_proximity(text)
-    if not n:
-        return []
-
-    identities = identity_positions(n, person)
-    if not identities:
-        return []
-
-    aliases = _specialty_alias_occurrences(n)
-    out: list[tuple[str, str]] = []
-    seen = set()
-
-    for i_start, i_end in identities:
-        for s_start, s_end, canonical in aliases:
-            if s_start >= i_end:
-                gap = s_start - i_end
-            elif i_start >= s_end:
-                gap = i_start - s_end
-            else:
-                gap = 0
-
-            if gap > max_gap:
-                continue
-
-            # Estratto compatto attorno alla relazione nome-disciplina.
-            lo = max(0, min(i_start, s_start) - 45)
-            hi = min(len(n), max(i_end, s_end) + 75)
-            evidence = n[lo:hi]
-
-            key = normalize(canonical)
-            if key in seen:
-                continue
-            seen.add(key)
-            out.append((canonical, evidence))
-
-    return out
+    return specialty_relations_raw(text, person, max_gap=max_gap)
 
 
 def explicit_specialty_near_identity(
@@ -1099,6 +1059,153 @@ def strong_identity_context(text: str, person: Person) -> bool:
     if exact_identity_in(text[:1800], person):
         return True
     return disambiguation_score(text, person) >= 90
+
+
+
+def _other_identity_boundary(segment: str, person: Person) -> bool:
+    """
+    Rileva un secondo nome proprio nel segmento che collega target e specialità.
+    Opera sul testo originale quando possibile.
+    """
+    target = normalize(person.full_name)
+    # Titolo + Nome Cognome
+    titled = re.findall(
+        r"\b(?:dott(?:\.|ore|oressa|ssa)?|dr\.?|prof(?:\.|essore|essoressa)?|"
+        r"sig(?:\.|ra|nor|nora)?|medico|infermier[ea]|biolog[oa]|psicolog[oa])\s+"
+        r"([A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'`-]+(?:\s+[A-ZÀ-ÖØ-Ý][A-Za-zÀ-ÖØ-öø-ÿ'`-]+){1,3})",
+        segment,
+        flags=re.I,
+    )
+    for x in titled:
+        if normalize(x) and normalize(x) not in target:
+            return True
+
+    # Nome Cognome in maiuscole iniziali.
+    pairs = re.findall(
+        r"\b[A-ZÀ-ÖØ-Ý][a-zà-öø-ÿ'`-]{2,}\s+[A-ZÀ-ÖØ-Ý][a-zà-öø-ÿ'`-]{2,}\b",
+        segment,
+    )
+    for x in pairs:
+        nx = normalize(x)
+        if nx and nx not in target:
+            return True
+    return False
+
+
+def _target_occurrences_raw(text: str, person: Person) -> list[tuple[int,int]]:
+    """
+    Occorrenze case-insensitive del nome target nel testo originale.
+    """
+    variants = [
+        clean(person.full_name),
+        clean(f"{person.surname} {person.name}"),
+    ]
+    out = []
+    low = text.casefold()
+    for variant in variants:
+        v = variant.casefold()
+        if not v:
+            continue
+        start = 0
+        while True:
+            p = low.find(v, start)
+            if p < 0:
+                break
+            out.append((p, p+len(v)))
+            start = p + max(1, len(v))
+    return sorted(set(out))
+
+
+def specialty_relations_raw(
+    text: str,
+    person: Person,
+    max_gap: int = 100,
+) -> list[tuple[str,str]]:
+    """
+    Associa alias di specialità al target sul testo originale.
+    Se fra target e alias compare un'altra identità, la relazione è spezzata.
+    Evita inoltre alias contenuti dentro specialità più lunghe:
+    Neuropsichiatria Infantile non genera anche Psichiatria.
+    """
+    if not text:
+        return []
+
+    target_occ = _target_occurrences_raw(text, person)
+    if not target_occ:
+        return []
+
+    candidates = []
+    low = text.casefold()
+
+    for alias, canonical in sorted(
+        SPECIALTY_ALIASES.items(), key=lambda x: len(x[0]), reverse=True
+    ):
+        a = alias.casefold()
+        start = 0
+        while True:
+            p = low.find(a, start)
+            if p < 0:
+                break
+            candidates.append((p, p+len(a), alias, canonical))
+            start = p + max(1, len(a))
+
+    # Tieni prima gli alias più lunghi e sopprimi quelli interamente contenuti.
+    candidates.sort(key=lambda x: (x[0], -(x[1]-x[0])))
+    filtered = []
+    for cand in candidates:
+        if any(
+            cand[0] >= kept[0] and cand[1] <= kept[1]
+            for kept in filtered
+        ):
+            continue
+        filtered.append(cand)
+
+    out = []
+    seen = set()
+    for i0,i1 in target_occ:
+        for s0,s1,alias,canonical in filtered:
+            if s0 >= i1:
+                gap = s0-i1
+                segment = text[i1:s0]
+            elif i0 >= s1:
+                gap = i0-s1
+                segment = text[s1:i0]
+            else:
+                gap = 0
+                segment = ""
+
+            if gap > max_gap:
+                continue
+            if segment and _other_identity_boundary(segment, person):
+                continue
+
+            key = normalize(canonical)
+            if key in seen:
+                continue
+            seen.add(key)
+            lo=max(0,min(i0,s0)-45)
+            hi=min(len(text),max(i1,s1)+70)
+            out.append((canonical, clean(text[lo:hi])))
+    return out
+
+
+def generic_source_disambiguated(text: str, person: Person) -> bool:
+    if not person.city:
+        return strong_identity_context(text, person)
+    return disambiguation_score(text, person) >= 90
+
+
+def structured_profile_bonus(hit: WebHit, person: Person) -> int:
+    if not is_profile_directory(hit.url):
+        return 0
+    bad, _ = directory_geo_conflict(hit, person)
+    if bad:
+        return -1000
+    blob = f"{hit.title} {hit.snippet} {unquote(hit.url)}"
+    score = 180
+    if person.city and normalize(person.city) in normalize(blob):
+        score += 300
+    return score
 
 
 def cv_owner_identity(text: str, person: Person) -> tuple[bool, int, str]:
@@ -1568,6 +1675,10 @@ SPECIALTY_ALIASES = {
     "medico di famiglia": "Medicina Generale",
     "pediatra di libera scelta": "Pediatria",
     "pediatra di famiglia": "Pediatria",
+    "chirurgo generale": "Chirurgia Generale",
+    "neuropsichiatra infantile": "Neuropsichiatria Infantile",
+    "neuropsichiatria infantile": "Neuropsichiatria Infantile",
+    "fisiatra": "Medicina Fisica e Riabilitativa",
 }
 
 EXPLICIT_PATTERNS = (
@@ -1623,10 +1734,10 @@ def specialty_candidates(
     weak = weak_specialty_domain(source_url)
     dscore = disambiguation_score(text, person)
 
-    # Una pagina generica in cui il target è solo una citazione non deve
-    # trasferire la specialità del titolare/reparto al target.
-    if not authoritative and not directory and not strong_identity_context(text, person):
-        return []
+    # Fonte generica + città disponibile: nome/cognome da soli non bastano.
+    if not authoritative and not directory:
+        if not generic_source_disambiguated(text, person):
+            return []
 
     out: list[tuple[int, str, str, str]] = []
     seen = set()
@@ -1739,6 +1850,7 @@ def specialty_candidates_from_hit(
                     continue
                 seen.add(key)
                 score = 560 + min(dscore, 400)
+                score += structured_profile_bonus(hit, person)
                 if weak:
                     score -= 220
                 out.append((score, spec, real_url, evidence[:350]))
@@ -1762,6 +1874,7 @@ def specialty_candidates_from_hit(
                     continue
                 seen.add(key)
                 score = 540 + min(dscore, 400)
+                score += structured_profile_bonus(hit, person)
                 if weak:
                     score -= 220
                 out.append((
@@ -1852,46 +1965,71 @@ def specialty_candidates_from_hit(
     return out
 
 
-def choose_specialty(candidates: list[tuple[int, str, str, str]]) -> tuple[str, str, str, str]:
+def choose_specialty(
+    candidates: list[tuple[int, str, str, str]]
+) -> tuple[str, str, str, str]:
     if not candidates:
         return "", "nessuna", "", ""
 
-    grouped={}
-    for c in candidates:
-        k=normalize(c[1])
-        if k: grouped.setdefault(k,[]).append(c)
+    grouped = {}
+    for cand in candidates:
+        k=normalize(cand[1])
+        if k:
+            grouped.setdefault(k,[]).append(cand)
 
     ranked=[]
     for _,group in grouped.items():
-        best_by_domain={}
-        for c in group:
-            dk=source_domain_key(c[2]) or canonical_url(c[2])
-            if dk not in best_by_domain or c[0]>best_by_domain[dk][0]:
-                best_by_domain[dk]=c
-        independent=sorted(best_by_domain.values(), key=lambda x:x[0], reverse=True)
-        if not independent: continue
+        by_domain={}
+        for cand in group:
+            dk=source_domain_key(cand[2]) or canonical_url(cand[2])
+            if dk not in by_domain or cand[0]>by_domain[dk][0]:
+                by_domain[dk]=cand
+        independent=sorted(by_domain.values(),key=lambda x:x[0],reverse=True)
+        if not independent:
+            continue
         best=independent[0]
         nd=len(independent)
-        ns=sum(1 for c in independent if c[0]>=500)
+        ns=sum(c[0]>=500 for c in independent)
         weak_only=all(weak_specialty_domain(c[2]) for c in independent)
+        structured=any(is_profile_directory(c[2]) and c[0]>=700 for c in independent)
         total=best[0]+min(220,110*(nd-1))
-        ranked.append((total,best,nd,ns,weak_only))
+        ranked.append((total,best,nd,ns,weak_only,structured))
 
     if not ranked:
         return "", "nessuna", "", ""
-    ranked.sort(key=lambda x:x[0], reverse=True)
-    total,best,nd,ns,weak_only=ranked[0]
+    ranked.sort(key=lambda x:x[0],reverse=True)
+    score,best,nd,ns,weak_only,structured=ranked[0]
+
     if weak_only:
         return "", "nessuna", "", ""
-    if len(ranked)>1 and ranked[1][0]>=total-80:
-        return "", "nessuna", "", ""
 
-    if (trusted_medical_domain(best[2]) and best[0]>=650) or (nd>=2 and ns>=1 and total>=620):
+    if len(ranked)>1:
+        s2,b2,nd2,ns2,w2,st2=ranked[1]
+        if (
+            not w2 and best[0]>=500 and b2[0]>=500
+            and (s2>=score-140 or (structured and st2))
+        ):
+            return (
+                "", "nessuna", "",
+                f"CONFLITTO: {best[1]} ({source_domain_key(best[2])}) "
+                f"vs {b2[1]} ({source_domain_key(b2[2])})"
+            )
+
+    if (
+        (trusted_medical_domain(best[2]) and best[0]>=650)
+        or structured
+        or (nd>=2 and ns>=1 and score>=620)
+    ):
         conf="alta"
-    elif (is_profile_directory(best[2]) and best[0]>=500) or best[0]>=500 or (nd>=2 and total>=520):
+    elif (
+        (is_profile_directory(best[2]) and best[0]>=500)
+        or best[0]>=500
+        or (nd>=2 and score>=520)
+    ):
         conf="media"
     else:
         return "", "nessuna", "", ""
+
     return best[1],conf,best[2],best[3]
 
 
@@ -2356,7 +2494,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V4.6 ({args.provider})",
+        "method": f"Search API V4.7 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -2415,13 +2553,13 @@ def main() -> int:
             if value:
                 previous_methods.add(value)
 
-    if previous_methods and not all("V4.6" in m for m in previous_methods):
+    if previous_methods and not all("V4.7" in m for m in previous_methods):
         logging.warning(
             "OUTPUT CONTIENE RISULTATI DI VERSIONI PRECEDENTI | %s",
             sorted(previous_methods)[:8]
         )
         logging.warning(
-            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_6.xlsx"
+            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_7.xlsx"
         )
 
     atomic_save(wb, output_path)
@@ -2497,7 +2635,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.6 ({args.provider})",
+                "method": f"Search API V4.7 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -2517,7 +2655,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.6 ({args.provider})",
+                "method": f"Search API V4.7 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -2536,7 +2674,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.6 ({args.provider})",
+                "method": f"Search API V4.7 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
