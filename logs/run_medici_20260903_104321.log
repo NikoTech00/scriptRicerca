@@ -1,0 +1,456 @@
+2026-09-03 10:44:16 | INFO | ==============================================================================
+2026-09-03 10:44:16 | INFO | V5.0 MEDICI - ADAPTIVE SEARCH + GEO IDENTITY GUARD
+2026-09-03 10:44:16 | INFO | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-03 10:44:16 | INFO | Output: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:44:16 | INFO | Provider: serper
+2026-09-03 10:44:16 | INFO | Deep: False
+2026-09-03 10:44:16 | INFO | Search results: 8
+2026-09-03 10:44:16 | INFO | Max searches/persona: 3 (+1 con --deep)
+2026-09-03 10:44:16 | INFO | Delay: 0.1 - 0.3 sec
+2026-09-03 10:44:16 | INFO | CV sicuri dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-03 10:44:16 | INFO | CV da verificare dir: C:\Dev\Niko\scriptRicerca\cv_medici_da_verificare
+2026-09-03 10:44:16 | INFO | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-03 10:44:16 | INFO | Log: logs\run_medici_20260903_104321.log
+2026-09-03 10:44:16 | INFO | ==============================================================================
+2026-09-03 10:44:16 | INFO | Medici da elaborare: 40
+2026-09-03 10:44:16 | INFO | SEARCH QUERY | Pers_Id=2467194 | numero=1 | q="YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA"
+2026-09-03 10:44:18 | INFO | SEARCH API OK | serper | "YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA" | 3 risultati
+2026-09-03 10:44:18 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2467194 | query=1 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:44:18 | INFO | SEARCH QUERY | Pers_Id=2467194 | numero=2 | q="YASAMIN AAZAM RAHIMIAN" medico specialista ospedale
+2026-09-03 10:44:19 | INFO | SEARCH API OK | serper | "YASAMIN AAZAM RAHIMIAN" medico specialista ospedale | 2 risultati
+2026-09-03 10:44:19 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2467194 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:44:19 | INFO | SEARCH QUERY | Pers_Id=2467194 | numero=3 | q="YASAMIN AAZAM RAHIMIAN" specializzazione OR specialista OR "medico di"
+2026-09-03 10:44:21 | INFO | SEARCH API OK | serper | "YASAMIN AAZAM RAHIMIAN" specializzazione OR specialista OR "medico di" | 2 risultati
+2026-09-03 10:44:21 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2467194 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:44:21 | INFO | CV SEARCH GATE | Pers_Id=2467194 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:44:21 | INFO | HIT SUMMARY | Pers_Id=2467194 | query=3 | recovery=0 | cv_query=0 | grezzi=4 | rilevanti=1 | provider={'serper': 3, 'brave': 0}
+2026-09-03 10:44:23 | INFO | DONE | Pers_Id=2467194 | 7.2s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:44:23 | INFO | SEARCH QUERY | Pers_Id=2606079 | numero=1 | q="ERNESTO MARTIN ABAD AGUIAR" medico "Nuoro"
+2026-09-03 10:44:25 | INFO | SEARCH API OK | serper | "ERNESTO MARTIN ABAD AGUIAR" medico "Nuoro" | 8 risultati
+2026-09-03 10:44:25 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2606079 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:44:25 | INFO | CV SEARCH GATE | Pers_Id=2606079 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:44:25 | INFO | CV SEARCH QUERY | Pers_Id=2606079 | q="ERNESTO MARTIN ABAD AGUIAR" curriculum OR "curriculum vitae" medico "Nuoro"
+2026-09-03 10:44:27 | INFO | SEARCH API OK | serper | "ERNESTO MARTIN ABAD AGUIAR" curriculum OR "curriculum vitae" medico "Nuoro" | 8 risultati
+2026-09-03 10:44:27 | INFO | HIT SUMMARY | Pers_Id=2606079 | query=2 | recovery=0 | cv_query=1 | grezzi=8 | rilevanti=3 | provider={'serper': 5, 'brave': 0}
+2026-09-03 10:44:31 | INFO | DONE | Pers_Id=2606079 | 7.6s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:44:31 | INFO | SEARCH QUERY | Pers_Id=2606149 | numero=1 | q="CHIARA ABAGNALE" medico "San felice Circeo"
+2026-09-03 10:44:32 | INFO | SEARCH API OK | serper | "CHIARA ABAGNALE" medico "San felice Circeo" | 2 risultati
+2026-09-03 10:44:32 | INFO | SEARCH QUERY | Pers_Id=2606149 | numero=2 | q="CHIARA ABAGNALE" medico specialista ospedale
+2026-09-03 10:44:34 | INFO | SEARCH API OK | serper | "CHIARA ABAGNALE" medico specialista ospedale | 8 risultati
+2026-09-03 10:44:34 | INFO | SEARCH QUERY | Pers_Id=2606149 | numero=3 | q="CHIARA ABAGNALE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:44:36 | INFO | SEARCH API OK | serper | "CHIARA ABAGNALE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:44:36 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2606149 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:44:36 | INFO | CV SEARCH GATE | Pers_Id=2606149 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:44:36 | INFO | HIT SUMMARY | Pers_Id=2606149 | query=3 | recovery=0 | cv_query=0 | grezzi=16 | rilevanti=1 | provider={'serper': 8, 'brave': 0}
+2026-09-03 10:44:37 | INFO | DONE | Pers_Id=2606149 | 5.9s | SPECIALITA_TROVATA | specialita=Neurologia | cv=NO | cv_review=0
+2026-09-03 10:44:37 | INFO | SEARCH QUERY | Pers_Id=2744181 | numero=1 | q="FEDERICA ABAGNALE" medico "Napoli"
+2026-09-03 10:44:38 | INFO | SEARCH API OK | serper | "FEDERICA ABAGNALE" medico "Napoli" | 0 risultati
+2026-09-03 10:44:38 | INFO | SEARCH QUERY | Pers_Id=2744181 | numero=2 | q="FEDERICA ABAGNALE" medico specialista ospedale
+2026-09-03 10:44:40 | INFO | SEARCH API OK | serper | "FEDERICA ABAGNALE" medico specialista ospedale | 2 risultati
+2026-09-03 10:44:40 | INFO | SEARCH QUERY | Pers_Id=2744181 | numero=3 | q="FEDERICA ABAGNALE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:44:42 | INFO | SEARCH API OK | serper | "FEDERICA ABAGNALE" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-03 10:44:42 | INFO | HIT SUMMARY | Pers_Id=2744181 | query=3 | recovery=0 | cv_query=0 | grezzi=3 | rilevanti=0 | provider={'serper': 11, 'brave': 0}
+2026-09-03 10:44:42 | INFO | DONE | Pers_Id=2744181 | 5.3s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:44:42 | INFO | SEARCH QUERY | Pers_Id=2744182 | numero=1 | q="GIOVANNA ABAGNALE" medico "Napoli"
+2026-09-03 10:44:44 | INFO | SEARCH API OK | serper | "GIOVANNA ABAGNALE" medico "Napoli" | 5 risultati
+2026-09-03 10:44:44 | INFO | SEARCH QUERY | Pers_Id=2744182 | numero=2 | q="GIOVANNA ABAGNALE" medico specialista ospedale
+2026-09-03 10:44:45 | INFO | SEARCH API OK | serper | "GIOVANNA ABAGNALE" medico specialista ospedale | 0 risultati
+2026-09-03 10:44:45 | INFO | SEARCH QUERY | Pers_Id=2744182 | numero=3 | q="GIOVANNA ABAGNALE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:44:47 | INFO | SEARCH API OK | serper | "GIOVANNA ABAGNALE" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-03 10:44:47 | INFO | HIT SUMMARY | Pers_Id=2744182 | query=3 | recovery=0 | cv_query=0 | grezzi=6 | rilevanti=0 | provider={'serper': 14, 'brave': 0}
+2026-09-03 10:44:47 | INFO | DONE | Pers_Id=2744182 | 4.8s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:44:47 | INFO | PROGRESS | 5/40 | 9.66 medici/min | ETA 3.6 min | {'DA_VERIFICARE': 1, 'SPECIALITA_TROVATA': 2, 'NESSUN_RISULTATO': 2} | API={'serper': 14, 'brave': 0}
+2026-09-03 10:44:47 | INFO | SEARCH QUERY | Pers_Id=359717 | numero=1 | q="GIUSEPPE ABAGNALE" medico "GRAGNANO"
+2026-09-03 10:44:48 | INFO | SEARCH API OK | serper | "GIUSEPPE ABAGNALE" medico "GRAGNANO" | 8 risultati
+2026-09-03 10:44:48 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=359717 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:44:48 | INFO | CV SEARCH GATE | Pers_Id=359717 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:44:48 | INFO | CV SEARCH QUERY | Pers_Id=359717 | q="GIUSEPPE ABAGNALE" curriculum OR "curriculum vitae" medico "GRAGNANO"
+2026-09-03 10:44:51 | INFO | SEARCH API OK | serper | "GIUSEPPE ABAGNALE" curriculum OR "curriculum vitae" medico "GRAGNANO" | 1 risultati
+2026-09-03 10:44:51 | INFO | HIT SUMMARY | Pers_Id=359717 | query=2 | recovery=0 | cv_query=1 | grezzi=8 | rilevanti=1 | provider={'serper': 16, 'brave': 0}
+2026-09-03 10:44:52 | INFO | DONE | Pers_Id=359717 | 5.3s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:44:52 | INFO | SEARCH QUERY | Pers_Id=2606156 | numero=1 | q="LUCIA ABAGNALE" medico "Santa Maria la Carità"
+2026-09-03 10:44:55 | INFO | SEARCH API OK | serper | "LUCIA ABAGNALE" medico "Santa Maria la Carità" | 0 risultati
+2026-09-03 10:44:55 | INFO | SEARCH QUERY | Pers_Id=2606156 | numero=2 | q="LUCIA ABAGNALE" medico specialista ospedale
+2026-09-03 10:44:56 | INFO | SEARCH API OK | serper | "LUCIA ABAGNALE" medico specialista ospedale | 1 risultati
+2026-09-03 10:44:56 | INFO | SEARCH QUERY | Pers_Id=2606156 | numero=3 | q="LUCIA ABAGNALE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:44:59 | INFO | SEARCH API OK | serper | "LUCIA ABAGNALE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:44:59 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2606156 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:44:59 | INFO | CV SEARCH GATE | Pers_Id=2606156 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:44:59 | INFO | HIT SUMMARY | Pers_Id=2606156 | query=3 | recovery=0 | cv_query=0 | grezzi=9 | rilevanti=1 | provider={'serper': 19, 'brave': 0}
+2026-09-03 10:45:09 | INFO | LANDING SCARTATA | Pers_Id=2606156 | nome completo assente dalla pagina | https://burc.regione.campania.it/eBurcWeb/directServlet?DOCUMENT_ID=00108224&ATTACH_ID=160875
+2026-09-03 10:45:09 | INFO | DONE | Pers_Id=2606156 | 16.8s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:45:09 | INFO | SEARCH QUERY | Pers_Id=1188728 | numero=1 | q="CHIARA ABALOTTI" medico "CORNEDO VICENTINO"
+2026-09-03 10:45:11 | INFO | SEARCH API OK | serper | "CHIARA ABALOTTI" medico "CORNEDO VICENTINO" | 8 risultati
+2026-09-03 10:45:11 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1188728 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:45:11 | INFO | CV SEARCH GATE | Pers_Id=1188728 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:45:11 | INFO | CV SEARCH QUERY | Pers_Id=1188728 | q="CHIARA ABALOTTI" curriculum OR "curriculum vitae" medico "CORNEDO VICENTINO"
+2026-09-03 10:45:12 | INFO | SEARCH API OK | serper | "CHIARA ABALOTTI" curriculum OR "curriculum vitae" medico "CORNEDO VICENTINO" | 8 risultati
+2026-09-03 10:45:12 | INFO | HIT SUMMARY | Pers_Id=1188728 | query=2 | recovery=0 | cv_query=1 | grezzi=8 | rilevanti=2 | provider={'serper': 21, 'brave': 0}
+2026-09-03 10:45:15 | INFO | DONE | Pers_Id=1188728 | 5.7s | SPECIALITA_TROVATA | specialita=Chirurgia Generale | cv=NO | cv_review=0
+2026-09-03 10:45:15 | INFO | SEARCH QUERY | Pers_Id=436708 | numero=1 | q="MARIA VITTORIA ABALSAMO" medico "ROMA"
+2026-09-03 10:45:16 | INFO | SEARCH API OK | serper | "MARIA VITTORIA ABALSAMO" medico "ROMA" | 8 risultati
+2026-09-03 10:45:16 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=436708 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:45:16 | INFO | CV SEARCH GATE | Pers_Id=436708 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:45:16 | INFO | CV SEARCH QUERY | Pers_Id=436708 | q="MARIA VITTORIA ABALSAMO" curriculum OR "curriculum vitae" medico "ROMA"
+2026-09-03 10:45:18 | INFO | SEARCH API OK | serper | "MARIA VITTORIA ABALSAMO" curriculum OR "curriculum vitae" medico "ROMA" | 3 risultati
+2026-09-03 10:45:18 | INFO | HIT SUMMARY | Pers_Id=436708 | query=2 | recovery=0 | cv_query=1 | grezzi=8 | rilevanti=2 | provider={'serper': 23, 'brave': 0}
+2026-09-03 10:45:21 | INFO | DONE | Pers_Id=436708 | 5.9s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:45:21 | INFO | SEARCH QUERY | Pers_Id=1219520 | numero=1 | q="MARIA ABASCHINA" medico "MONTELUPONE"
+2026-09-03 10:45:22 | INFO | SEARCH API OK | serper | "MARIA ABASCHINA" medico "MONTELUPONE" | 2 risultati
+2026-09-03 10:45:22 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1219520 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:45:22 | INFO | CV SEARCH GATE | Pers_Id=1219520 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:45:22 | INFO | CV SEARCH QUERY | Pers_Id=1219520 | q="MARIA ABASCHINA" curriculum OR "curriculum vitae" medico "MONTELUPONE"
+2026-09-03 10:45:25 | INFO | SEARCH API OK | serper | "MARIA ABASCHINA" curriculum OR "curriculum vitae" medico "MONTELUPONE" | 2 risultati
+2026-09-03 10:45:25 | INFO | HIT SUMMARY | Pers_Id=1219520 | query=2 | recovery=0 | cv_query=1 | grezzi=2 | rilevanti=1 | provider={'serper': 25, 'brave': 0}
+2026-09-03 10:45:26 | INFO | DONE | Pers_Id=1219520 | 5.2s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:45:53 | INFO | CHECKPOINT | 10/40 | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:45:53 | INFO | PROGRESS | 10/40 | 6.19 medici/min | ETA 4.8 min | {'DA_VERIFICARE': 1, 'SPECIALITA_TROVATA': 6, 'NESSUN_RISULTATO': 3} | API={'serper': 25, 'brave': 0}
+2026-09-03 10:45:53 | INFO | SEARCH QUERY | Pers_Id=1784532 | numero=1 | q="NATALIYA VOLODYMYRIVNA ABASKALOVA" medico "Grosseto"
+2026-09-03 10:45:55 | INFO | SEARCH API OK | serper | "NATALIYA VOLODYMYRIVNA ABASKALOVA" medico "Grosseto" | 0 risultati
+2026-09-03 10:45:55 | INFO | SEARCH QUERY | Pers_Id=1784532 | numero=2 | q="NATALIYA VOLODYMYRIVNA ABASKALOVA" medico specialista ospedale
+2026-09-03 10:45:56 | INFO | SEARCH API OK | serper | "NATALIYA VOLODYMYRIVNA ABASKALOVA" medico specialista ospedale | 0 risultati
+2026-09-03 10:45:56 | INFO | SEARCH QUERY | Pers_Id=1784532 | numero=3 | q="NATALIYA VOLODYMYRIVNA ABASKALOVA" specializzazione OR specialista OR "medico di"
+2026-09-03 10:45:58 | INFO | SEARCH API OK | serper | "NATALIYA VOLODYMYRIVNA ABASKALOVA" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-03 10:45:58 | INFO | HIT SUMMARY | Pers_Id=1784532 | query=3 | recovery=0 | cv_query=0 | grezzi=1 | rilevanti=0 | provider={'serper': 28, 'brave': 0}
+2026-09-03 10:45:58 | INFO | DONE | Pers_Id=1784532 | 4.7s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:45:58 | INFO | SEARCH QUERY | Pers_Id=2806591 | numero=1 | q="GIULIO ABATANGELO" medico "Padova"
+2026-09-03 10:45:59 | INFO | SEARCH API OK | serper | "GIULIO ABATANGELO" medico "Padova" | 3 risultati
+2026-09-03 10:45:59 | INFO | SEARCH QUERY | Pers_Id=2806591 | numero=2 | q="GIULIO ABATANGELO" medico specialista ospedale
+2026-09-03 10:46:01 | INFO | SEARCH API OK | serper | "GIULIO ABATANGELO" medico specialista ospedale | 1 risultati
+2026-09-03 10:46:01 | INFO | SEARCH QUERY | Pers_Id=2806591 | numero=3 | q="GIULIO ABATANGELO" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:03 | INFO | SEARCH API OK | serper | "GIULIO ABATANGELO" specializzazione OR specialista OR "medico di" | 4 risultati
+2026-09-03 10:46:03 | INFO | HIT SUMMARY | Pers_Id=2806591 | query=3 | recovery=0 | cv_query=0 | grezzi=6 | rilevanti=0 | provider={'serper': 31, 'brave': 0}
+2026-09-03 10:46:03 | INFO | DONE | Pers_Id=2806591 | 5.0s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:03 | INFO | SEARCH QUERY | Pers_Id=2745192 | numero=1 | q="SILVIA ABATANGELO" medico "Prato"
+2026-09-03 10:46:05 | INFO | SEARCH API OK | serper | "SILVIA ABATANGELO" medico "Prato" | 6 risultati
+2026-09-03 10:46:05 | INFO | SEARCH QUERY | Pers_Id=2745192 | numero=2 | q="SILVIA ABATANGELO" medico specialista ospedale
+2026-09-03 10:46:06 | INFO | SEARCH API OK | serper | "SILVIA ABATANGELO" medico specialista ospedale | 2 risultati
+2026-09-03 10:46:06 | INFO | SEARCH QUERY | Pers_Id=2745192 | numero=3 | q="SILVIA ABATANGELO" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:08 | INFO | SEARCH API OK | serper | "SILVIA ABATANGELO" specializzazione OR specialista OR "medico di" | 4 risultati
+2026-09-03 10:46:08 | INFO | HIT SUMMARY | Pers_Id=2745192 | query=3 | recovery=0 | cv_query=0 | grezzi=9 | rilevanti=0 | provider={'serper': 34, 'brave': 0}
+2026-09-03 10:46:08 | INFO | DONE | Pers_Id=2745192 | 5.5s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:08 | INFO | SEARCH QUERY | Pers_Id=2607465 | numero=1 | q="ANDREA ABATE" medico "Milano"
+2026-09-03 10:46:10 | INFO | SEARCH API OK | serper | "ANDREA ABATE" medico "Milano" | 8 risultati
+2026-09-03 10:46:10 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607465 | query=1 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:46:10 | INFO | SEARCH QUERY | Pers_Id=2607465 | numero=2 | q="ANDREA ABATE" medico specialista ospedale
+2026-09-03 10:46:11 | INFO | SEARCH API OK | serper | "ANDREA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:46:11 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607465 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:46:11 | INFO | SEARCH QUERY | Pers_Id=2607465 | numero=3 | q="ANDREA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:13 | INFO | SEARCH API OK | serper | "ANDREA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:46:13 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607465 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:46:13 | INFO | CV SEARCH GATE | Pers_Id=2607465 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=True
+2026-09-03 10:46:13 | INFO | HIT SUMMARY | Pers_Id=2607465 | query=3 | recovery=0 | cv_query=0 | grezzi=20 | rilevanti=3 | provider={'serper': 37, 'brave': 0}
+2026-09-03 10:46:20 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=2607465 | formato=.pdf | estrazione=pdf | chars=120000 | url=https://portale.fnomceo.it/wp-content/uploads/2018/09/PROGRAMMA-INTEGRALE-FORUMRISK13_WEB.pdf
+2026-09-03 10:46:20 | INFO | CV SCARTATO | Pers_Id=2607465 | formato=.pdf | motivo=Documento non sufficientemente compatibile con un CV. | url=https://portale.fnomceo.it/wp-content/uploads/2018/09/PROGRAMMA-INTEGRALE-FORUMRISK13_WEB.pdf
+2026-09-03 10:46:26 | INFO | DONE | Pers_Id=2607465 | 17.8s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:26 | INFO | SEARCH QUERY | Pers_Id=1222252 | numero=1 | q="ANGELA MARIA ABATE" medico "MONCALIERI"
+2026-09-03 10:46:28 | INFO | SEARCH API OK | serper | "ANGELA MARIA ABATE" medico "MONCALIERI" | 0 risultati
+2026-09-03 10:46:28 | INFO | SEARCH QUERY | Pers_Id=1222252 | numero=2 | q="ANGELA MARIA ABATE" medico specialista ospedale
+2026-09-03 10:46:30 | INFO | SEARCH API OK | serper | "ANGELA MARIA ABATE" medico specialista ospedale | 0 risultati
+2026-09-03 10:46:30 | INFO | SEARCH QUERY | Pers_Id=1222252 | numero=3 | q="ANGELA MARIA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:32 | INFO | SEARCH API OK | serper | "ANGELA MARIA ABATE" specializzazione OR specialista OR "medico di" | 2 risultati
+2026-09-03 10:46:32 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1222252 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:46:32 | INFO | CV SEARCH GATE | Pers_Id=1222252 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:46:32 | INFO | HIT SUMMARY | Pers_Id=1222252 | query=3 | recovery=0 | cv_query=0 | grezzi=2 | rilevanti=2 | provider={'serper': 40, 'brave': 0}
+2026-09-03 10:46:35 | INFO | DONE | Pers_Id=1222252 | 9.3s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:35 | INFO | PROGRESS | 15/40 | 6.46 medici/min | ETA 3.9 min | {'DA_VERIFICARE': 3, 'SPECIALITA_TROVATA': 6, 'NESSUN_RISULTATO': 6} | API={'serper': 40, 'brave': 0}
+2026-09-03 10:46:35 | INFO | SEARCH QUERY | Pers_Id=2463758 | numero=1 | q="ANTONIO HERMES ABATE" medico "Verona"
+2026-09-03 10:46:37 | INFO | SEARCH API OK | serper | "ANTONIO HERMES ABATE" medico "Verona" | 0 risultati
+2026-09-03 10:46:37 | INFO | SEARCH QUERY | Pers_Id=2463758 | numero=2 | q="ANTONIO HERMES ABATE" medico specialista ospedale
+2026-09-03 10:46:40 | INFO | SEARCH API OK | serper | "ANTONIO HERMES ABATE" medico specialista ospedale | 0 risultati
+2026-09-03 10:46:40 | INFO | SEARCH QUERY | Pers_Id=2463758 | numero=3 | q="ANTONIO HERMES ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:41 | INFO | SEARCH API OK | serper | "ANTONIO HERMES ABATE" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-03 10:46:41 | INFO | HIT SUMMARY | Pers_Id=2463758 | query=3 | recovery=0 | cv_query=0 | grezzi=1 | rilevanti=0 | provider={'serper': 43, 'brave': 0}
+2026-09-03 10:46:41 | INFO | DONE | Pers_Id=2463758 | 6.0s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:41 | INFO | SEARCH QUERY | Pers_Id=2162965 | numero=1 | q="ASSUNTA ABATE" medico "FIRENZE"
+2026-09-03 10:46:43 | INFO | SEARCH API OK | serper | "ASSUNTA ABATE" medico "FIRENZE" | 7 risultati
+2026-09-03 10:46:43 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162965 | query=1 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:46:43 | INFO | SEARCH QUERY | Pers_Id=2162965 | numero=2 | q="ASSUNTA ABATE" medico specialista ospedale
+2026-09-03 10:46:44 | INFO | SEARCH API OK | serper | "ASSUNTA ABATE" medico specialista ospedale | 7 risultati
+2026-09-03 10:46:44 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162965 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:46:44 | INFO | SEARCH QUERY | Pers_Id=2162965 | numero=3 | q="ASSUNTA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:46 | INFO | SEARCH API OK | serper | "ASSUNTA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:46:46 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162965 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:46:46 | INFO | CV SEARCH GATE | Pers_Id=2162965 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:46:46 | INFO | HIT SUMMARY | Pers_Id=2162965 | query=3 | recovery=0 | cv_query=0 | grezzi=17 | rilevanti=1 | provider={'serper': 46, 'brave': 0}
+2026-09-03 10:46:48 | INFO | DONE | Pers_Id=2162965 | 6.2s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:48 | INFO | SEARCH QUERY | Pers_Id=2607461 | numero=1 | q="BIAGIO ABATE" medico "Montesarchio"
+2026-09-03 10:46:49 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico "Montesarchio" | 4 risultati
+2026-09-03 10:46:49 | INFO | SEARCH QUERY | Pers_Id=2607461 | numero=2 | q="BIAGIO ABATE" medico specialista ospedale
+2026-09-03 10:46:51 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:46:51 | INFO | SEARCH QUERY | Pers_Id=2607461 | numero=3 | q="BIAGIO ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:52 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:46:52 | INFO | HIT SUMMARY | Pers_Id=2607461 | query=3 | recovery=0 | cv_query=0 | grezzi=16 | rilevanti=0 | provider={'serper': 49, 'brave': 0}
+2026-09-03 10:46:52 | INFO | DONE | Pers_Id=2607461 | 4.8s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:52 | INFO | SEARCH QUERY | Pers_Id=2806593 | numero=1 | q="BIAGIO ABATE" medico "Agrigento"
+2026-09-03 10:46:54 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico "Agrigento" | 2 risultati
+2026-09-03 10:46:54 | INFO | SEARCH QUERY | Pers_Id=2806593 | numero=2 | q="BIAGIO ABATE" medico specialista ospedale
+2026-09-03 10:46:56 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:46:56 | INFO | SEARCH QUERY | Pers_Id=2806593 | numero=3 | q="BIAGIO ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:46:58 | INFO | SEARCH API OK | serper | "BIAGIO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:46:59 | INFO | HIT SUMMARY | Pers_Id=2806593 | query=3 | recovery=0 | cv_query=0 | grezzi=14 | rilevanti=0 | provider={'serper': 52, 'brave': 0}
+2026-09-03 10:46:59 | INFO | DONE | Pers_Id=2806593 | 6.1s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:46:59 | INFO | SEARCH QUERY | Pers_Id=2607462 | numero=1 | q="CLAUDIA ABATE" medico "Milazzo"
+2026-09-03 10:47:00 | INFO | SEARCH API OK | serper | "CLAUDIA ABATE" medico "Milazzo" | 4 risultati
+2026-09-03 10:47:00 | INFO | SEARCH QUERY | Pers_Id=2607462 | numero=2 | q="CLAUDIA ABATE" medico specialista ospedale
+2026-09-03 10:47:02 | INFO | SEARCH API OK | serper | "CLAUDIA ABATE" medico specialista ospedale | 6 risultati
+2026-09-03 10:47:02 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607462 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:47:02 | INFO | SEARCH QUERY | Pers_Id=2607462 | numero=3 | q="CLAUDIA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:47:03 | INFO | SEARCH API OK | serper | "CLAUDIA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:47:03 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607462 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:47:03 | INFO | CV SEARCH GATE | Pers_Id=2607462 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=True
+2026-09-03 10:47:03 | INFO | HIT SUMMARY | Pers_Id=2607462 | query=3 | recovery=0 | cv_query=0 | grezzi=16 | rilevanti=5 | provider={'serper': 55, 'brave': 0}
+2026-09-03 10:47:04 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=2607462 | formato=.pdf | estrazione=pdf | chars=0 | url=https://www.asllanusei.it/documenti/4_170_20180206134238.pdf
+2026-09-03 10:47:05 | INFO | LANDING SCARTATA | Pers_Id=2607462 | ruolo incompatibile vicino al nome: possibile omonimo | https://professionisti.quotidianosanitaclub.it/medico/claudia-abate-1538232
+2026-09-03 10:47:11 | INFO | LANDING SCARTATA | Pers_Id=2607462 | fonte sanitaria con identita solo incidentale | https://www.aslogliastra.it/servizio/psicologia
+2026-09-03 10:47:16 | INFO | LANDING SCARTATA | Pers_Id=2607462 | ruolo incompatibile vicino al nome: possibile omonimo | https://www.aslogliastra.it/servizio/disturbi-della-nutrizione-e-dellalimentazione
+2026-09-03 10:47:17 | INFO | LANDING SCARTATA | Pers_Id=2607462 | fonte sanitaria con identita solo incidentale | https://www.qsalute.it/ortopedia-ospedale-marino
+2026-09-03 10:47:17 | INFO | DONE | Pers_Id=2607462 | 18.9s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:48:10 | INFO | CHECKPOINT | 20/40 | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:48:10 | INFO | PROGRESS | 20/40 | 5.13 medici/min | ETA 3.9 min | {'DA_VERIFICARE': 4, 'SPECIALITA_TROVATA': 6, 'NESSUN_RISULTATO': 10} | API={'serper': 55, 'brave': 0}
+2026-09-03 10:48:10 | INFO | SEARCH QUERY | Pers_Id=1136949 | numero=1 | q="DAVIDE ANTONIO ABATE" medico "PADOVA"
+2026-09-03 10:48:12 | INFO | SEARCH API OK | serper | "DAVIDE ANTONIO ABATE" medico "PADOVA" | 6 risultati
+2026-09-03 10:48:12 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1136949 | query=1 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:48:12 | INFO | SEARCH QUERY | Pers_Id=1136949 | numero=2 | q="DAVIDE ANTONIO ABATE" medico specialista ospedale
+2026-09-03 10:48:14 | INFO | SEARCH API OK | serper | "DAVIDE ANTONIO ABATE" medico specialista ospedale | 2 risultati
+2026-09-03 10:48:14 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1136949 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:48:14 | INFO | SEARCH QUERY | Pers_Id=1136949 | numero=3 | q="DAVIDE ANTONIO ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:48:16 | INFO | SEARCH API OK | serper | "DAVIDE ANTONIO ABATE" specializzazione OR specialista OR "medico di" | 3 risultati
+2026-09-03 10:48:16 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1136949 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:48:16 | INFO | CV SEARCH GATE | Pers_Id=1136949 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:48:16 | INFO | HIT SUMMARY | Pers_Id=1136949 | query=3 | recovery=0 | cv_query=0 | grezzi=9 | rilevanti=4 | provider={'serper': 58, 'brave': 0}
+2026-09-03 10:48:21 | INFO | LANDING SCARTATA | Pers_Id=1136949 | fonte generica con identita solo incidentale | https://medicina.elearning.unipd.it/blocks/course_managers/manager.php?id=170&b=87044
+2026-09-03 10:48:26 | INFO | LANDING SCARTATA | Pers_Id=1136949 | fonte generica con identita solo incidentale | https://www.medicinachirurgia.unipd.it/offerta-didattica/corsi-di-laurea?tipo=L&ordinamento=2011&key=ME3065
+2026-09-03 10:48:27 | INFO | LANDING SCARTATA | Pers_Id=1136949 | fonte generica con identita solo incidentale | https://www.medicinamolecolare.unipd.it/category/ruoli/personale-docente
+2026-09-03 10:48:27 | INFO | DONE | Pers_Id=1136949 | 16.7s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:48:27 | INFO | SEARCH QUERY | Pers_Id=236060 | numero=1 | q="ELIO ABATE" medico "APRIGLIANO"
+2026-09-03 10:48:29 | INFO | SEARCH API OK | serper | "ELIO ABATE" medico "APRIGLIANO" | 2 risultati
+2026-09-03 10:48:29 | INFO | SEARCH QUERY | Pers_Id=236060 | numero=2 | q="ELIO ABATE" medico specialista ospedale
+2026-09-03 10:48:31 | INFO | SEARCH API OK | serper | "ELIO ABATE" medico specialista ospedale | 2 risultati
+2026-09-03 10:48:31 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=236060 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:48:31 | INFO | SEARCH QUERY | Pers_Id=236060 | numero=3 | q="ELIO ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:48:33 | INFO | SEARCH API OK | serper | "ELIO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:48:33 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=236060 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:48:33 | INFO | CV SEARCH GATE | Pers_Id=236060 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=True
+2026-09-03 10:48:33 | INFO | HIT SUMMARY | Pers_Id=236060 | query=3 | recovery=0 | cv_query=0 | grezzi=9 | rilevanti=3 | provider={'serper': 61, 'brave': 0}
+2026-09-03 10:48:50 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=236060 | formato=.pdf | estrazione=pdf | chars=120000 | url=https://www.regione.campania.it/assets/documents/scheda-assessore-fortini-aggiornata-1-bimestre-2020.pdf
+2026-09-03 10:48:50 | INFO | CV SCARTATO | Pers_Id=236060 | formato=.pdf | motivo=Documento non sufficientemente compatibile con un CV. | url=https://www.regione.campania.it/assets/documents/scheda-assessore-fortini-aggiornata-1-bimestre-2020.pdf
+2026-09-03 10:49:06 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=236060 | formato=.pdf | estrazione=pdf | chars=120000 | url=https://www.regione.campania.it/assets/documents/at-d-alessio-scheda-08112016.pdf
+2026-09-03 10:49:06 | INFO | CV SCARTATO | Pers_Id=236060 | formato=.pdf | motivo=Identità target assente dal documento. | url=https://www.regione.campania.it/assets/documents/at-d-alessio-scheda-08112016.pdf
+2026-09-03 10:49:07 | INFO | LANDING SCARTATA | Pers_Id=236060 | citta profilo incompatibile: domanico != aprigliano | https://www.doctolib.it/medico-di-medicina-generale/domanico/elio-abate
+2026-09-03 10:49:07 | INFO | DONE | Pers_Id=236060 | 40.7s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:49:07 | INFO | SEARCH QUERY | Pers_Id=2745185 | numero=1 | q="ESTHER ABATE" medico "Trapani"
+2026-09-03 10:49:09 | INFO | SEARCH API OK | serper | "ESTHER ABATE" medico "Trapani" | 3 risultati
+2026-09-03 10:49:09 | INFO | SEARCH QUERY | Pers_Id=2745185 | numero=2 | q="ESTHER ABATE" medico specialista ospedale
+2026-09-03 10:49:11 | INFO | SEARCH API OK | serper | "ESTHER ABATE" medico specialista ospedale | 1 risultati
+2026-09-03 10:49:11 | INFO | SEARCH QUERY | Pers_Id=2745185 | numero=3 | q="ESTHER ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:49:13 | INFO | SEARCH API OK | serper | "ESTHER ABATE" specializzazione OR specialista OR "medico di" | 3 risultati
+2026-09-03 10:49:13 | INFO | HIT SUMMARY | Pers_Id=2745185 | query=3 | recovery=0 | cv_query=0 | grezzi=4 | rilevanti=0 | provider={'serper': 64, 'brave': 0}
+2026-09-03 10:49:13 | INFO | DONE | Pers_Id=2745185 | 6.0s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:49:13 | INFO | SEARCH QUERY | Pers_Id=2162961 | numero=1 | q="FILOMENA ABATE" medico "San Martino Valle Caudina"
+2026-09-03 10:49:15 | INFO | SEARCH API OK | serper | "FILOMENA ABATE" medico "San Martino Valle Caudina" | 8 risultati
+2026-09-03 10:49:15 | INFO | SEARCH QUERY | Pers_Id=2162961 | numero=2 | q="FILOMENA ABATE" medico specialista ospedale
+2026-09-03 10:49:17 | INFO | SEARCH API OK | serper | "FILOMENA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:49:17 | INFO | SEARCH QUERY | Pers_Id=2162961 | numero=3 | q="FILOMENA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:49:19 | INFO | SEARCH API OK | serper | "FILOMENA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:49:19 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162961 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:49:19 | INFO | CV SEARCH GATE | Pers_Id=2162961 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:49:19 | INFO | HIT SUMMARY | Pers_Id=2162961 | query=3 | recovery=0 | cv_query=0 | grezzi=22 | rilevanti=1 | provider={'serper': 67, 'brave': 0}
+2026-09-03 10:49:22 | INFO | DONE | Pers_Id=2162961 | 8.0s | SPECIALITA_TROVATA | specialita=Neurologia | cv=NO | cv_review=0
+2026-09-03 10:49:22 | INFO | SEARCH QUERY | Pers_Id=1812842 | numero=1 | q="FRANCESCA ABATE" medico "CROTONE"
+2026-09-03 10:49:24 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico "CROTONE" | 7 risultati
+2026-09-03 10:49:24 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1812842 | query=1 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:49:24 | INFO | SEARCH QUERY | Pers_Id=1812842 | numero=2 | q="FRANCESCA ABATE" medico specialista ospedale
+2026-09-03 10:49:26 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:49:26 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1812842 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:49:26 | INFO | SEARCH QUERY | Pers_Id=1812842 | numero=3 | q="FRANCESCA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:49:28 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:49:28 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1812842 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:49:28 | INFO | CV SEARCH GATE | Pers_Id=1812842 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:49:28 | INFO | HIT SUMMARY | Pers_Id=1812842 | query=3 | recovery=0 | cv_query=0 | grezzi=22 | rilevanti=6 | provider={'serper': 70, 'brave': 0}
+2026-09-03 10:49:35 | INFO | LANDING SCARTATA | Pers_Id=1812842 | citta profilo incompatibile: formigine != crotone | https://www.doctolib.it/medico-di-medicina-generale/formigine/francesca-abate-formigine
+2026-09-03 10:49:36 | INFO | LANDING SCARTATA | Pers_Id=1812842 | citta profilo incompatibile: viadana != crotone | https://www.doctolib.it/medico-di-medicina-generale/viadana/francesca-abate
+2026-09-03 10:49:39 | INFO | LANDING SCARTATA | Pers_Id=1812842 | fonte generica con identita solo incidentale | https://www.asp.crotone.it/?page_id=5790
+2026-09-03 10:49:39 | INFO | DONE | Pers_Id=1812842 | 17.8s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:49:39 | INFO | PROGRESS | 25/40 | 4.64 medici/min | ETA 3.2 min | {'DA_VERIFICARE': 5, 'SPECIALITA_TROVATA': 8, 'NESSUN_RISULTATO': 12} | API={'serper': 70, 'brave': 0}
+2026-09-03 10:49:39 | INFO | SEARCH QUERY | Pers_Id=1812843 | numero=1 | q="FRANCESCA ABATE" medico "MODENA"
+2026-09-03 10:49:42 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico "MODENA" | 8 risultati
+2026-09-03 10:49:43 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1812843 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:49:43 | INFO | CV SEARCH GATE | Pers_Id=1812843 | mode=targeted | allowed=True | reason=fonte sanitaria forte | existing_cv=False
+2026-09-03 10:49:43 | INFO | CV SEARCH QUERY | Pers_Id=1812843 | q="FRANCESCA ABATE" curriculum OR "curriculum vitae" medico "MODENA"
+2026-09-03 10:49:44 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" curriculum OR "curriculum vitae" medico "MODENA" | 8 risultati
+2026-09-03 10:49:44 | INFO | HIT SUMMARY | Pers_Id=1812843 | query=2 | recovery=0 | cv_query=1 | grezzi=8 | rilevanti=3 | provider={'serper': 72, 'brave': 0}
+2026-09-03 10:49:51 | INFO | DONE | Pers_Id=1812843 | 11.5s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:49:51 | INFO | SEARCH QUERY | Pers_Id=2607463 | numero=1 | q="FRANCESCA ABATE" medico "Guardia Sanframondi"
+2026-09-03 10:49:53 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico "Guardia Sanframondi" | 0 risultati
+2026-09-03 10:49:53 | INFO | SEARCH QUERY | Pers_Id=2607463 | numero=2 | q="FRANCESCA ABATE" medico specialista ospedale
+2026-09-03 10:49:55 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:49:55 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607463 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:49:55 | INFO | SEARCH QUERY | Pers_Id=2607463 | numero=3 | q="FRANCESCA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:49:58 | INFO | SEARCH API OK | serper | "FRANCESCA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:49:58 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607463 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:49:58 | INFO | CV SEARCH GATE | Pers_Id=2607463 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:49:58 | INFO | HIT SUMMARY | Pers_Id=2607463 | query=3 | recovery=0 | cv_query=0 | grezzi=16 | rilevanti=5 | provider={'serper': 75, 'brave': 0}
+2026-09-03 10:50:04 | INFO | LANDING SCARTATA | Pers_Id=2607463 | citta profilo incompatibile: formigine != guardia sanframondi | https://www.doctolib.it/medico-di-medicina-generale/formigine/francesca-abate-formigine
+2026-09-03 10:50:05 | INFO | LANDING SCARTATA | Pers_Id=2607463 | citta profilo incompatibile: viadana != guardia sanframondi | https://www.doctolib.it/medico-di-medicina-generale/viadana/francesca-abate
+2026-09-03 10:50:05 | INFO | DONE | Pers_Id=2607463 | 14.4s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:50:05 | INFO | SEARCH QUERY | Pers_Id=1180356 | numero=1 | q="GESSICA ABATE" medico "Guardia Sanframondi"
+2026-09-03 10:50:08 | INFO | SEARCH API OK | serper | "GESSICA ABATE" medico "Guardia Sanframondi" | 8 risultati
+2026-09-03 10:50:08 | INFO | SEARCH QUERY | Pers_Id=1180356 | numero=2 | q="GESSICA ABATE" medico specialista ospedale
+2026-09-03 10:50:10 | INFO | SEARCH API OK | serper | "GESSICA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:50:10 | INFO | SEARCH QUERY | Pers_Id=1180356 | numero=3 | q="GESSICA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:50:12 | INFO | SEARCH API OK | serper | "GESSICA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:50:12 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1180356 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:50:12 | INFO | CV SEARCH GATE | Pers_Id=1180356 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:50:12 | INFO | HIT SUMMARY | Pers_Id=1180356 | query=3 | recovery=0 | cv_query=0 | grezzi=22 | rilevanti=1 | provider={'serper': 78, 'brave': 0}
+2026-09-03 10:50:15 | INFO | DONE | Pers_Id=1180356 | 9.5s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:50:15 | INFO | SEARCH QUERY | Pers_Id=395436 | numero=1 | q="GIOVANNA ABATE" medico "Montalto Uffugo"
+2026-09-03 10:50:17 | INFO | SEARCH API OK | serper | "GIOVANNA ABATE" medico "Montalto Uffugo" | 6 risultati
+2026-09-03 10:50:17 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=395436 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:50:17 | INFO | CV SEARCH GATE | Pers_Id=395436 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:50:17 | INFO | CV SEARCH QUERY | Pers_Id=395436 | q="GIOVANNA ABATE" curriculum OR "curriculum vitae" medico "Montalto Uffugo"
+2026-09-03 10:50:19 | INFO | SEARCH API OK | serper | "GIOVANNA ABATE" curriculum OR "curriculum vitae" medico "Montalto Uffugo" | 2 risultati
+2026-09-03 10:50:19 | INFO | HIT SUMMARY | Pers_Id=395436 | query=2 | recovery=0 | cv_query=1 | grezzi=6 | rilevanti=1 | provider={'serper': 80, 'brave': 0}
+2026-09-03 10:50:21 | INFO | DONE | Pers_Id=395436 | 6.3s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:50:21 | INFO | SEARCH QUERY | Pers_Id=2607464 | numero=1 | q="MARCO ABATE" medico "Caivano"
+2026-09-03 10:50:24 | INFO | SEARCH API OK | serper | "MARCO ABATE" medico "Caivano" | 8 risultati
+2026-09-03 10:50:24 | INFO | SEARCH QUERY | Pers_Id=2607464 | numero=2 | q="MARCO ABATE" medico specialista ospedale
+2026-09-03 10:50:26 | INFO | SEARCH API OK | serper | "MARCO ABATE" medico specialista ospedale | 7 risultati
+2026-09-03 10:50:26 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607464 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:50:26 | INFO | SEARCH QUERY | Pers_Id=2607464 | numero=3 | q="MARCO ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:50:29 | INFO | SEARCH API OK | serper | "MARCO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:50:29 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2607464 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:50:29 | INFO | CV SEARCH GATE | Pers_Id=2607464 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:50:29 | INFO | HIT SUMMARY | Pers_Id=2607464 | query=3 | recovery=0 | cv_query=0 | grezzi=20 | rilevanti=1 | provider={'serper': 83, 'brave': 0}
+2026-09-03 10:50:30 | INFO | DONE | Pers_Id=2607464 | 8.3s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:51:24 | INFO | CHECKPOINT | 30/40 | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:51:24 | INFO | PROGRESS | 30/40 | 4.21 medici/min | ETA 2.4 min | {'DA_VERIFICARE': 6, 'SPECIALITA_TROVATA': 11, 'NESSUN_RISULTATO': 13} | API={'serper': 83, 'brave': 0}
+2026-09-03 10:51:24 | INFO | SEARCH QUERY | Pers_Id=289911 | numero=1 | q="MARIA ABATE" medico "MONTEVAGO"
+2026-09-03 10:51:26 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico "MONTEVAGO" | 6 risultati
+2026-09-03 10:51:26 | INFO | SEARCH QUERY | Pers_Id=289911 | numero=2 | q="MARIA ABATE" medico specialista ospedale
+2026-09-03 10:51:28 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:51:28 | INFO | SEARCH QUERY | Pers_Id=289911 | numero=3 | q="MARIA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:51:30 | INFO | SEARCH API OK | serper | "MARIA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:51:30 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=289911 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:51:30 | INFO | CV SEARCH GATE | Pers_Id=289911 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:51:30 | INFO | HIT SUMMARY | Pers_Id=289911 | query=3 | recovery=0 | cv_query=0 | grezzi=22 | rilevanti=5 | provider={'serper': 86, 'brave': 0}
+2026-09-03 10:51:31 | INFO | LANDING SCARTATA | Pers_Id=289911 | citta profilo incompatibile: massarosa != montevago | https://www.doctolib.it/medico-di-medicina-generale/massarosa/maria-abate
+2026-09-03 10:51:43 | INFO | DONE | Pers_Id=289911 | 19.2s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:51:43 | INFO | SEARCH QUERY | Pers_Id=1222042 | numero=1 | q="MARIA ABATE" medico "Torelli-torrette"
+2026-09-03 10:51:45 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico "Torelli-torrette" | 0 risultati
+2026-09-03 10:51:45 | INFO | SEARCH QUERY | Pers_Id=1222042 | numero=2 | q="MARIA ABATE" medico specialista ospedale
+2026-09-03 10:51:48 | INFO | SEARCH API OK | serper | "MARIA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:51:48 | INFO | SEARCH QUERY | Pers_Id=1222042 | numero=3 | q="MARIA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:51:50 | INFO | SEARCH API OK | serper | "MARIA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:51:50 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1222042 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:51:50 | INFO | CV SEARCH GATE | Pers_Id=1222042 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:51:50 | INFO | HIT SUMMARY | Pers_Id=1222042 | query=3 | recovery=0 | cv_query=0 | grezzi=15 | rilevanti=4 | provider={'serper': 89, 'brave': 0}
+2026-09-03 10:51:51 | INFO | LANDING SCARTATA | Pers_Id=1222042 | citta profilo incompatibile: massarosa != torelli torrette | https://www.doctolib.it/medico-di-medicina-generale/massarosa/maria-abate
+2026-09-03 10:52:04 | INFO | DONE | Pers_Id=1222042 | 21.3s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:52:04 | INFO | SEARCH QUERY | Pers_Id=950077 | numero=1 | q="MARIA GIULIA ABATE" medico "MONZA"
+2026-09-03 10:52:06 | INFO | SEARCH API OK | serper | "MARIA GIULIA ABATE" medico "MONZA" | 7 risultati
+2026-09-03 10:52:06 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=950077 | query=1 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:52:06 | INFO | SEARCH QUERY | Pers_Id=950077 | numero=2 | q="MARIA GIULIA ABATE" medico specialista ospedale
+2026-09-03 10:52:08 | INFO | SEARCH API OK | serper | "MARIA GIULIA ABATE" medico specialista ospedale | 1 risultati
+2026-09-03 10:52:08 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=950077 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:52:08 | INFO | SEARCH QUERY | Pers_Id=950077 | numero=3 | q="MARIA GIULIA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:52:10 | INFO | SEARCH API OK | serper | "MARIA GIULIA ABATE" specializzazione OR specialista OR "medico di" | 1 risultati
+2026-09-03 10:52:10 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=950077 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:52:10 | INFO | CV SEARCH GATE | Pers_Id=950077 | mode=targeted | allowed=True | reason=fonte sanitaria forte | existing_cv=True
+2026-09-03 10:52:10 | INFO | HIT SUMMARY | Pers_Id=950077 | query=3 | recovery=0 | cv_query=0 | grezzi=7 | rilevanti=4 | provider={'serper': 92, 'brave': 0}
+2026-09-03 10:52:11 | INFO | CV DOWNLOAD FALLITO | Pers_Id=950077 | url=https://www.irccs-sangerardo.it/documents/492169/0/cit.pdf/99af11de-a82c-794e-4261-572e9b4d08a0
+2026-09-03 10:52:12 | INFO | LANDING SCARTATA | Pers_Id=950077 | pagina senza testo | https://www.irccs-sangerardo.it/terapia-intensiva-a-indirizzo-neurologico-neurochirurgico
+2026-09-03 10:52:15 | INFO | DONE | Pers_Id=950077 | 10.6s | DA_VERIFICARE | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:52:15 | INFO | SEARCH QUERY | Pers_Id=1189072 | numero=1 | q="MATTEO ABATE" medico "Alcamo"
+2026-09-03 10:52:19 | INFO | SEARCH API OK | serper | "MATTEO ABATE" medico "Alcamo" | 2 risultati
+2026-09-03 10:52:19 | INFO | SEARCH QUERY | Pers_Id=1189072 | numero=2 | q="MATTEO ABATE" medico specialista ospedale
+2026-09-03 10:52:20 | INFO | SEARCH API OK | serper | "MATTEO ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:52:20 | INFO | SEARCH QUERY | Pers_Id=1189072 | numero=3 | q="MATTEO ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:52:23 | INFO | SEARCH API OK | serper | "MATTEO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:52:23 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1189072 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:52:23 | INFO | CV SEARCH GATE | Pers_Id=1189072 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:52:23 | INFO | HIT SUMMARY | Pers_Id=1189072 | query=3 | recovery=0 | cv_query=0 | grezzi=16 | rilevanti=2 | provider={'serper': 95, 'brave': 0}
+2026-09-03 10:52:23 | INFO | LANDING SCARTATA | Pers_Id=1189072 | pagina senza testo | https://lecconotizie.com/montagna/lecco-montagna/lecco-matteo-abate-realizza-il-suo-sogno-e-apre-il-rifugio-camposecco
+2026-09-03 10:52:26 | INFO | LANDING SCARTATA | Pers_Id=1189072 | fonte sanitaria con identita solo incidentale | https://archiviodistatotorino.cultura.gov.it/titolari
+2026-09-03 10:52:26 | INFO | DONE | Pers_Id=1189072 | 11.3s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:52:26 | INFO | SEARCH QUERY | Pers_Id=306924 | numero=1 | q="ORNELLA ABATE" medico "Avellino"
+2026-09-03 10:52:28 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" medico "Avellino" | 8 risultati
+2026-09-03 10:52:28 | INFO | SEARCH QUERY | Pers_Id=306924 | numero=2 | q="ORNELLA ABATE" medico specialista ospedale
+2026-09-03 10:52:30 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" medico specialista ospedale | 7 risultati
+2026-09-03 10:52:30 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=306924 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:52:30 | INFO | SEARCH QUERY | Pers_Id=306924 | numero=3 | q="ORNELLA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:52:33 | INFO | SEARCH API OK | serper | "ORNELLA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:52:33 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=306924 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:52:33 | INFO | CV SEARCH GATE | Pers_Id=306924 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=True
+2026-09-03 10:52:33 | INFO | HIT SUMMARY | Pers_Id=306924 | query=3 | recovery=0 | cv_query=0 | grezzi=21 | rilevanti=5 | provider={'serper': 98, 'brave': 0}
+2026-09-03 10:52:36 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=306924 | formato=.html | estrazione=html | chars=9036 | url=https://amamedis.it/cv-ornellaabate
+2026-09-03 10:52:36 | INFO | CV SCARTATO | Pers_Id=306924 | formato=.html | motivo=Documento non sufficientemente compatibile con un CV. | url=https://amamedis.it/cv-ornellaabate
+2026-09-03 10:52:43 | INFO | CV LINK LANDING | Pers_Id=306924 | score=320 | formato=html | label=Vai al contenuto | url=https://amamedis.it/cv-ornellaabate#content
+2026-09-03 10:52:43 | INFO | CV LINK LANDING | Pers_Id=306924 | score=320 | formato=.doc | label=Scarica curriculum | url=https://amamedis.it/wp-content/uploads/2021/02/CV-formato-europeo-ornella.doc
+2026-09-03 10:52:55 | INFO | CV CANDIDATO ANALIZZATO | Pers_Id=306924 | formato=.doc | estrazione=word-com | chars=9061 | url=https://amamedis.it/wp-content/uploads/2021/02/CV-formato-europeo-ornella.doc
+2026-09-03 10:52:55 | INFO | CV VERIFICATO | Pers_Id=306924 | formato=.doc | estrazione=word-com | confidenza=media | file=C:\Dev\Niko\scriptRicerca\cv_medici\306924-ABATE-ORNELLA.doc | url=https://amamedis.it/wp-content/uploads/2021/02/CV-formato-europeo-ornella.doc
+2026-09-03 10:52:55 | INFO | DONE | Pers_Id=306924 | 28.8s | CV_TROVATO_SPECIALITA_DA_VERIFICARE | specialita=N/D | cv=SI | cv_review=0
+2026-09-03 10:52:55 | INFO | PROGRESS | 35/40 | 4.04 medici/min | ETA 1.2 min | {'DA_VERIFICARE': 9, 'SPECIALITA_TROVATA': 11, 'NESSUN_RISULTATO': 14, 'CV_TROVATO_SPECIALITA_DA_VERIFICARE': 1} | API={'serper': 98, 'brave': 0}
+2026-09-03 10:52:55 | INFO | SEARCH QUERY | Pers_Id=1784607 | numero=1 | q="RAFFAELA ABATE" medico "MERCATO SAN SEVERINO"
+2026-09-03 10:52:57 | INFO | SEARCH API OK | serper | "RAFFAELA ABATE" medico "MERCATO SAN SEVERINO" | 0 risultati
+2026-09-03 10:52:57 | INFO | SEARCH QUERY | Pers_Id=1784607 | numero=2 | q="RAFFAELA ABATE" medico specialista ospedale
+2026-09-03 10:53:00 | INFO | SEARCH API OK | serper | "RAFFAELA ABATE" medico specialista ospedale | 7 risultati
+2026-09-03 10:53:00 | INFO | SEARCH QUERY | Pers_Id=1784607 | numero=3 | q="RAFFAELA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:53:02 | INFO | SEARCH API OK | serper | "RAFFAELA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:53:02 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1784607 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:53:02 | INFO | CV SEARCH GATE | Pers_Id=1784607 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:53:02 | INFO | HIT SUMMARY | Pers_Id=1784607 | query=3 | recovery=0 | cv_query=0 | grezzi=15 | rilevanti=1 | provider={'serper': 101, 'brave': 0}
+2026-09-03 10:53:04 | INFO | DONE | Pers_Id=1784607 | 9.1s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:53:04 | INFO | SEARCH QUERY | Pers_Id=2162964 | numero=1 | q="ROBERTA ABATE" medico "Andria"
+2026-09-03 10:53:07 | INFO | SEARCH API OK | serper | "ROBERTA ABATE" medico "Andria" | 1 risultati
+2026-09-03 10:53:07 | INFO | SEARCH QUERY | Pers_Id=2162964 | numero=2 | q="ROBERTA ABATE" medico specialista ospedale
+2026-09-03 10:53:09 | INFO | SEARCH API OK | serper | "ROBERTA ABATE" medico specialista ospedale | 8 risultati
+2026-09-03 10:53:09 | INFO | SEARCH QUERY | Pers_Id=2162964 | numero=3 | q="ROBERTA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:53:11 | INFO | SEARCH API OK | serper | "ROBERTA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:53:11 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162964 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:53:11 | INFO | CV SEARCH GATE | Pers_Id=2162964 | mode=targeted | allowed=False | reason=nessuna identità professionale abbastanza forte | existing_cv=False
+2026-09-03 10:53:11 | INFO | HIT SUMMARY | Pers_Id=2162964 | query=3 | recovery=0 | cv_query=0 | grezzi=15 | rilevanti=3 | provider={'serper': 104, 'brave': 0}
+2026-09-03 10:53:12 | INFO | LANDING SCARTATA | Pers_Id=2162964 | ruolo incompatibile vicino al nome: possibile omonimo | https://professionisti.quotidianosanitaclub.it/medico/roberta-abate-1579749
+2026-09-03 10:53:17 | INFO | LANDING SCARTATA | Pers_Id=2162964 | ruolo incompatibile vicino al nome: possibile omonimo | https://www.aslroma6.it/distretti/dh2-albano-laziale/tutela-salute-mentale-e-riabilitazione-in-eta-evolutiva
+2026-09-03 10:53:17 | INFO | DONE | Pers_Id=2162964 | 12.7s | SPECIALITA_TROVATA | specialita=Neuropsichiatria Infantile | cv=NO | cv_review=0
+2026-09-03 10:53:17 | INFO | SEARCH QUERY | Pers_Id=1189835 | numero=1 | q="SARA ABATE" medico "CALCINATO"
+2026-09-03 10:53:20 | INFO | SEARCH API OK | serper | "SARA ABATE" medico "CALCINATO" | 8 risultati
+2026-09-03 10:53:20 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=1189835 | query=1 | stop=True | reason=evidenza forte strutturata
+2026-09-03 10:53:20 | INFO | CV SEARCH GATE | Pers_Id=1189835 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:53:20 | INFO | CV SEARCH QUERY | Pers_Id=1189835 | q="SARA ABATE" curriculum OR "curriculum vitae" medico "CALCINATO"
+2026-09-03 10:53:22 | INFO | SEARCH API OK | serper | "SARA ABATE" curriculum OR "curriculum vitae" medico "CALCINATO" | 6 risultati
+2026-09-03 10:53:22 | INFO | HIT SUMMARY | Pers_Id=1189835 | query=2 | recovery=0 | cv_query=1 | grezzi=8 | rilevanti=3 | provider={'serper': 106, 'brave': 0}
+2026-09-03 10:53:30 | INFO | DONE | Pers_Id=1189835 | 12.6s | SPECIALITA_TROVATA | specialita=Medicina Generale | cv=NO | cv_review=0
+2026-09-03 10:53:30 | INFO | SEARCH QUERY | Pers_Id=2806596 | numero=1 | q="SEBASTIANO ABATE" medico "Treviso"
+2026-09-03 10:53:32 | INFO | SEARCH API OK | serper | "SEBASTIANO ABATE" medico "Treviso" | 4 risultati
+2026-09-03 10:53:32 | INFO | SEARCH QUERY | Pers_Id=2806596 | numero=2 | q="SEBASTIANO ABATE" medico specialista ospedale
+2026-09-03 10:53:34 | INFO | SEARCH API OK | serper | "SEBASTIANO ABATE" medico specialista ospedale | 2 risultati
+2026-09-03 10:53:34 | INFO | SEARCH QUERY | Pers_Id=2806596 | numero=3 | q="SEBASTIANO ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:53:36 | INFO | SEARCH API OK | serper | "SEBASTIANO ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:53:36 | INFO | HIT SUMMARY | Pers_Id=2806596 | query=3 | recovery=0 | cv_query=0 | grezzi=12 | rilevanti=0 | provider={'serper': 109, 'brave': 0}
+2026-09-03 10:53:36 | INFO | DONE | Pers_Id=2806596 | 5.9s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:53:36 | INFO | SEARCH QUERY | Pers_Id=2162966 | numero=1 | q="VERONICA ABATE" medico "Napoli"
+2026-09-03 10:53:38 | INFO | SEARCH API OK | serper | "VERONICA ABATE" medico "Napoli" | 8 risultati
+2026-09-03 10:53:38 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162966 | query=1 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:53:38 | INFO | SEARCH QUERY | Pers_Id=2162966 | numero=2 | q="VERONICA ABATE" medico specialista ospedale
+2026-09-03 10:53:40 | INFO | SEARCH API OK | serper | "VERONICA ABATE" medico specialista ospedale | 7 risultati
+2026-09-03 10:53:40 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162966 | query=2 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:53:40 | INFO | SEARCH QUERY | Pers_Id=2162966 | numero=3 | q="VERONICA ABATE" specializzazione OR specialista OR "medico di"
+2026-09-03 10:53:42 | INFO | SEARCH API OK | serper | "VERONICA ABATE" specializzazione OR specialista OR "medico di" | 8 risultati
+2026-09-03 10:53:42 | INFO | SEARCH EARLY-STOP CHECK | Pers_Id=2162966 | query=3 | stop=False | reason=nessuna evidenza forte
+2026-09-03 10:53:42 | INFO | CV SEARCH GATE | Pers_Id=2162966 | mode=targeted | allowed=True | reason=profilo professionale strutturato | existing_cv=False
+2026-09-03 10:53:42 | INFO | CV SEARCH QUERY | Pers_Id=2162966 | q="VERONICA ABATE" curriculum OR "curriculum vitae" medico "Napoli"
+2026-09-03 10:53:44 | INFO | SEARCH API OK | serper | "VERONICA ABATE" curriculum OR "curriculum vitae" medico "Napoli" | 4 risultati
+2026-09-03 10:53:44 | INFO | HIT SUMMARY | Pers_Id=2162966 | query=4 | recovery=0 | cv_query=1 | grezzi=18 | rilevanti=4 | provider={'serper': 113, 'brave': 0}
+2026-09-03 10:53:45 | INFO | LANDING SCARTATA | Pers_Id=2162966 | ruolo incompatibile vicino al nome: possibile omonimo | https://professionisti.quotidianosanitaclub.it/medico/veronica-abate-1617964
+2026-09-03 10:53:46 | INFO | LANDING SCARTATA | Pers_Id=2162966 | ruolo incompatibile vicino al nome: possibile omonimo | https://www.doctolib.it/biologo-nutrizionista/thiene/veronica-abate
+2026-09-03 10:53:48 | INFO | LANDING SCARTATA | Pers_Id=2162966 | ruolo incompatibile vicino al nome: possibile omonimo | https://cmlapiazzetta.it/specialista/abate-veronica
+2026-09-03 10:53:49 | INFO | LANDING SCARTATA | Pers_Id=2162966 | pagina senza testo | https://bt.maptons.com/p/7658093750
+2026-09-03 10:53:49 | INFO | DONE | Pers_Id=2162966 | 13.0s | NESSUN_RISULTATO | specialita=N/D | cv=NO | cv_review=0
+2026-09-03 10:54:43 | INFO | CHECKPOINT | 40/40 | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:54:43 | INFO | PROGRESS | 40/40 | 3.83 medici/min | ETA 0.0 min | {'DA_VERIFICARE': 9, 'SPECIALITA_TROVATA': 14, 'NESSUN_RISULTATO': 16, 'CV_TROVATO_SPECIALITA_DA_VERIFICARE': 1} | API={'serper': 113, 'brave': 0}
+2026-09-03 10:55:38 | INFO | ==============================================================================
+2026-09-03 10:55:38 | INFO | FINE | 11.4 min | {'DA_VERIFICARE': 9, 'SPECIALITA_TROVATA': 14, 'NESSUN_RISULTATO': 16, 'CV_TROVATO_SPECIALITA_DA_VERIFICARE': 1}
+2026-09-03 10:55:38 | INFO | API REQUESTS | totale=113 | {'serper': 113, 'brave': 0}
+2026-09-03 10:55:38 | INFO | OUTPUT | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 10:55:38 | INFO | ==============================================================================
