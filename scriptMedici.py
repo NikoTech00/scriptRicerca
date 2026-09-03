@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
-VERSION = "V4.8 MEDICI - CV DISCOVERY + DOCX/DOC/HTML SUPPORT"
+VERSION = "V4.9 MEDICI - LEGACY DOC EXTRACTION + TARGETED CV SEARCH"
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -234,7 +234,7 @@ def parse_early_paths(argv: list[str]) -> tuple[Path | None, Path | None, Path]:
 
 
 def default_output_path(input_path: Path) -> Path:
-    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_8.xlsx"
+    return Path.cwd() / "output" / f"{input_path.stem}_specialita_cv_v4_9.xlsx"
 
 
 def create_initial_output_copy(input_path: Path | None, output_path: Path | None) -> Path | None:
@@ -319,6 +319,15 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--cv-searches-per-person", type=int, default=1,
         help="Query CV dedicate aggiuntive per medico. Default 1.",
+    )
+    p.add_argument(
+        "--cv-search-mode",
+        choices=("targeted", "broad"),
+        default="targeted",
+        help=(
+            "targeted = query CV solo con identità già forte; "
+            "broad = comportamento V4.8 su ogni medico con almeno una fonte."
+        ),
     )
     p.add_argument("--save-every", type=int, default=DEFAULT_SAVE_EVERY)
     p.add_argument("--delay-min", type=float, default=DEFAULT_DELAY_MIN)
@@ -1551,36 +1560,159 @@ def docx_text(raw: bytes) -> str:
         return ""
 
 
-def legacy_doc_text(raw: bytes) -> str:
+def _decode_process_output(raw: bytes) -> str:
+    for enc in ("utf-8", "cp1252", "latin1"):
+        try:
+            text = raw.decode(enc, errors="ignore")
+            if clean(text):
+                return text
+        except Exception:
+            pass
+    return ""
+
+
+def _legacy_doc_external(raw: bytes) -> tuple[str, str]:
     import subprocess
-    antiword = shutil.which("antiword")
-    if not antiword:
-        return ""
 
-    tmp_path = None
+    tmp_dir = Path(tempfile.mkdtemp(prefix="medici_doc_"))
+    src = tmp_dir / "input.doc"
+    src.write_bytes(raw)
+
     try:
-        with tempfile.NamedTemporaryFile(suffix=".doc", delete=False) as tmp:
-            tmp.write(raw)
-            tmp_path = tmp.name
-
-        proc = subprocess.run(
-            [antiword, tmp_path], capture_output=True, timeout=20
-        )
-        if proc.returncode != 0:
-            return ""
-
-        text = proc.stdout.decode("utf-8", errors="ignore")
-        if not text.strip():
-            text = proc.stdout.decode("cp1252", errors="ignore")
-        return text[:MAX_PDF_TEXT]
-    except Exception:
-        return ""
-    finally:
-        if tmp_path:
+        antiword = shutil.which("antiword")
+        if antiword:
             try:
-                Path(tmp_path).unlink(missing_ok=True)
+                p = subprocess.run([antiword, str(src)], capture_output=True, timeout=30)
+                text = _decode_process_output(p.stdout)
+                if p.returncode == 0 and len(clean(text)) >= 80:
+                    return text[:MAX_PDF_TEXT], "antiword"
             except Exception:
                 pass
+
+        catdoc = shutil.which("catdoc")
+        if catdoc:
+            try:
+                p = subprocess.run([catdoc, str(src)], capture_output=True, timeout=30)
+                text = _decode_process_output(p.stdout)
+                if p.returncode == 0 and len(clean(text)) >= 80:
+                    return text[:MAX_PDF_TEXT], "catdoc"
+            except Exception:
+                pass
+
+        soffice = shutil.which("soffice") or shutil.which("libreoffice")
+        if soffice:
+            try:
+                outdir = tmp_dir / "lo"
+                outdir.mkdir(exist_ok=True)
+                subprocess.run(
+                    [soffice, "--headless", "--convert-to", "txt:Text",
+                     "--outdir", str(outdir), str(src)],
+                    capture_output=True, timeout=45
+                )
+                files = list(outdir.glob("*.txt"))
+                if files:
+                    text = files[0].read_text(encoding="utf-8", errors="ignore")
+                    if len(clean(text)) >= 80:
+                        return text[:MAX_PDF_TEXT], "libreoffice"
+            except Exception:
+                pass
+
+        if os.name == "nt":
+            powershell = shutil.which("powershell") or shutil.which("pwsh")
+            if powershell:
+                try:
+                    dst = tmp_dir / "word_export.txt"
+                    ps_src = str(src).replace("'", "''")
+                    ps_dst = str(dst).replace("'", "''")
+                    script = (
+                        "$ErrorActionPreference='Stop';"
+                        "$w=New-Object -ComObject Word.Application;"
+                        "$w.Visible=$false;"
+                        f"$d=$w.Documents.Open('{ps_src}', $false, $true);"
+                        f"$d.SaveAs2('{ps_dst}', 2);"
+                        "$d.Close($false);$w.Quit();"
+                    )
+                    p = subprocess.run(
+                        [powershell, "-NoProfile", "-NonInteractive",
+                         "-Command", script],
+                        capture_output=True, timeout=45
+                    )
+                    if p.returncode == 0 and dst.exists():
+                        text = dst.read_text(encoding="utf-8", errors="ignore")
+                        if len(clean(text)) < 80:
+                            text = dst.read_text(encoding="cp1252", errors="ignore")
+                        if len(clean(text)) >= 80:
+                            return text[:MAX_PDF_TEXT], "word-com"
+                except Exception:
+                    pass
+
+        return "", ""
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def _legacy_doc_ole_heuristic(raw: bytes) -> str:
+    import io as _io
+    chunks = []
+
+    try:
+        import olefile
+        if olefile.isOleFile(_io.BytesIO(raw)):
+            ole = olefile.OleFileIO(_io.BytesIO(raw))
+            try:
+                for stream_name in (
+                    "WordDocument", "1Table", "0Table",
+                    "\x05SummaryInformation", "\x05DocumentSummaryInformation",
+                ):
+                    try:
+                        if ole.exists(stream_name):
+                            chunks.append(ole.openstream(stream_name).read())
+                    except Exception:
+                        pass
+            finally:
+                ole.close()
+    except Exception:
+        pass
+
+    chunks.append(raw)
+    texts = []
+    for data in chunks:
+        for enc in ("utf-16le", "cp1252"):
+            try:
+                decoded = data.decode(enc, errors="ignore")
+            except Exception:
+                continue
+            texts.extend(re.findall(
+                r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9\s.,;:/()'’+@_-]{5,}",
+                decoded
+            ))
+
+    out, seen = [], set()
+    for x in texts:
+        x = clean(re.sub(r"\s+", " ", x))
+        if len(x) < 6:
+            continue
+        k = normalize(x)
+        if not k or k in seen:
+            continue
+        seen.add(k)
+        out.append(x)
+    return "\n".join(out)[:MAX_PDF_TEXT]
+
+
+def legacy_doc_text_with_method(raw: bytes) -> tuple[str, str]:
+    text, method = _legacy_doc_external(raw)
+    if text:
+        return text, method
+    text = _legacy_doc_ole_heuristic(raw)
+    if len(clean(text)) >= 80:
+        return text, "ole/binary-heuristic"
+    return "", ""
+
+
+def legacy_doc_text(raw: bytes) -> str:
+    text, _ = legacy_doc_text_with_method(raw)
+    return text
 
 
 def content_extension(url: str, content_type: str, raw: bytes) -> str:
@@ -1637,13 +1769,11 @@ def save_review_document(
     raw: bytes, text: str, url: str, person: Person,
     review_dir: Path, reason: str, ext: str
 ):
-    plausible_text, why = looks_like_cv(text) if text else (False, "testo non estraibile")
-    explicit_url = plausible_cv_document_url(url, person=person)
-
-    if not plausible_text and not explicit_url:
+    allowed, gate_reason = cv_review_allowed(text, url, person, ext)
+    if not allowed:
         logging.info(
-            "CV SCARTATO | %s | %s | %s",
-            person.pers_id, url, reason or why
+            "CV SCARTATO | Pers_Id=%s | formato=%s | motivo=%s | url=%s",
+            person.pers_id, ext, gate_reason or reason, url
         )
         return None
 
@@ -1652,10 +1782,102 @@ def save_review_document(
         dest.write_bytes(raw)
 
     logging.info(
-        "CV DA VERIFICARE SALVATO | %s | %s | %s",
-        person.pers_id, dest, reason or why
+        "CV DA VERIFICARE SALVATO | Pers_Id=%s | formato=%s | file=%s | motivo=%s | url=%s",
+        person.pers_id, ext, dest, reason or gate_reason, url
     )
     return str(dest), url
+
+
+def text_has_target_identity(text: str, person: Person) -> bool:
+    if not text:
+        return False
+    n = normalize(text)
+    return (
+        exact_identity_in(text, person)
+        or (normalize(person.name) in n and normalize(person.surname) in n)
+    )
+
+
+def cv_review_allowed(text: str, url: str, person: Person, ext: str) -> tuple[bool, str]:
+    if text:
+        if not text_has_target_identity(text, person):
+            return False, "Identità target assente dal documento."
+        plausible, why = looks_like_cv(text)
+        if not plausible:
+            return False, why
+        return True, "CV plausibile con identità target; ownership non conclusiva."
+
+    if ext == ".doc":
+        blob = normalize(unquote(url))
+        if (
+            looks_like_cv_url(url)
+            and normalize(person.name) in blob
+            and normalize(person.surname) in blob
+        ):
+            return True, "DOC esplicito nome+CV ma testo non estraibile."
+
+    return False, "Candidato insufficiente per verifica manuale."
+
+
+def strong_identity_for_cv_search(relevant_hits: list[WebHit], person: Person) -> tuple[bool, str]:
+    for hit in relevant_hits:
+        blob = f"{hit.title} {hit.snippet} {unquote(hit.url)}"
+        title_or_url = exact_identity_in(hit.title, person) or url_identity_match(hit.url, person)
+        city_ok = not person.city or normalize(person.city) in normalize(blob)
+
+        if title_or_url and trusted_medical_domain(hit.url) and city_ok:
+            return True, "fonte sanitaria forte"
+
+        if title_or_url and is_profile_directory(hit.url):
+            bad, _ = directory_geo_conflict(hit, person)
+            if not bad:
+                return True, "profilo professionale strutturato"
+
+        if title_or_url and disambiguation_score(blob, person) >= 90:
+            return True, "identità disambiguata"
+
+    return False, "nessuna identità professionale abbastanza forte"
+
+
+def html_cv_signal(raw: bytes, person: Person) -> tuple[bool, str]:
+    try:
+        BS = BeautifulSoup
+        if BS is None:
+            from bs4 import BeautifulSoup as BS
+
+        soup = BS(raw, "html.parser")
+        title = clean(soup.title.get_text(" ", strip=True) if soup.title else "")
+        headings = " ".join(
+            clean(x.get_text(" ", strip=True))
+            for x in soup.select("h1,h2,h3")[:20]
+        )
+
+        if BeautifulSoup is None:
+            text = clean(soup.get_text(" ", strip=True))[:MAX_PAGE_TEXT]
+        else:
+            text = html_text(raw)
+
+        header_blob = f"{title} {headings} {text[:4000]}"
+        n = normalize(header_blob)
+        identity = text_has_target_identity(header_blob, person)
+
+        cv_terms = sum(
+            1 for t in (
+                "curriculum vitae", "curriculum", "europass",
+                "esperienze professionali", "esperienza professionale",
+                "istruzione e formazione", "formazione",
+                "incarichi", "pubblicazioni",
+            )
+            if normalize(t) in n
+        )
+
+        if identity and cv_terms >= 2:
+            return True, "HTML con identità target e struttura CV."
+        if identity and ("curriculum vitae" in n or "europass" in n):
+            return True, "HTML con titolo CV ed identità target."
+        return False, "Pagina HTML non sufficientemente CV-specifica."
+    except Exception as exc:
+        return False, f"HTML non analizzabile: {type(exc).__name__}."
 
 
 def inspect_cv_document(
@@ -1663,21 +1885,45 @@ def inspect_cv_document(
 ):
     got = get_bytes(url, MAX_DOC_BYTES)
     if not got:
+        logging.info("CV DOWNLOAD FALLITO | Pers_Id=%s | url=%s", person.pers_id, url)
         return None
 
     r, raw = got
     try:
         ext = content_extension(url, r.headers.get("Content-Type", ""), raw)
         if ext not in (".pdf", ".docx", ".doc", ".html"):
+            logging.info(
+                "CV SCARTATO | Pers_Id=%s | formato=%s | formato non supportato | url=%s",
+                person.pers_id, ext or "?", url
+            )
             return None
 
-        text = extract_cv_document_text(raw, ext)
+        extraction_method = ext.lstrip(".")
+        if ext == ".doc":
+            text, extraction_method = legacy_doc_text_with_method(raw)
+        elif ext == ".html":
+            signal_ok, signal_reason = html_cv_signal(raw, person)
+            if not signal_ok:
+                logging.info(
+                    "CV HTML SCARTATO | Pers_Id=%s | motivo=%s | url=%s",
+                    person.pers_id, signal_reason, url
+                )
+                return None
+            text = html_text(raw)
+            extraction_method = "html"
+        else:
+            text = extract_cv_document_text(raw, ext)
+
+        logging.info(
+            "CV CANDIDATO ANALIZZATO | Pers_Id=%s | formato=%s | estrazione=%s | chars=%s | url=%s",
+            person.pers_id, ext, extraction_method or "nessuna",
+            len(text or ""), url
+        )
 
         if ext == ".doc" and not text:
             review = save_review_document(
                 raw, "", url, person, review_dir,
-                "DOC legacy: testo non estraibile automaticamente; verifica manuale.",
-                ext,
+                "DOC legacy: nessun parser locale ha estratto testo.", ext
             )
             if review:
                 return "review", review[0], "", "bassa", "DOC legacy da verificare"
@@ -1692,14 +1938,12 @@ def inspect_cv_document(
             dest = cv_destination_ext(person, cv_dir, ext)
             dest.write_bytes(raw)
             logging.info(
-                "CV VERIFICATO | %s | %s | formato=%s | confidenza=%s",
-                person.pers_id, dest, ext, conf
+                "CV VERIFICATO | Pers_Id=%s | formato=%s | estrazione=%s | confidenza=%s | file=%s | url=%s",
+                person.pers_id, ext, extraction_method, conf, dest, url
             )
             return "verified", str(dest), text, conf, ""
 
-        review = save_review_document(
-            raw, text, url, person, review_dir, reason, ext
-        )
+        review = save_review_document(raw, text, url, person, review_dir, reason, ext)
         if review:
             return "review", review[0], text, "bassa", reason
         return None
@@ -1806,6 +2050,10 @@ def landing_cv_links(url: str, person: Person) -> list[str]:
             if normalize(person.name) in blob:
                 score += 60
             scored.append((score, candidate))
+            logging.info(
+                "CV LINK LANDING | Pers_Id=%s | score=%s | formato=%s | label=%s | url=%s",
+                person.pers_id, score, ext or "html", label[:160], candidate
+            )
 
         out, seen = [], set()
         for _, candidate in sorted(scored, reverse=True):
@@ -2682,6 +2930,16 @@ def research_person(person: Person, args: argparse.Namespace,
                 break
 
     cv_queries_used = 0
+    cv_gate_ok = False
+    cv_gate_reason = "nessuna fonte rilevante"
+
+    if relevant_hits:
+        if args.cv_search_mode == "broad":
+            cv_gate_ok = True
+            cv_gate_reason = "modalità broad"
+        else:
+            cv_gate_ok, cv_gate_reason = strong_identity_for_cv_search(relevant_hits, person)
+
     if relevant_hits and args.cv_searches_per_person > 0:
         existing_cv = any(
             plausible_cv_document_url(
@@ -2690,10 +2948,17 @@ def research_person(person: Person, args: argparse.Namespace,
             for h in relevant_hits
         )
 
-        if not existing_cv:
+        logging.info(
+            "CV SEARCH GATE | Pers_Id=%s | mode=%s | allowed=%s | reason=%s | existing_cv=%s",
+            person.pers_id, args.cv_search_mode, cv_gate_ok, cv_gate_reason, existing_cv
+        )
+
+        if not existing_cv and cv_gate_ok:
             for q in cv_search_queries(person):
                 if cv_queries_used >= args.cv_searches_per_person:
                     break
+
+                logging.info("CV SEARCH QUERY | Pers_Id=%s | q=%s", person.pers_id, q)
                 hits = search_client.search(q)
                 cv_queries_used += 1
                 queries_used += 1
@@ -2702,6 +2967,10 @@ def research_person(person: Person, args: argparse.Namespace,
                     ok, rel_score, reason = cv_hit_relevance(hit, person)
                     if ok:
                         relevant_hits.append(hit)
+                        logging.info(
+                            "CV HIT ACCETTATO | Pers_Id=%s | score=%s | reason=%s | url=%s",
+                            person.pers_id, rel_score, reason, hit.url
+                        )
                     else:
                         logging.debug(
                             "CV HIT SCARTATO | Pers_Id=%s | score=%s | %s | %s",
@@ -2892,7 +3161,7 @@ def research_person(person: Person, args: argparse.Namespace,
         "cv_review_paths": "\n".join(cv_review_paths[:20]),
         "cv_review_urls": "\n".join(cv_review_urls[:20]),
         "sources": "\n".join(sources[:12]),
-        "method": f"Search API V4.8 ({args.provider})",
+        "method": f"Search API V4.9 ({args.provider})",
         "notes": " ".join(notes),
         "updated": utc_now(),
         "error": "",
@@ -2951,13 +3220,13 @@ def main() -> int:
             if value:
                 previous_methods.add(value)
 
-    if previous_methods and not all("V4.8" in m for m in previous_methods):
+    if previous_methods and not all("V4.9" in m for m in previous_methods):
         logging.warning(
             "OUTPUT CONTIENE RISULTATI DI VERSIONI PRECEDENTI | %s",
             sorted(previous_methods)[:8]
         )
         logging.warning(
-            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_8.xlsx"
+            "Per test confrontabili usa un file output nuovo, ad esempio risultatiMediciV4_9.xlsx"
         )
 
     atomic_save(wb, output_path)
@@ -3033,7 +3302,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.8 ({args.provider})",
+                "method": f"Search API V4.9 ({args.provider})",
                 "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3053,7 +3322,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.8 ({args.provider})",
+                "method": f"Search API V4.9 ({args.provider})",
                 "notes": "Quota Search API esaurita o rate limit.",
                 "updated": utc_now(),
                 "error": str(exc),
@@ -3072,7 +3341,7 @@ def main() -> int:
                 "cv_review_paths": "",
                 "cv_review_urls": "",
                 "sources": "",
-                "method": f"Search API V4.8 ({args.provider})",
+                "method": f"Search API V4.9 ({args.provider})",
                 "notes": "",
                 "updated": utc_now(),
                 "error": f"{type(exc).__name__}: {exc}",
