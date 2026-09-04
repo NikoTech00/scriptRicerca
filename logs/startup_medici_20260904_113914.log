@@ -1,0 +1,2 @@
+2026-09-04 11:39:15 | OK | Dipendenze caricate.
+2026-09-04 11:39:15 | FATAL | ValueError: Il recupero locale richiede un output nuovo per preservare i risultati precedenti.
