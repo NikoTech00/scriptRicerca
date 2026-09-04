@@ -1,0 +1,24 @@
+2026-09-04 10:58:37 | INFO | ==============================================================================
+2026-09-04 10:58:37 | INFO | V6.0 MEDICI - PRODUCTION CANDIDATE SEARCH + VERIFIED CV SPECIALTY
+2026-09-04 10:58:37 | INFO | Input: C:\Dev\Niko\scriptRicerca\input\scriptMedici.xlsx
+2026-09-04 10:58:37 | INFO | Output: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-04 10:58:37 | INFO | Provider: serper
+2026-09-04 10:58:37 | INFO | Deep: False
+2026-09-04 10:58:37 | INFO | Search results: 8
+2026-09-04 10:58:37 | INFO | Max searches/persona: 3 (+1 con --deep)
+2026-09-04 10:58:37 | INFO | Delay: 0.1 - 0.3 sec
+2026-09-04 10:58:37 | INFO | CV sicuri dir: C:\Dev\Niko\scriptRicerca\cv_medici
+2026-09-04 10:58:37 | INFO | CV da verificare dir: C:\Dev\Niko\scriptRicerca\cv_medici_da_verificare
+2026-09-04 10:58:37 | INFO | Cache dir: C:\Dev\Niko\scriptRicerca\cache_medici
+2026-09-04 10:58:37 | INFO | Log: logs\run_medici_20260904_105739.log
+2026-09-04 10:58:37 | INFO | ==============================================================================
+2026-09-04 10:58:39 | INFO | Medici da elaborare: 81331
+2026-09-04 10:58:39 | INFO | SEARCH QUERY | Pers_Id=2467194 | numero=1 | q="YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA"
+2026-09-04 10:58:40 | WARNING | SEARCH API FAIL | serper | "YASAMIN AAZAM RAHIMIAN" medico "BOLOGNA" | SearchRequestError: Search API HTTP 400: Not enough credits
+2026-09-04 10:58:40 | ERROR | SEARCH API BLOCCATA | Ricerca API fallita; nessun risultato negativo attendibile. Search API HTTP 400: Not enough credits
+2026-09-04 10:59:08 | ERROR | STOP | Search API bloccata: BLOCCATO_ERRORE_API
+2026-09-04 10:59:38 | INFO | ==============================================================================
+2026-09-04 10:59:38 | INFO | FINE | 1.0 min | {'BLOCCATO_ERRORE_API': 1}
+2026-09-04 10:59:38 | INFO | API REQUESTS | totale=1 | {'serper': 1, 'brave': 0}
+2026-09-04 10:59:38 | INFO | OUTPUT | C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-04 10:59:38 | INFO | ==============================================================================
