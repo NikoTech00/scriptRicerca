@@ -1,0 +1,33 @@
+2026-09-04 11:17:35 | INFO | LOCAL DOCUMENT | Pers_Id=1222042 | 1222042-ABATE-MARIA-a628fd1c46.pdf: Manca contesto medico. (estrazione: pdf).
+2026-09-04 11:17:36 | INFO | LOCAL DOCUMENT | Pers_Id=306924 | 306924-ABATE-ORNELLA.doc: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: libreoffice).
+2026-09-04 11:17:36 | INFO | LOCAL DOCUMENT | Pers_Id=306924 | 306924-ABATE-ORNELLA-1fa8fa629d.doc: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: libreoffice).
+2026-09-04 11:17:36 | INFO | LOCAL DOCUMENT | Pers_Id=306924 | 306924-ABATE-ORNELLA-7b0d3bd402.html: Il documento non appare un CV. (estrazione: html).
+2026-09-04 11:17:36 | INFO | LOCAL DOCUMENT | Pers_Id=2463452 | 2463452-ABBATANGELO-BENEDETTA.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:37 | INFO | LOCAL DOCUMENT | Pers_Id=2606009 | 2606009-ABBATE-MASSIMILIANA-1391d15976.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:37 | INFO | LOCAL DOCUMENT | Pers_Id=2827775 | 2827775-ABDULVAGABOV-ANVAR-92e0e6c573.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:17:37 | INFO | LOCAL DOCUMENT | Pers_Id=2744784 | 2744784-ABRAMO-ANDREA.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:37 | INFO | LOCAL DOCUMENT | Pers_Id=2744784 | 2744784-ABRAMO-ANDREA-5658c67b4b.html: Nome del target assente dall'intestazione del CV. (estrazione: html).
+2026-09-04 11:17:37 | INFO | LOCAL DOCUMENT | Pers_Id=2163165 | 2163165-ACCORDINO-GIULIA.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:37 | INFO | LOCAL DOCUMENT | Pers_Id=1812885 | 1812885-ACERBI-FRANCESCA-af713af1ef.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:17:37 | INFO | LOCAL DOCUMENT | Pers_Id=1203912 | 1203912-ACETI-ARIANNA.html: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: html).
+2026-09-04 11:17:38 | INFO | LOCAL DOCUMENT | Pers_Id=1812886 | 1812886-ACETI-VALERIO-c3b6e3d714.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:38 | INFO | LOCAL DOCUMENT | Pers_Id=1812887 | 1812887-ACHILLI-PIETRO-0ed12c10c7.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:17:38 | INFO | LOCAL DOCUMENT | Pers_Id=2642456 | 2642456-ACONE-LORENZO-3a2f75faef.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:17:39 | INFO | LOCAL DOCUMENT | Pers_Id=2608851 | 2608851-ACQUAVIVA-GIORGIA-672d1b0825.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:39 | INFO | LOCAL DOCUMENT | Pers_Id=1218328 | 1218328-ACQUAVIVA-MARIANGELA-29126d29f2.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:39 | INFO | LOCAL DOCUMENT | Pers_Id=1189836 | 1189836-ADAMO-DANIELA-5db682a360.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:17:39 | INFO | LOCAL DOCUMENT | Pers_Id=2747224 | 2747224-ADDUCI-ANDREA.html: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: html).
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 6 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 8 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 10 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 12 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 14 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 16 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 18 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 26 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 31 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 33 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 35 0 (offset 0)
+2026-09-04 11:17:39 | WARNING | Ignoring wrong pointing object 37 0 (offset 0)
+2026-09-04 11:17:39 | INFO | LOCAL DOCUMENT | Pers_Id=1813899 | 1813899-ADORNI-MARCO.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:17:43 | INFO | RECUPERO LOCALE | medici=17 | {'DA_VERIFICARE': 10, 'CV_TROVATO_SPECIALITA_DA_VERIFICARE': 5, 'COMPLETATO': 2} | API=0 | output=/Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/output/recupero_locale_20260904.xlsx

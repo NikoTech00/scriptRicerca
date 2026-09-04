@@ -20,6 +20,7 @@ from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
 VERSION = "V6.0 MEDICI - PRODUCTION CANDIDATE SEARCH + VERIFIED CV SPECIALTY"
+RESULT_CACHE_SCHEMA = 3  # Verifica date testuali e titoli non ancora conseguiti.
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -308,6 +309,18 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--sheet", default=DEFAULT_SHEET)
     p.add_argument("--limit", "--max-rows", dest="limit", type=int)
     p.add_argument("--start-row", type=int, default=2)
+    p.add_argument("--offline", action="store_true",
+                   help="Rianalizza solo i documenti locali. Zero rete/API; report separato dei medici con file.")
+    p.add_argument("--sources-file", type=Path,
+                   help="CSV con Pers_Id,URL: recupera fonti dirette senza motori di ricerca o chiavi API.")
+    p.add_argument("--direct-cache-dir", type=Path, default=Path("fonti_dirette"))
+    p.add_argument("--max-direct-downloads", type=int, default=20,
+                   help="Massimo numero di URL da scaricare per esecuzione. Le copie locali sono riutilizzate.")
+    p.add_argument("--max-api-requests", type=int, default=100,
+                   help="Limite totale delle chiamate API per esecuzione, inclusi errori e fallback. Default 100.")
+    p.add_argument("--search-cache-dir", type=Path, default=Path("cache_ricerche"))
+    p.add_argument("--refresh-search-cache", action="store_true",
+                   help="Ripete le query anche se già salvate, consumando nuove richieste.")
 
     p.add_argument("--provider", choices=("serper", "brave", "auto"), default="auto",
                    help="auto = Serper primario, Brave fallback se configurato.")
@@ -362,6 +375,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--log-dir", type=Path, default=Path("logs"))
 
     args = p.parse_args()
+
+    if args.offline and args.sources_file:
+        p.error("--offline e --sources-file sono modalità alternative")
+    if args.max_direct_downloads <= 0:
+        p.error("--max-direct-downloads deve essere > 0")
+
+    if args.max_api_requests <= 0:
+        p.error("--max-api-requests deve essere > 0")
 
     if args.limit is not None and args.limit <= 0:
         p.error("--limit deve essere > 0")
@@ -517,7 +538,7 @@ def set_result(ws, headers: dict[str, int], row: int, result: dict[str, Any]) ->
         "Ricerca_Errore": result.get("error", ""),
     }
     for label, value in mapping.items():
-        ws.cell(row, headers[label.casefold()], value)
+        ws.cell(row, headers[label.casefold()]).value = value
 
 
 # ============================================================
@@ -535,7 +556,7 @@ def read_cache(person: Person, cache_dir: Path) -> dict[str, Any] | None:
     try:
         if p.exists():
             data = json.loads(p.read_text(encoding="utf-8"))
-            if data.get("version") == VERSION:
+            if data.get("version") == VERSION and data.get("schema") == RESULT_CACHE_SCHEMA:
                 return data.get("result")
     except Exception:
         pass
@@ -545,7 +566,7 @@ def read_cache(person: Person, cache_dir: Path) -> dict[str, Any] | None:
 def write_cache(person: Person, cache_dir: Path, result: dict[str, Any]) -> None:
     cache_dir.mkdir(parents=True, exist_ok=True)
     p = cache_path(person, cache_dir)
-    payload = {"version": VERSION, "person": asdict(person), "result": result}
+    payload = {"schema": RESULT_CACHE_SCHEMA, "version": VERSION, "person": asdict(person), "result": result}
     fd, tmp_name = tempfile.mkstemp(prefix=".cache_", suffix=".json", dir=cache_dir)
     os.close(fd)
     tmp = Path(tmp_name)
@@ -564,6 +585,10 @@ class SearchRequestError(RuntimeError):
     pass
 
 
+class SearchBudgetError(RuntimeError):
+    pass
+
+
 class SearchQuotaError(RuntimeError):
     pass
 
@@ -574,11 +599,16 @@ class SearchAuthError(RuntimeError):
 
 class SearchClient:
     def __init__(self, provider: str, max_results: int,
-                 delay_min: float, delay_max: float):
+                 delay_min: float, delay_max: float, max_requests: int = 100,
+                 search_cache_dir: Path | None = None, refresh_cache: bool = False):
         self.provider = provider
         self.max_results = max_results
         self.delay_min = delay_min
         self.delay_max = delay_max
+        self.max_requests = max_requests
+        self.search_cache_dir = search_cache_dir
+        self.refresh_cache = refresh_cache
+        self.cache_hits = 0
 
         self.serper_key = clean(os.getenv("SERPER_API_KEY"))
         self.brave_key = clean(os.getenv("BRAVE_SEARCH_API_KEY"))
@@ -623,7 +653,7 @@ class SearchClient:
                 hits = self._search_provider(provider, query)
                 if hits:
                     return hits
-            except SearchQuotaError:
+            except (SearchQuotaError, SearchBudgetError):
                 raise
             except SearchAuthError as exc:
                 self.failures_by_provider[provider] += 1
@@ -647,15 +677,51 @@ class SearchClient:
         return []
 
     def _search_provider(self, provider: str, query: str) -> list[WebHit]:
+        cache_file = None
+        if self.search_cache_dir is not None:
+            signature = json.dumps([1, provider, query, self.max_results, "it", "it"], ensure_ascii=False)
+            digest = hashlib.sha256(signature.encode("utf-8")).hexdigest()
+            cache_file = self.search_cache_dir / f"{digest}.json"
+            if not self.refresh_cache:
+                try:
+                    payload = json.loads(cache_file.read_text(encoding="utf-8"))
+                    if payload.get("signature") == signature:
+                        hits = [WebHit(**item) for item in payload["hits"]]
+                        self.cache_hits += 1
+                        logging.info("SEARCH CACHE | %s | %s risultati", provider, len(hits))
+                        return hits
+                except (OSError, ValueError, TypeError, KeyError, AttributeError):
+                    pass
+        if self.requests_total >= self.max_requests:
+            raise SearchBudgetError(f"Raggiunto il limite locale di {self.max_requests} richieste API.")
         self._sleep()
         self.requests_total += 1
         self.requests_by_provider[provider] += 1
 
         if provider == "serper":
-            return self._serper(query)
-        if provider == "brave":
-            return self._brave(query)
-        raise ValueError(provider)
+            hits = self._serper(query)
+        elif provider == "brave":
+            hits = self._brave(query)
+        else:
+            raise ValueError(provider)
+        if cache_file is not None:
+            tmp = None
+            try:
+                cache_file.parent.mkdir(parents=True, exist_ok=True)
+                fd, name = tempfile.mkstemp(prefix=".search_", suffix=".json", dir=cache_file.parent)
+                os.close(fd)
+                tmp = Path(name)
+                tmp.write_text(json.dumps({"signature": signature, "hits": [asdict(h) for h in hits]}, ensure_ascii=False), encoding="utf-8")
+                os.replace(tmp, cache_file)
+            except OSError as exc:
+                logging.warning("Cache query non salvata: %s", exc)
+            finally:
+                if tmp is not None:
+                    try:
+                        tmp.unlink(missing_ok=True)
+                    except OSError:
+                        pass
+        return hits
 
     def _serper(self, query: str) -> list[WebHit]:
         r = requests.post(
@@ -689,6 +755,8 @@ class SearchClient:
             for secret in (self.serper_key, self.brave_key):
                 if secret:
                     detail = detail.replace(secret, "[REDACTED]")
+            if "not enough credits" in detail.casefold():
+                raise SearchQuotaError("Serper: crediti esauriti (HTTP 400).")
             raise SearchRequestError(
                 f"Search API HTTP {r.status_code}: {detail[:300] or 'nessun dettaglio disponibile'}"
             )
@@ -792,19 +860,22 @@ def is_public_http_url(url: str) -> bool:
 
 
 def get_bytes(url: str, max_bytes: int) -> tuple[Any, bytes] | None:
-    if not is_public_http_url(url):
-        return None
+    r = None
     try:
-        r = requests.get(
-            url,
-            headers={
-                "User-Agent": USER_AGENT,
-                "Accept-Language": "it-IT,it;q=0.9,en;q=0.5",
-            },
-            timeout=HTTP_TIMEOUT,
-            allow_redirects=True,
-            stream=True,
-        )
+        for hop in range(6):
+            if not is_public_http_url(url):
+                return None
+            r = requests.get(url, headers={"User-Agent": USER_AGENT,
+                "Accept-Language": "it-IT,it;q=0.9,en;q=0.5"},
+                timeout=HTTP_TIMEOUT, allow_redirects=False, stream=True)
+            if r.status_code in {301, 302, 303, 307, 308}:
+                location = r.headers.get("Location")
+                r.close()
+                if not location or hop == 5:
+                    return None
+                url = urljoin(url, location)
+                continue
+            break
         r.raise_for_status()
         buf = bytearray()
         for chunk in r.iter_content(65536):
@@ -815,6 +886,8 @@ def get_bytes(url: str, max_bytes: int) -> tuple[Any, bytes] | None:
                     return None
         return r, bytes(buf)
     except Exception:
+        if r is not None:
+            r.close()
         return None
 
 
@@ -1358,6 +1431,36 @@ def structured_profile_bonus(hit: WebHit, person: Person) -> int:
     return score
 
 
+def parse_birth_date(value: str) -> date | None:
+    value = normalize(value)
+    numeric = re.fullmatch(r"(\d{1,2})[./-](\d{1,2})[./-](\d{4})", value)
+    iso = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", value)
+    months = {name: number for number, name in enumerate(
+        ("gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+         "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"), 1)}
+    words = re.fullmatch(r"(\d{1,2})\s+([a-z]+)\s+(\d{4})", value)
+    try:
+        if numeric:
+            day, month, year = map(int, numeric.groups())
+            return date(year, month, day)
+        if iso:
+            return date(*map(int, iso.groups()))
+        if words and words[2] in months:
+            return date(int(words[3]), months[words[2]], int(words[1]))
+    except ValueError:
+        pass
+    return None
+
+
+def cv_birth_date(text: str) -> date | None:
+    label = re.search(r"\b(?:data\s+(?:di\s+)?nascita|date\s+of\s+birth|nat[oa]\s+il)\b", text, re.I)
+    if not label:
+        return None
+    following = text[label.end():label.end() + 100]
+    match = re.search(r"\b(?:\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[./-]\d{1,2}[./-]\d{4}|\d{1,2}\s+[A-Za-z]+\s+\d{4})\b", following)
+    return parse_birth_date(match[0]) if match else None
+
+
 def cv_owner_identity(text: str, person: Person) -> tuple[bool, int, str]:
     if not text:
         return False, 0, "CV senza testo."
@@ -1369,17 +1472,12 @@ def cv_owner_identity(text: str, person: Person) -> tuple[bool, int, str]:
     if person.fiscal_code and normalize(person.fiscal_code) in normalize(text):
         return True, 1000 + strong, "Codice fiscale del target nel CV."
 
-    if person.birth_date:
-        m = re.search(
-            r"(?:data\s+di\s+nascita|nato\s+il|nata\s+il).{0,50}"
-            r"(\d{1,2}[./-]\d{1,2}[./-]\d{4})",
-            text, re.I | re.S,
-        )
-        if m:
-            found = m.group(1).replace(".", "/").replace("-", "/")
-            wanted = {x.replace(".", "/").replace("-", "/") for x in date_variants(person.birth_date)}
-            if found in wanted and header_has_name:
-                return True, 900 + strong, "Nome e data di nascita coerenti nel CV."
+    found, wanted = cv_birth_date(text), parse_birth_date(person.birth_date)
+    if found is not None and wanted is not None:
+        if found != wanted:
+            return False, 0, "Data di nascita incompatibile."
+        if header_has_name:
+            return True, 900 + strong, "Nome e data di nascita coerenti nel CV."
 
     if header_has_name:
         score = 540 + strong
@@ -1434,17 +1532,9 @@ def verify_cv(text: str, person: Person) -> tuple[bool, str, str]:
         if fiscal_codes and person.fiscal_code not in fiscal_codes:
             return False, "bassa", "Codice fiscale incompatibile."
 
-    if person.birth_date:
-        m = re.search(
-            r"(?:data\s+di\s+nascita|nato\s+il|nata\s+il).{0,50}"
-            r"(\d{1,2}[./-]\d{1,2}[./-]\d{4})",
-            text, re.I | re.S,
-        )
-        if m:
-            found = m.group(1).replace(".", "/").replace("-", "/")
-            wanted = {x.replace(".", "/").replace("-", "/") for x in date_variants(person.birth_date)}
-            if found not in wanted:
-                return False, "bassa", "Data di nascita incompatibile."
+    found, wanted = cv_birth_date(text), parse_birth_date(person.birth_date)
+    if found is not None and wanted is not None and found != wanted:
+        return False, "bassa", "Data di nascita incompatibile."
 
     pos = sum(1 for x in CV_POSITIVE if x in n)
     neg = sum(1 for x in CV_NEGATIVE if x in n)
@@ -2014,6 +2104,9 @@ def html_cv_signal(raw: bytes, person: Person) -> tuple[bool, str]:
         header_blob = f"{title} {headings} {text[:4000]}"
         n = normalize(header_blob)
         identity = text_has_target_identity(header_blob, person)
+        # Voci di menu o un generico profilo biografico non sono un CV.
+        if not re.search(r"\b(?:curriculum|europass)\b", normalize(f"{title} {headings}")):
+            return False, "Pagina senza titolo/intestazione di curriculum."
 
         cv_terms = sum(
             1 for t in (
@@ -2372,116 +2465,31 @@ def promote_recovery_hits_by_page(
 
 
 def verified_cv_specialty_candidates(
-    text: str,
-    person: Person,
-    source_url: str,
+    text: str, person: Person, source_url: str,
 ) -> list[tuple[int, str, str, str]]:
-    """
-    Estrazione dedicata a documenti CV già verificati come appartenenti al
-    target. A differenza di specialty_candidates(), non richiede che il nome
-    sia vicino alla specialità: l'ownership è già stata verificata.
-
-    Le evidenze esplicite (specializzazione/specialista/disciplina/qualifica)
-    hanno priorità. Le sole occorrenze di titoli professionali ricevono score
-    più basso.
-    """
-    if not text:
-        return []
-
+    """Solo titoli espliciti in CV già verificati; formazione in corso esclusa."""
     out = []
     seen = set()
+    for pattern in EXPLICIT_PATTERNS:
+        for match in pattern.finditer(text):
+            before = normalize(text[max(0, match.start() - 60):match.start()])
+            evidence = clean(match.group(0))
+            context = normalize(text[match.start():min(len(text), match.end() + 35)])
+            if "scuola di specializzazione" in normalize(evidence):
+                continue
+            if re.search(r"(?:scuola|corso)\s+di$", before):
+                continue
+            if re.search(r"\b(?:in corso|specializzand[oa]|da conseguire|non conseguit[oa])\b", context):
+                continue
+            if re.search(r"\b(?:iscritt[oa]|frequenta|frequentante|docente|direttore)\b[^.;]{0,45}$", before):
+                continue
+            specialty = normalize_specialty(match.group(1))
+            key = normalize(specialty)
+            if specialty and key not in seen:
+                seen.add(key)
+                out.append((980, specialty, source_url, evidence[:500]))
+    return out
 
-    def add(score: int, spec: str, evidence: str):
-        spec = clean(spec)
-        if not spec:
-            return
-        key = normalize(spec)
-        if not key or key in seen:
-            return
-        seen.add(key)
-        out.append((score, spec, source_url, clean(evidence)[:500]))
-
-    # 1) Pattern espliciti già esistenti, ma globali sul CV verificato.
-    for pat in EXPLICIT_PATTERNS:
-        for m in pat.finditer(text):
-            raw = clean(m.group(1))
-            spec = normalize_specialty(raw)
-            if spec:
-                add(980, spec, m.group(0))
-
-    # 2) Pattern tipici dei CV sanitari italiani.
-    cv_patterns = (
-        re.compile(
-            r"\b(?:disciplina|qualifica|profilo\s+professionale|incarico)\s*"
-            r"[:\-]\s*([^.;\n|•]{3,100})",
-            re.I,
-        ),
-        re.compile(
-            r"\bdirigente\s+medico(?:\s+di|\s+in|\s*[-:])\s*"
-            r"([^.;\n|•]{3,100})",
-            re.I,
-        ),
-        re.compile(
-            r"\b(?:u\.?\s*o\.?|unit[aà]\s+operativa|reparto)\s+"
-            r"(?:di\s+)?([^.;\n|•]{3,100})",
-            re.I,
-        ),
-    )
-    for pat in cv_patterns:
-        for m in pat.finditer(text):
-            raw = clean(m.group(1))
-            spec = normalize_specialty(raw)
-            if spec:
-                add(900, spec, m.group(0))
-
-    # 3) Righe professionali contenenti un alias/titolo specialistico.
-    lines = [
-        clean(x)
-        for x in re.split(r"[\r\n]+", text)
-        if clean(x)
-    ]
-    professional_markers = (
-        "specialista", "specializzazione", "dirigente medico",
-        "disciplina", "qualifica", "incarico", "reparto",
-        "unità operativa", "unita operativa", "u.o.",
-        "attività professionale", "attivita professionale",
-    )
-
-    aliases = sorted(
-        SPECIALTY_ALIASES.items(),
-        key=lambda x: len(x[0]),
-        reverse=True,
-    )
-
-    for line in lines:
-        nline = normalize(line)
-        if not any(m in nline for m in professional_markers):
-            continue
-        for alias, canonical in aliases:
-            if alias in nline:
-                add(820, canonical, line)
-
-    # 4) Titolo professionale diretto nel CV verificato: fallback prudente.
-    # Richiede parole di contesto clinico nella stessa frase.
-    sentences = re.split(r"(?<=[.;])\s+|\n+", text)
-    for sent in sentences:
-        ns = normalize(sent)
-        if not ns:
-            continue
-        context = any(
-            x in ns for x in (
-                "medico", "medica", "dott", "osped", "clinica",
-                "asl", "ausl", "asst", "azienda sanitaria",
-                "responsabile", "dirigente", "specialista",
-            )
-        )
-        if not context:
-            continue
-        for alias, canonical in aliases:
-            if alias in ns:
-                add(700, canonical, sent)
-
-    return sorted(out, key=lambda x: x[0], reverse=True)
 
 def recovery_query_for_weak_recall(person: Person) -> str:
     # Compatibilità con il resto della pipeline. V6 usa una query di vera
@@ -3081,6 +3089,8 @@ SPECIALTY_ALIASES = {
     "anestesia rianimazione": "Anestesia e Rianimazione",
     "cardiologia": "Cardiologia",
     "chirurgia generale": "Chirurgia Generale",
+    "chirurgia plastica e ricostruttiva": "Chirurgia Plastica e Ricostruttiva",
+    "igiene e medicina preventiva": "Igiene e Medicina Preventiva",
     "chirurgia vascolare": "Chirurgia Vascolare",
     "dermatologia": "Dermatologia e Venereologia",
     "dermatologia e venereologia": "Dermatologia e Venereologia",
@@ -3191,7 +3201,7 @@ SPECIALTY_DISCOVERY_ROLE_TERMS = (
 
 EXPLICIT_PATTERNS = (
     re.compile(r"\bspecialista\s+in\s+([^.;:\n]{3,100})", re.I),
-    re.compile(r"\bspecializzato(?:a)?\s+in\s+([^.;:\n]{3,100})", re.I),
+    re.compile(r"\bspecializzat[oa]\s+in\s+([^.;:\n]{3,100})", re.I),
     re.compile(r"\bspecializzazione\s+in\s+([^.;:\n]{3,100})", re.I),
     re.compile(r"\bdiploma\s+di\s+specializzazione\s+in\s+([^.;:\n]{3,100})", re.I),
     re.compile(r"\bscuola\s+di\s+specializzazione\s+in\s+([^.;:\n]{3,100})", re.I),
@@ -3199,14 +3209,16 @@ EXPLICIT_PATTERNS = (
 
 
 def normalize_specialty(raw: str) -> str:
-    r = normalize(raw)
+    r = normalize(raw.replace("&", " e "))
     r = re.split(r"\b(?:presso|conseguita|conseguito|università|universita|nel|nell'|anno)\b", r)[0]
     r = r.strip(" ,.-;:")
     if not r:
         return ""
 
-    for alias, canonical in sorted(SPECIALTY_ALIASES.items(), key=lambda x: len(x[0]), reverse=True):
-        if alias in r:
+    aliases = {normalize(value): value for value in SPECIALTY_ALIASES.values()}
+    aliases.update(SPECIALTY_ALIASES)
+    for alias, canonical in sorted(aliases.items(), key=lambda x: len(x[0]), reverse=True):
+        if re.search(r"(?<!\w)" + re.escape(alias) + r"(?!\w)", r):
             return canonical
 
     # Se non è in tassonomia, conserviamo solo una forma breve e plausibile.
@@ -4202,9 +4214,245 @@ def research_person(person: Person, args: argparse.Namespace,
 # MAIN
 # ============================================================
 
+def local_document_index(*folders: Path) -> dict[str, list[Path]]:
+    index: dict[str, list[Path]] = {}
+    for folder in folders:
+        if not folder.is_dir():
+            continue
+        for path in sorted(folder.iterdir()):
+            if path.is_file() and path.suffix.lower() in {".pdf", ".docx", ".doc", ".html"}:
+                code = path.name.split("-", 1)[0]
+                index.setdefault(code, []).append(path.resolve())
+    return index
+
+
+class DirectSources:
+    """URL espliciti, copie locali verificabili e tetto ai nuovi download."""
+    def __init__(self, manifest: Path, folder: Path, limit: int):
+        import csv
+        self.folder, self.limit, self.downloads = folder.resolve(), limit, 0
+        self.by_person: dict[str, list[str]] = {}
+        with manifest.open(encoding="utf-8-sig", newline="") as stream:
+            reader = csv.DictReader(stream)
+            if not {"Pers_Id", "URL"}.issubset(reader.fieldnames or []):
+                raise ValueError("Il CSV delle fonti deve contenere Pers_Id e URL.")
+            for row in reader:
+                pid, url = numericish(clean(row["Pers_Id"])), clean(row["URL"])
+                if not pid or not url:
+                    raise ValueError("Pers_Id e URL non possono essere vuoti nel CSV delle fonti.")
+                parsed = urlparse(url)
+                if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username:
+                    raise ValueError("Il CSV contiene un URL non HTTP pubblico valido.")
+                if url not in self.by_person.setdefault(pid, []):
+                    self.by_person[pid].append(url)
+        self.notes: list[str] = []
+        self.origins: dict[str, str] = {}
+
+    def documents(self, person: Person) -> list[Path]:
+        paths = []
+        self.notes = []
+        for url in self.by_person.get(person.pers_id, []):
+            digest = hashlib.sha256(url.encode("utf-8")).hexdigest()
+            # Il nome del file è generato dal programma, mai preso dal server.
+            stem = f"{safe_part(person.output_code)}-{safe_part(person.surname)}-{safe_part(person.name)}-{digest[:10]}"
+            metadata = self.folder / f"{stem}.source.json"
+            try:
+                info = json.loads(metadata.read_text(encoding="utf-8"))
+                ext = info["extension"]
+                if ext in {".pdf", ".doc", ".docx", ".html"} and info["url"] == url:
+                    path = self.folder / f"{stem}{ext}"
+                    if path.stat().st_size <= MAX_DOC_BYTES and hashlib.sha256(path.read_bytes()).hexdigest() == info["sha256"]:
+                        paths.append(path)
+                        self.origins[str(path)] = url
+                        continue
+            except (OSError, ValueError, KeyError, TypeError):
+                pass
+            if self.downloads >= self.limit:
+                self.notes.append(f"Limite download raggiunto: fonte non consultata {url}")
+                continue
+            self.downloads += 1
+            time.sleep(0.3)
+            got = get_bytes(url, MAX_DOC_BYTES)
+            if got is None:
+                self.notes.append(f"Fonte non scaricabile: {url}")
+                continue
+            response, raw = got
+            try:
+                ext = content_extension(response.url, response.headers.get("Content-Type", ""), raw)
+                if ext not in {".pdf", ".doc", ".docx", ".html"}:
+                    self.notes.append(f"Formato non supportato: {url}")
+                    continue
+                self.folder.mkdir(parents=True, exist_ok=True)
+                path = self.folder / f"{stem}{ext}"
+                path.write_bytes(raw)
+                metadata.write_text(json.dumps({"url": url, "final_url": response.url,
+                    "retrieved": utc_now(), "extension": ext,
+                    "sha256": hashlib.sha256(raw).hexdigest()}, ensure_ascii=False, indent=2), encoding="utf-8")
+                paths.append(path)
+                self.origins[str(path)] = url
+            finally:
+                response.close()
+        return paths
+
+
+def local_documents(person: Person, index: dict[str, list[Path]]) -> list[Path]:
+    base = f"{safe_part(person.output_code)}-{safe_part(person.surname)}-{safe_part(person.name)}"
+    # Il codice serve solo a selezionare candidati: il contenuto verrà verificato.
+    return list(dict.fromkeys(
+        path for path in index.get(safe_part(person.output_code), [])
+        if path.stem.casefold() == base.casefold()
+        or re.fullmatch(re.escape(base) + r"-[0-9a-f]{10}", path.stem, flags=re.I)
+    ))
+
+
+def research_local_person(person: Person, documents: list[Path]) -> dict[str, Any]:
+    verified, review, candidates, notes = [], [], [], []
+    for path in documents:
+        try:
+            if path.stat().st_size > MAX_DOC_BYTES:
+                raise ValueError("Documento oltre il limite di dimensione")
+            raw = path.read_bytes()
+            ext = path.suffix.lower()
+            method = ext.lstrip(".")
+            if ext == ".doc":
+                text, method = legacy_doc_text_with_method(raw)
+            else:
+                text = extract_cv_document_text(raw, ext)
+            ok, confidence, reason = verify_cv(text, person)
+            if ext == ".html":
+                signal, signal_reason = html_cv_signal(raw, person)
+                if not signal:
+                    ok, reason = False, signal_reason
+            if method == "ole/binary-heuristic":
+                ok, reason = False, "DOC letto con euristica: serve conversione affidabile prima della verifica."
+            if target_role_conflict(cv_header_region(text), person):
+                ok, reason = False, "Ruolo professionale incompatibile vicino al nome."
+            if ok:
+                verified.append((path, confidence))
+                # Le citazioni di reparti o pubblicazioni non bastano nel recupero offline.
+                candidates.extend(c for c in verified_cv_specialty_candidates(text, person, str(path)) if c[0] >= 980)
+            else:
+                review.append(str(path))
+            notes.append(f"{path.name}: {reason} (estrazione: {method or 'nessuna'}).")
+        except Exception as exc:
+            review.append(str(path))
+            notes.append(f"{path.name}: analisi non riuscita ({type(exc).__name__}: {exc}).")
+        logging.info("LOCAL DOCUMENT | Pers_Id=%s | %s", person.pers_id, notes[-1])
+    specialty, confidence, source, evidence = choose_specialty(candidates)
+    # Più diplomi espliciti nello stesso CV non sono fonti in conflitto.
+    by_source: dict[str, dict[str, tuple]] = {}
+    for candidate in candidates:
+        by_source.setdefault(candidate[2], {})[candidate[1]] = candidate
+    all_specialties = {candidate[1] for candidate in candidates}
+    for cv_source, qualifications in by_source.items():
+        if len(qualifications) > 1 and set(qualifications) == all_specialties:
+            specialty = "; ".join(sorted(qualifications))
+            confidence, source = "media", cv_source
+            evidence = " | ".join(qualifications[name][3] for name in sorted(qualifications))
+            break
+    # Conserva il legame tra specialità e documento che la supporta.
+    verified.sort(key=lambda item: (str(item[0]) == source, item[1] == "alta"), reverse=True)
+    result = {
+        "row": person.row,
+        "status": "COMPLETATO" if specialty and verified else (
+            "CV_TROVATO_SPECIALITA_DA_VERIFICARE" if verified else "DA_VERIFICARE"
+        ),
+        "specialty": specialty, "specialty_confidence": confidence,
+        "specialty_evidence": evidence,
+        "cv_path": str(verified[0][0]) if verified else "",
+        "cv_confidence": verified[0][1] if verified else "nessuna",
+        "cv_review_paths": "\n".join(review),
+        "sources": "\n".join(str(path) for path in documents),
+        "method": "Recupero locale V6.1 - nessuna richiesta di rete",
+        "notes": " ".join(notes), "updated": utc_now(), "error": "",
+    }
+    return result
+
+
+def run_local_recovery(args: argparse.Namespace) -> int:
+    from openpyxl import Workbook
+
+    input_path = args.input.expanduser().resolve()
+    output_path = (args.output.expanduser().resolve() if args.output
+                   else input_path.parent / f"{input_path.stem}_recupero_locale.xlsx")
+    if output_path == input_path or output_path.exists():
+        raise ValueError("Il recupero locale richiede un output nuovo per preservare i risultati precedenti.")
+    index = local_document_index(args.cv_dir, args.cv_review_dir)
+    direct = (DirectSources(args.sources_file, args.direct_cache_dir, args.max_direct_downloads)
+              if getattr(args, "sources_file", None) else None)
+    source = load_workbook(input_path, read_only=True, data_only=True)
+    report = Workbook()
+    ws = report.active
+    ws.title = args.sheet
+    counts: dict[str, int] = {}
+    processed = 0
+    try:
+        if args.sheet not in source.sheetnames:
+            raise ValueError(f"Foglio {args.sheet!r} non trovato")
+        rows = source[args.sheet].iter_rows(values_only=True)
+        labels = next(rows)
+        positions = {clean(label).casefold(): i for i, label in enumerate(labels) if clean(label)}
+        require_input_columns(positions)
+        ws.append(list(labels))
+        headers = ensure_output_columns(ws)
+        for original_row, values in enumerate(rows, start=2):
+            if original_row < args.start_row:
+                continue
+            def value(label):
+                i = positions.get(label.casefold())
+                return values[i] if i is not None else ""
+            output_code = numericish(clean(value("Medico_Id")))
+            if output_code in {"", "0", "0.0"}:
+                output_code = numericish(clean(value("Pers_Id")))
+            if output_code not in index and not (direct and numericish(clean(value("Pers_Id"))) in direct.by_person):
+                continue
+            dob = value("Pers_DataNascita")
+            person = Person(ws.max_row + 1, numericish(clean(value("Pers_Id"))),
+                            numericish(clean(value("Medico_Id"))), clean(value("Pers_Cognome")),
+                            clean(value("Pers_Nome")), dob.strftime("%d/%m/%Y") if isinstance(dob, (date, datetime)) else clean(dob),
+                            clean(value("Pers_CodFis")).upper(), clean(value("Indirizzi_Citta")),
+                            clean(value("emailPredefinita")) or clean(value("Email")))
+            if not person.pers_id or not person.name or not person.surname:
+                continue
+            documents = local_documents(person, index)
+            if direct:
+                documents = list(dict.fromkeys(documents + direct.documents(person)))
+            if not documents and not (direct and person.pers_id in direct.by_person):
+                continue
+            result = research_local_person(person, documents)
+            if direct:
+                result["method"] = "Fonti dirette e CV locali V6.2 - nessuna Search API"
+                result["sources"] = "\n".join(direct.origins.get(str(path), str(path)) for path in documents)
+                result["cv_url"] = direct.origins.get(result.get("cv_path", ""), "")
+                result["notes"] += " " + " ".join(direct.notes)
+                if direct.notes and not documents:
+                    result["error"] = " ".join(direct.notes)
+            result["notes"] = f"Riga input {original_row}. " + result["notes"]
+            ws.append(list(values))
+            set_result(ws, headers, person.row, result)
+            counts[result["status"]] = counts.get(result["status"], 0) + 1
+            processed += 1
+            if args.limit is not None and processed >= args.limit:
+                break
+    finally:
+        source.close()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    atomic_save(report, output_path)
+    report.close()
+    logging.info("RECUPERO LOCALE | medici=%s | %s | API=0 | output=%s", processed, counts, output_path)
+    print(f"Recupero locale: {processed} medici | {counts} | Richieste API: 0")
+    print(f"Report: {output_path}")
+    if direct:
+        logging.info("FONTI DIRETTE | nuovi tentativi download=%s | limite=%s | API=0", direct.downloads, direct.limit)
+        print(f"URL richiesti: {direct.downloads}; massimo: {direct.limit}. Nessuna Search API.")
+    return 0
+
+
 def main() -> int:
     args = parse_args()
     log_file = configure_logging(args.log_dir)
+    if args.offline or args.sources_file:
+        return run_local_recovery(args)
 
     input_path = args.input.expanduser().resolve()
     output_path = (
@@ -4218,6 +4466,8 @@ def main() -> int:
 
     if not input_path.exists():
         raise FileNotFoundError(input_path)
+    if input_path == output_path:
+        raise ValueError("Input e output devono essere file diversi.")
 
     prepare_output(input_path, output_path)
 
@@ -4231,7 +4481,7 @@ def main() -> int:
     headers = ensure_output_columns(ws)
 
     # Avvisa chiaramente se si sta riutilizzando un file con risultati vecchi.
-    method_col = headers.get("Ricerca_Metodo")
+    method_col = headers.get("ricerca_metodo")
     previous_methods = set()
     if method_col:
         max_probe = min(ws.max_row, 200)
@@ -4240,7 +4490,7 @@ def main() -> int:
             if value:
                 previous_methods.add(value)
 
-    if previous_methods and not all("V5.0" in m for m in previous_methods):
+    if previous_methods and not all("V6.0" in m for m in previous_methods):
         logging.warning(
             "OUTPUT CONTIENE RISULTATI DI VERSIONI PRECEDENTI | %s",
             sorted(previous_methods)[:8]
@@ -4256,6 +4506,7 @@ def main() -> int:
     logging.info("Input: %s", input_path)
     logging.info("Output: %s", output_path)
     logging.info("Provider: %s", args.provider)
+    logging.info("Limite totale richieste API: %s", args.max_api_requests)
     logging.info("Deep: %s", args.deep)
     logging.info("Search results: %s", args.search_results)
     logging.info("Max searches/persona: %s (+1 con --deep)", args.max_searches_per_person)
@@ -4302,6 +4553,9 @@ def main() -> int:
         max_results=args.search_results,
         delay_min=args.delay_min,
         delay_max=args.delay_max,
+        max_requests=args.max_api_requests,
+        search_cache_dir=args.search_cache_dir,
+        refresh_cache=args.refresh_search_cache,
     )
 
     for i, person in enumerate(people, start=1):
@@ -4309,11 +4563,12 @@ def main() -> int:
             result = research_person(
                 person, args, search_client, cv_dir, review_dir, cache_dir
             )
-        except (SearchAuthError, SearchRequestError) as exc:
+        except (SearchAuthError, SearchRequestError, SearchBudgetError) as exc:
             logging.error("SEARCH API BLOCCATA | %s", exc)
             result = {
                 "row": person.row,
                 "status": ("BLOCCATO_AUTENTICAZIONE_API" if isinstance(exc, SearchAuthError)
+                           else "BLOCCATO_LIMITE_RICHIESTE" if isinstance(exc, SearchBudgetError)
                            else "BLOCCATO_ERRORE_API"),
                 "specialty": "",
                 "specialty_confidence": "nessuna",
@@ -4388,8 +4643,7 @@ def main() -> int:
                 i, len(people), rate, eta, counts, search_client.requests_by_provider
             )
 
-        if status in {"BLOCCATO_QUOTA_RICERCA", "BLOCCATO_AUTENTICAZIONE_API", "BLOCCATO_ERRORE_API"}:
-            atomic_save(wb, output_path)
+        if status in {"BLOCCATO_QUOTA_RICERCA", "BLOCCATO_AUTENTICAZIONE_API", "BLOCCATO_ERRORE_API", "BLOCCATO_LIMITE_RICHIESTE"}:
             if status == "BLOCCATO_QUOTA_RICERCA":
                 logging.error("STOP | Quota Search API esaurita.")
             else:
@@ -4404,6 +4658,7 @@ def main() -> int:
     logging.info("FINE | %.1f min | %s", elapsed / 60, counts)
     logging.info("API REQUESTS | totale=%s | %s",
                  search_client.requests_total, search_client.requests_by_provider)
+    logging.info("QUERY DA CACHE | %s", search_client.cache_hits)
     logging.info("OUTPUT | %s", output_path)
     logging.info("=" * 78)
 
@@ -4423,7 +4678,8 @@ if __name__ == "__main__":
     startup_log = bootstrap_log_path(early_log_dir)
 
     try:
-        initial_output = create_initial_output_copy(early_input, early_output)
+        initial_output = (None if ("--offline" in sys.argv or any(arg == "--sources-file" or arg.startswith("--sources-file=") for arg in sys.argv)) else
+                          create_initial_output_copy(early_input, early_output))
         if initial_output:
             write_bootstrap_log(startup_log, f"INFO | Excel iniziale: {initial_output}")
             print(f"Excel di output: {initial_output}")
@@ -4437,7 +4693,7 @@ if __name__ == "__main__":
     ok, missing = import_dependencies(startup_log)
     if not ok:
         print("\nERRORE: mancano dipendenze obbligatorie.")
-        print("Installa con: python -m pip install -r requirements_medici_v4.txt")
+        print("Installa con: python -m pip install -r requirements.txt")
         print(f"Log diagnostico: {startup_log.resolve()}")
         for item in missing:
             print(f" - {item}")
