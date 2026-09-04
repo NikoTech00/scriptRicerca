@@ -1,0 +1,37 @@
+2026-09-04 12:17:20 | INFO | Importazione e controllo di tutto l’archivio: input/scriptMedici.xlsx
+2026-09-04 12:17:22 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-04 12:17:27 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 37
+2026-09-04 12:17:32 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 66
+2026-09-04 12:17:38 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 98
+2026-09-04 12:17:43 | INFO | Documenti elaborati in questa esecuzione: 200; richieste HTTP: 130
+2026-09-04 12:17:49 | INFO | Documenti elaborati in questa esecuzione: 250; richieste HTTP: 158
+2026-09-04 12:17:55 | INFO | Documenti elaborati in questa esecuzione: 300; richieste HTTP: 189
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 6 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 8 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 10 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 12 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 14 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 16 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 18 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 26 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 31 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 33 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 35 0 (offset 0)
+2026-09-04 12:17:58 | WARNING | Ignoring wrong pointing object 37 0 (offset 0)
+2026-09-04 12:18:01 | INFO | Documenti elaborati in questa esecuzione: 350; richieste HTTP: 222
+2026-09-04 12:18:08 | INFO | Documenti elaborati in questa esecuzione: 400; richieste HTTP: 264
+2026-09-04 12:18:15 | INFO | Documenti elaborati in questa esecuzione: 450; richieste HTTP: 299
+2026-09-04 12:18:22 | INFO | Documenti elaborati in questa esecuzione: 500; richieste HTTP: 340
+2026-09-04 12:18:29 | INFO | Documenti elaborati in questa esecuzione: 550; richieste HTTP: 379
+2026-09-04 12:19:18 | INFO | Documenti elaborati in questa esecuzione: 600; richieste HTTP: 418
+2026-09-04 12:20:07 | INFO | Documenti elaborati in questa esecuzione: 650; richieste HTTP: 453
+2026-09-04 12:20:42 | INFO | Documenti elaborati in questa esecuzione: 700; richieste HTTP: 485
+2026-09-04 12:21:29 | INFO | Documenti elaborati in questa esecuzione: 750; richieste HTTP: 521
+2026-09-04 12:22:17 | INFO | Documenti elaborati in questa esecuzione: 800; richieste HTTP: 554
+2026-09-04 12:23:07 | INFO | Documenti elaborati in questa esecuzione: 850; richieste HTTP: 587
+2026-09-04 12:23:55 | INFO | Documenti elaborati in questa esecuzione: 900; richieste HTTP: 618
+2026-09-04 12:24:39 | INFO | Documenti elaborati in questa esecuzione: 950; richieste HTTP: 652
+2026-09-04 12:25:50 | INFO | Documenti elaborati in questa esecuzione: 1000; richieste HTTP: 685
+2026-09-04 12:27:03 | INFO | Documenti elaborati in questa esecuzione: 1050; richieste HTTP: 720
+2026-09-04 12:27:51 | WARNING | Interruzione richiesta: esporto i risultati già salvati nella coda.
+2026-09-04 12:28:12 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 63857, 'IN_CODA': 16320, 'SPECIALITA_CON_IDENTITA_NOMINALE': 176, 'EVIDENZA_NON_CONFERMATA': 475, 'FONTE_NON_ACCESSIBILE': 220, 'PROFILO_CON_IDENTITA_NOMINALE': 194, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 5, 'SPECIALITA_DOCUMENTATA': 2, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 82}, 'people_with_sources': 17474, 'urls': {'done': 936, 'error': 650, 'pending': 18032}, 'updated': '2026-09-04T10:28:12+00:00'}; HTTP=738; Search API=0

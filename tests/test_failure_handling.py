@@ -13,6 +13,21 @@ spec.loader.exec_module(m)
 
 
 class FailureHandlingTests(unittest.TestCase):
+    def test_specialty_fallback_trims_degree_metadata(self):
+        self.assertEqual(m.normalize_specialty("Scienza dell'Alimentazione nel 2003 col massimo dei voti"), "Scienza dell'Alimentazione")
+
+    def test_shared_source_requires_demographic_match(self):
+        person = m.Person(2, '1', '', 'Rossi', 'Anna', '03/04/1980', '', '', '')
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / 'cv.pdf'
+            path.write_bytes(b'pdf')
+            base = 'Curriculum vitae Anna Rossi. Medico. Istruzione e formazione. Specializzata in Cardiologia.'
+            for suffix, expected in [('', 'DA_VERIFICARE'), (' Data di nascita 3 aprile 1980.', 'COMPLETATO')]:
+                with patch.object(m, 'extract_cv_document_text', return_value=base + suffix):
+                    result = m.research_local_person(person, [path], {str(path)})
+                self.assertEqual(result['status'], expected)
+
+
     def test_birth_date_words_reject_homonym(self):
         person = m.Person(2, '1', '', 'Rossi', 'Anna', '24/04/1961', '', '', '')
         text = 'Curriculum vitae Anna Rossi. Data di nascita 13 agosto 1966. Medico. Istruzione e formazione.'
@@ -29,7 +44,10 @@ class FailureHandlingTests(unittest.TestCase):
 
     def test_training_and_teaching_are_not_completed_specialties(self):
         person = m.Person(2, '1', '', 'Rossi', 'Anna', '', '', '', '')
-        for text in ['Scuola di Specializzazione in Cardiologia.',
+        for text in ['Lavora in un centro specializzato in Cardiologia.',
+                     'Medico specialista in formazione in Cardiologia.',
+                     'Occupazione desiderata: Medico Chirurgo specializzato in Cardiologia.',
+                     'Scuola di Specializzazione in Cardiologia.',
                      'Specializzazione in Cardiologia (in corso).',
                      'Medico specializzando in Cardiologia.',
                      'Docente nella Scuola di Specializzazione in Cardiologia.']:

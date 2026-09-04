@@ -1,0 +1,77 @@
+2026-09-04 11:51:27 | INFO | LOCAL DOCUMENT | Pers_Id=2162961 | 2162961-ABATE-FILOMENA-13c9d81920.html: Pagina senza titolo/intestazione di curriculum. (estrazione: html).
+2026-09-04 11:51:27 | INFO | LOCAL DOCUMENT | Pers_Id=1222042 | 1222042-ABATE-MARIA-a628fd1c46.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:51:29 | INFO | LOCAL DOCUMENT | Pers_Id=306924 | 306924-ABATE-ORNELLA.doc: Data di nascita incompatibile. (estrazione: libreoffice).
+2026-09-04 11:51:29 | INFO | LOCAL DOCUMENT | Pers_Id=306924 | 306924-ABATE-ORNELLA-1fa8fa629d.doc: Data di nascita incompatibile. (estrazione: libreoffice).
+2026-09-04 11:51:29 | INFO | LOCAL DOCUMENT | Pers_Id=306924 | 306924-ABATE-ORNELLA-7b0d3bd402.html: Pagina senza titolo/intestazione di curriculum. (estrazione: html).
+2026-09-04 11:51:29 | INFO | LOCAL DOCUMENT | Pers_Id=306924 | 306924-ABATE-ORNELLA-e70119d035.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:30 | INFO | LOCAL DOCUMENT | Pers_Id=2463452 | 2463452-ABBATANGELO-BENEDETTA.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=2606009 | 2606009-ABBATE-MASSIMILIANA-1391d15976.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=2827775 | 2827775-ABDULVAGABOV-ANVAR-92e0e6c573.pdf: CV verificato sul contenuto. Nome e data di nascita coerenti nel CV. (estrazione: pdf).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=2744784 | 2744784-ABRAMO-ANDREA.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=2744784 | 2744784-ABRAMO-ANDREA-5658c67b4b.html: Nome del target assente dall'intestazione del CV. (estrazione: html).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=2163165 | 2163165-ACCORDINO-GIULIA.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=1812885 | 1812885-ACERBI-FRANCESCA-af713af1ef.pdf: CV verificato sul contenuto. Nome e data di nascita coerenti nel CV. (estrazione: pdf).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=1203912 | 1203912-ACETI-ARIANNA.html: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: html).
+2026-09-04 11:51:31 | INFO | LOCAL DOCUMENT | Pers_Id=1203912 | 1203912-ACETI-ARIANNA-0cd98c8594.pdf: CV verificato sul contenuto. Codice fiscale del target nel CV. (estrazione: pdf).
+2026-09-04 11:51:32 | INFO | LOCAL DOCUMENT | Pers_Id=1812886 | 1812886-ACETI-VALERIO-c3b6e3d714.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=1812887 | 1812887-ACHILLI-PIETRO-0ed12c10c7.pdf: CV verificato sul contenuto. Nome e data di nascita coerenti nel CV. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=2642456 | 2642456-ACONE-LORENZO-3a2f75faef.pdf: CV verificato sul contenuto. Nome e data di nascita coerenti nel CV. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=2608851 | 2608851-ACQUAVIVA-GIORGIA-672d1b0825.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=1218328 | 1218328-ACQUAVIVA-MARIANGELA-29126d29f2.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=1189836 | 1189836-ADAMO-DANIELA-5db682a360.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=2747224 | 2747224-ADDUCI-ANDREA.html: Pagina senza titolo/intestazione di curriculum. (estrazione: html).
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 6 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 8 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 10 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 12 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 14 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 16 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 18 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 26 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 31 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 33 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 35 0 (offset 0)
+2026-09-04 11:51:33 | WARNING | Ignoring wrong pointing object 37 0 (offset 0)
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=1813899 | 1813899-ADORNI-MARCO.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=2748343 | 2748343-AFFATICATI-LETIZIA_MARIA-92fe9605a9.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:33 | INFO | LOCAL DOCUMENT | Pers_Id=2166916 | 2166916-ALFARANO_DI_MAURO-VITO_FRANCESCO-f189144fe8.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2613956 | 2613956-ALLIATA-ANDREA-a0ae9e7ca8.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=829396 | 163831-ANGELINI-CARLO-a11a2ffa1f.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2617165 | 2617165-ANTUZZI-EDOARDO-212a91750f.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=1191681 | 1191681-ARBORIO-ELISA_MARIA_ELENA-c9417dc813.pdf: Il documento non appare un CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2233181 | 2233181-ARRU-LAURA-3cba02639f.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2744460 | 2744460-BANDIERAMONTE-GIULIA-7fe64deaf8.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2606694 | 2606694-BARBIERI-FILIPPO_FABIO-dc19c3254b.pdf: Il documento non appare un CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2606827 | 2606827-BERGAMASCHI-FRANCESCO-e24d36db67.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2606888 | 2606888-BIROLI-ALICE-d0b2859aff.pdf: Il documento non appare un CV. (estrazione: pdf).
+2026-09-04 11:51:34 | INFO | LOCAL DOCUMENT | Pers_Id=2233905 | 2233905-BONFANTI-IRENE-62ec358cfa.pdf: Il documento non appare un CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2809122 | 2809122-BRIVIO-GINEVRA-3e8b88c673.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=1815268 | 1815268-BRUNO-PAOLO-91aaeca70d.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2745787 | 2745787-CALERI-CHIARA-0d65853084.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2609524 | 2609524-CASIRAGHI-LUCA-15ff59e7e8.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2464239 | 2464239-CASTAGNA-GIOVANNI-632dad39cb.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2747030 | 2747030-CATTANEO-ANNA-0fd4be89d1.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2642473 | 2642473-CATTARUZZA-GLORIANA-5aefcbfe91.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2163218 | 2163218-CHILA'-DIEGO-e244d0aa43.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2642390 | 2642390-CICCIOLI-CARLO-928bfe5875.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=2811206 | 2811206-COLELLA-CHIARA-b2de99f46d.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=1088001 | 1088001-COLOMBO-ALESSANDRO-7ce775af5e.pdf: Fonte associata a più persone: serve data di nascita o codice fiscale concordante. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=1175995 | 1175995-COLOMBO-ALESSANDRO-7ce775af5e.pdf: Fonte associata a più persone: serve data di nascita o codice fiscale concordante. (estrazione: pdf).
+2026-09-04 11:51:35 | INFO | LOCAL DOCUMENT | Pers_Id=1785318 | 1785318-COLOMBO-EMANUELA-bcac39d12f.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2609117 | 2609117-CORNELLI-ALESSANDRO-39ed27ada5.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2746508 | 2746508-CORNEO-ROBERTA-2c1e31cf58.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2164023 | 2164023-CORRADO-SILVIA-5eadeebd51.pdf: Il documento non appare un CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=1786473 | 1786473-CRISTIANO-ANDREA-79bfd49022.pdf: Data di nascita incompatibile. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2608899 | 2608899-CROCE-GIUSEPPE-0bf8deb472.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2746555 | 2746555-CURRA'-JAQUELINE-ebb5e746d6.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2234155 | 2234155-DAL_MOLIN-GIULIA-702018364f.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2611091 | 2611091-DARISI-RUGGERO-de28de854b.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2610022 | 2610022-DE_CARLO-GIULIA-0fca64b0e0.pdf: Fonte associata a più persone: serve data di nascita o codice fiscale concordante. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2747202 | 2747202-DE_CARLO-GIULIA-0fca64b0e0.pdf: Fonte associata a più persone: serve data di nascita o codice fiscale concordante. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2164858 | 2164858-DEL_SESTO-STEFANIA-e1bf9b8b91.pdf: CV verificato sul contenuto. Nome del target nell'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2747266 | 2747266-DI_FEDE-ANTONINO-7f2ed69a1a.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2610204 | 2610204-DI_GIAMBATTISTA-SILVIA-d9382b7642.pdf: Il documento non appare un CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2813009 | 2813009-DI_LELLA-MARIA_ELISA-27874d0f8a.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:36 | INFO | LOCAL DOCUMENT | Pers_Id=2610284 | 2610284-DI_LIBERTI-GIORGIA-4448a6cf91.pdf: Nome del target assente dall'intestazione del CV. (estrazione: pdf).
+2026-09-04 11:51:39 | INFO | RECUPERO LOCALE | medici=59 | {'DA_VERIFICARE': 35, 'CV_TROVATO_SPECIALITA_DA_VERIFICARE': 15, 'COMPLETATO': 9} | API=0 | output=/Users/niko/Desktop/Dev/Lavoro/Python/scriptRicerca/output/test_fonti_ampliate_verificato_20260904.xlsx
+2026-09-04 11:51:39 | INFO | FONTI DIRETTE | nuovi tentativi download=1 | limite=1 | API=0

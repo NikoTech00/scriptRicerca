@@ -1,0 +1,24 @@
+2026-09-04 12:06:40 | INFO | Importazione e controllo di tutto l’archivio: input/scriptMedici.xlsx
+2026-09-04 12:06:43 | INFO | Importazione: 19999 righe
+2026-09-04 12:06:46 | INFO | Importazione: 39999 righe
+2026-09-04 12:06:48 | INFO | Importazione: 59999 righe
+2026-09-04 12:06:51 | INFO | Importazione: 79999 righe
+2026-09-04 12:06:52 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-04 12:06:52 | INFO | FONTE Maugeri: 164 associazioni, 0 problemi
+2026-09-04 12:06:52 | INFO | FONTE Santagostino: 427 associazioni, 0 problemi
+2026-09-04 12:06:52 | INFO | FONTE ASST_Rhodense: 181 associazioni, 0 problemi
+2026-09-04 12:06:53 | INFO | FONTE ASST_Bergamo_Ovest: 1 associazioni, 0 problemi
+2026-09-04 12:06:54 | INFO | FONTE Humanitas: 391 associazioni, 0 problemi
+2026-09-04 12:06:54 | INFO | FONTE Auxologico: 127 associazioni, 0 problemi
+2026-09-04 12:06:58 | INFO | FONTE Gemelli: 311 associazioni, 0 problemi
+2026-09-04 12:07:39 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 77
+2026-09-04 12:08:29 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 127
+2026-09-04 12:09:20 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 177
+2026-09-04 12:10:05 | INFO | Documenti elaborati in questa esecuzione: 200; richieste HTTP: 227
+2026-09-04 12:10:58 | INFO | Documenti elaborati in questa esecuzione: 250; richieste HTTP: 279
+2026-09-04 12:11:58 | INFO | Documenti elaborati in questa esecuzione: 300; richieste HTTP: 339
+2026-09-04 12:12:56 | INFO | Documenti elaborati in questa esecuzione: 350; richieste HTTP: 396
+2026-09-04 12:13:49 | INFO | Documenti elaborati in questa esecuzione: 400; richieste HTTP: 449
+2026-09-04 12:14:44 | INFO | Documenti elaborati in questa esecuzione: 450; richieste HTTP: 502
+2026-09-04 12:15:41 | INFO | Documenti elaborati in questa esecuzione: 500; richieste HTTP: 558
+2026-09-04 12:16:01 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 63867, 'IN_CODA': 16955, 'SPECIALITA_CON_IDENTITA_NOMINALE': 9, 'EVIDENZA_NON_CONFERMATA': 415, 'FONTE_NON_ACCESSIBILE': 1, 'SPECIALITA_DOCUMENTATA': 1, 'PROFILO_CON_IDENTITA_NOMINALE': 83}, 'people_with_sources': 17464, 'urls': {'done': 499, 'error': 1, 'pending': 19099}, 'updated': '2026-09-04T10:16:01+00:00'}; HTTP=558; Search API=0

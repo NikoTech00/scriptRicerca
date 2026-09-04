@@ -15,3 +15,7 @@ cache_medici/
 browser_medici/
 cache_ricerche/
 fonti_dirette/
+
+# Stato locale e documenti acquisiti dalla ricerca massiva
+stato_massivo/
+__pycache__/

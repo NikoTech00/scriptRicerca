@@ -1,5 +1,13 @@
 # Ricerca medici e recupero CV
 
+Per l’intero archivio usare la nuova modalità **massiva**: [guida operativa](GUIDA_MASSIVO.md).
+
+```powershell
+python scriptMedici.py "input/scriptMedici.xlsx" --massivo --output "output/risultati_massivi.xlsx"
+```
+
+Il comando lavora su tutte le righe, salva la coda in SQLite e può essere ripetuto sullo stesso report. Le modalità descritte sotto restano disponibili per piccoli recuperi locali e prove mirate.
+
 `scriptMedici.py` ricerca specialità e CV a partire da un Excel. La modalità locale permette di lavorare senza chiavi API e senza query web sui documenti già scaricati. Le modifiche operative sono compatibili con la pipeline V6.0.
 
 ## Installazione
@@ -29,7 +37,7 @@ La specialità viene proposta solo da diciture esplicite nel CV verificato; rife
 Il file `fonti_campione.csv` contiene URL candidati con le colonne `Pers_Id,URL,Nota`. Le note descrivono la provenienza; non autorizzano il programma a considerare verificata una persona. Non occorrono account o carte.
 
 ```powershell
-python scriptMedici.py "input/scriptMedici.xlsx" --sources-file "fonti_campione.csv" --max-direct-downloads 4 --output "output/test_fonti_dirette.xlsx"
+python scriptMedici.py "input/scriptMedici.xlsx" --sources-file "fonti_campione.csv" --max-direct-downloads 50 --output "output/test_fonti_ampliate_01.xlsx"
 ```
 
 Il report include i medici con CV locali e quelli presenti nel CSV. Viene letto l'input originale e il report deve essere un file nuovo. Sono ammessi solo URL HTTP(S) pubblici; anche i redirect sono controllati. Non vengono interrogati motori di ricerca né seguiti automaticamente collegamenti nelle pagine. Un URL candidato va quindi aggiunto al CSV, oppure fornito da un indice pubblico analizzato separatamente.
@@ -87,3 +95,17 @@ python -B tests/test_failure_handling.py
 ```
 
 I test simulano le API e i blocchi di salvataggio senza consumare crediti. Coprono cache, budget, errori quota, selezione dei documenti, identità incompatibili e report offline.
+
+## Espansione delle fonti ospedaliere
+
+`aggiorna_fonti_rhodense.py` legge l'indice ufficiale ASST Rhodense e incrocia esattamente nome e cognome dei medici con l'Excel. Aggiunge al CSV fino a 40 nuove associazioni per esecuzione, preservando quelle esistenti. Non usa Search API. I collegamenti sono candidati: il successivo passaggio con `scriptMedici.py` verifica il contenuto dei documenti.
+
+```powershell
+python aggiorna_fonti_rhodense.py "input/scriptMedici.xlsx" --output "fonti_campione.csv" --max-new 40
+```
+
+Il CSV aggiornato contiene già il primo lotto di 40 associazioni aggiunte alle quattro precedenti: non occorre eseguire l'aggiornamento per provarlo. Ripetere il comando aggiunge il lotto successivo disponibile. Quando lo stesso URL è associato a più Pers_Id, lo script richiede una data di nascita o un codice fiscale concordante per accettare quel CV.
+
+L'ultima verifica delle fonti ampliate è `output/test_fonti_ampliate_finale_20260904.xlsx`. `test_fonti_ampliate_20260904.xlsx` e `test_fonti_ampliate_verificato_20260904.xlsx` sono intermedi e superati dai controlli su omonimi e occupazioni desiderate. Il precedente report di 19 persone resta il riferimento del campione iniziale.
+
+Tutti i test: `python -B -m unittest discover -s tests -q`.

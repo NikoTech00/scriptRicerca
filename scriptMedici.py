@@ -20,7 +20,7 @@ from typing import Any, Iterable
 from urllib.parse import quote_plus, urljoin, urlparse, parse_qs, unquote
 
 VERSION = "V6.0 MEDICI - PRODUCTION CANDIDATE SEARCH + VERIFIED CV SPECIALTY"
-RESULT_CACHE_SCHEMA = 3  # Verifica date testuali e titoli non ancora conseguiti.
+RESULT_CACHE_SCHEMA = 5  # Verifica nascita biografica e qualifiche personali.
 
 # Import caricati dopo il bootstrap, così i log esistono anche se manca una dipendenza.
 requests = None
@@ -309,6 +309,17 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--sheet", default=DEFAULT_SHEET)
     p.add_argument("--limit", "--max-rows", dest="limit", type=int)
     p.add_argument("--start-row", type=int, default=2)
+    p.add_argument("--massivo", action="store_true", help="Incrocia tutto l'archivio con fonti sanitarie pubbliche, con ripresa SQLite e zero Search API.")
+    p.add_argument("--state-dir", type=Path, default=Path("stato_massivo"))
+    p.add_argument("--source-catalog", type=Path, default=Path(__file__).resolve().parent / "fonti_massive.json")
+    p.add_argument("--mass-manifest", type=Path, default=Path("fonti_campione.csv"))
+    p.add_argument("--workers", type=int, default=6)
+    p.add_argument("--max-http-requests", type=int, default=6000)
+    p.add_argument("--max-documents", type=int, default=5000)
+    p.add_argument("--host-delay", type=float, default=0.5)
+    p.add_argument("--refresh-sources", action="store_true")
+    p.add_argument("--skip-discovery", action="store_true")
+    p.add_argument("--export-only", action="store_true")
     p.add_argument("--offline", action="store_true",
                    help="Rianalizza solo i documenti locali. Zero rete/API; report separato dei medici con file.")
     p.add_argument("--sources-file", type=Path,
@@ -376,6 +387,10 @@ def parse_args() -> argparse.Namespace:
 
     args = p.parse_args()
 
+    if args.massivo and (args.offline or args.sources_file or args.limit is not None or args.start_row != 2):
+        p.error("--massivo lavora sull'intero archivio; non combinare con --offline, --sources-file, --limit o --start-row")
+    if not 1 <= args.workers <= 16 or args.max_http_requests < 1 or args.max_documents < 1 or args.host_delay < 0.2:
+        p.error("workers deve essere 1..16, limiti positivi e host-delay almeno 0.2 secondi")
     if args.offline and args.sources_file:
         p.error("--offline e --sources-file sono modalità alternative")
     if args.max_direct_downloads <= 0:
@@ -1453,7 +1468,7 @@ def parse_birth_date(value: str) -> date | None:
 
 
 def cv_birth_date(text: str) -> date | None:
-    label = re.search(r"\b(?:data\s+(?:di\s+)?nascita|date\s+of\s+birth|nat[oa]\s+il)\b", text, re.I)
+    label = re.search(r"\b(?:data\s+(?:e\s+luogo\s+)?(?:di\s+)?nascita|date\s+of\s+birth|(?:nat[oa]|nasce)(?:\s+a\s+[^.;\n]{1,80}?)?\s+il)\b", text, re.I)
     if not label:
         return None
     following = text[label.end():label.end() + 100]
@@ -2475,13 +2490,17 @@ def verified_cv_specialty_candidates(
             before = normalize(text[max(0, match.start() - 60):match.start()])
             evidence = clean(match.group(0))
             context = normalize(text[match.start():min(len(text), match.end() + 35)])
+            if re.search(r"occupazione\s+desiderata|posizione\s+desiderata|obiettivo\s+professionale", before):
+                continue
             if "scuola di specializzazione" in normalize(evidence):
                 continue
             if re.search(r"(?:scuola|corso)\s+di$", before):
                 continue
-            if re.search(r"\b(?:in corso|specializzand[oa]|da conseguire|non conseguit[oa])\b", context):
+            if re.search(r"\b(?:in corso|in formazione|specializzand[oa]|da conseguire|non conseguit[oa])\b", context):
                 continue
             if re.search(r"\b(?:iscritt[oa]|frequenta|frequentante|docente|direttore)\b[^.;]{0,45}$", before):
+                continue
+            if re.search(r"\b(?:centro|istituto|ospedale|struttura|laboratorio)(?:\s+[\w’-]+){0,3}\s*$", before):
                 continue
             specialty = normalize_specialty(match.group(1))
             key = normalize(specialty)
@@ -3191,6 +3210,47 @@ SPECIALTY_ALIASES.update({
     "urologa": "Urologia",
 })
 
+# Integrazione delle denominazioni dal catalogo delle scuole di specializzazione
+# dell'Università degli Studi di Milano (riferimento in GUIDA_MASSIVO.md).
+# L'evidenza conserva il titolo originale; queste etichette raggruppano le discipline.
+SPECIALTY_ALIASES.update({
+    "allergologia": "Allergologia e Immunologia Clinica",
+    "allergologia e immunologia clinica": "Allergologia e Immunologia Clinica",
+    "allergologia ed immunologia clinica": "Allergologia e Immunologia Clinica",
+    "immunologia clinica e allergologia": "Allergologia e Immunologia Clinica",
+    "anatomia patologica": "Anatomia Patologica",
+    "anestesia rianimazione, terapia intensiva e del dolore": "Anestesia e Rianimazione",
+    "anestesia, rianimazione e terapia intensiva": "Anestesia e Rianimazione",
+    "anestesiologia e rianimazione": "Anestesia e Rianimazione",
+    "audiologia e foniatria": "Audiologia e Foniatria",
+    "audiologia": "Audiologia",
+    "cardiochirurgia": "Cardiochirurgia",
+    "chirurgia maxillo-facciale": "Chirurgia Maxillo-Facciale",
+    "chirurgia maxillo facciale": "Chirurgia Maxillo-Facciale",
+    "chirurgia pediatrica": "Chirurgia Pediatrica",
+    "chirurgia toracica": "Chirurgia Toracica",
+    "chirurgia plastica, ricostruttiva ed estetica": "Chirurgia Plastica e Ricostruttiva",
+    "farmacologia e tossicologia clinica": "Farmacologia e Tossicologia Clinica",
+    "genetica medica": "Genetica Medica",
+    "ginecologia ed ostetricia": "Ginecologia e Ostetricia",
+    "malattie dell'apparato cardiovascolare": "Cardiologia",
+    "malattie dell'apparato digerente": "Gastroenterologia",
+    "medicina d'emergenza-urgenza": "Medicina d'Emergenza-Urgenza",
+    "medicina d'emergenza urgenza": "Medicina d'Emergenza-Urgenza",
+    "medicina di comunità e delle cure primarie": "Medicina di Comunità e delle Cure Primarie",
+    "medicina e cure palliative": "Medicina e Cure Palliative",
+    "medicina fisica e riabilitazione": "Medicina Fisica e Riabilitativa",
+    "fisiatria": "Medicina Fisica e Riabilitativa",
+    "medicina nucleare": "Medicina Nucleare",
+    "microbiologia e virologia": "Microbiologia e Virologia",
+    "neuropsichiatria infantile": "Neuropsichiatria Infantile",
+    "patologia clinica e biochimica clinica": "Patologia Clinica e Biochimica Clinica",
+    "patologia clinica": "Patologia Clinica",
+    "radioterapia": "Radioterapia",
+    "scienza dell'alimentazione": "Scienza dell'Alimentazione",
+    "statistica sanitaria e biometria": "Statistica Sanitaria e Biometria",
+})
+
 SPECIALTY_DISCOVERY_ROLE_TERMS = (
     "neurologo", "fisiatra", "chirurgo", "cardiologo", "pediatra",
     "psichiatra", "ortopedico", "ginecologo", "dermatologo",
@@ -3222,7 +3282,7 @@ def normalize_specialty(raw: str) -> str:
             return canonical
 
     # Se non è in tassonomia, conserviamo solo una forma breve e plausibile.
-    raw2 = clean(raw)
+    raw2 = re.split(r"\b(?:presso|conseguita|conseguito|università|universita|nel|nell'|anno)\b", clean(raw), flags=re.I)[0]
     raw2 = re.split(r"[.;:\n|•]", raw2)[0].strip(" ,.-")
     if 3 <= len(raw2) <= 80:
         invalid = {"medico", "medico chirurgo", "medicina e chirurgia", "dirigente medico"}
@@ -4245,6 +4305,11 @@ class DirectSources:
                     raise ValueError("Il CSV contiene un URL non HTTP pubblico valido.")
                 if url not in self.by_person.setdefault(pid, []):
                     self.by_person[pid].append(url)
+        owners: dict[str, set[str]] = {}
+        for pid, urls in self.by_person.items():
+            for url in urls:
+                owners.setdefault(url, set()).add(pid)
+        self.ambiguous_urls = {url for url, ids in owners.items() if len(ids) > 1}
         self.notes: list[str] = []
         self.origins: dict[str, str] = {}
 
@@ -4305,7 +4370,8 @@ def local_documents(person: Person, index: dict[str, list[Path]]) -> list[Path]:
     ))
 
 
-def research_local_person(person: Person, documents: list[Path]) -> dict[str, Any]:
+def research_local_person(person: Person, documents: list[Path],
+                          ambiguous_paths: set[str] | None = None) -> dict[str, Any]:
     verified, review, candidates, notes = [], [], [], []
     for path in documents:
         try:
@@ -4319,6 +4385,12 @@ def research_local_person(person: Person, documents: list[Path]) -> dict[str, An
             else:
                 text = extract_cv_document_text(raw, ext)
             ok, confidence, reason = verify_cv(text, person)
+            if ok and str(path) in (ambiguous_paths or set()):
+                found, wanted = cv_birth_date(text), parse_birth_date(person.birth_date)
+                codes = re.findall(r"\b[A-Z]{6}\d{2}[A-Z]\d{2}[A-Z]\d{3}[A-Z]\b", text.upper())
+                if not ((found is not None and found == wanted)
+                        or (person.fiscal_code and person.fiscal_code in codes)):
+                    ok, confidence, reason = False, "bassa", "Fonte associata a più persone: serve data di nascita o codice fiscale concordante."
             if ext == ".html":
                 signal, signal_reason = html_cv_signal(raw, person)
                 if not signal:
@@ -4419,7 +4491,9 @@ def run_local_recovery(args: argparse.Namespace) -> int:
                 documents = list(dict.fromkeys(documents + direct.documents(person)))
             if not documents and not (direct and person.pers_id in direct.by_person):
                 continue
-            result = research_local_person(person, documents)
+            ambiguous = ({path for path, url in direct.origins.items() if url in direct.ambiguous_urls}
+                         if direct else set())
+            result = research_local_person(person, documents, ambiguous)
             if direct:
                 result["method"] = "Fonti dirette e CV locali V6.2 - nessuna Search API"
                 result["sources"] = "\n".join(direct.origins.get(str(path), str(path)) for path in documents)
@@ -4451,6 +4525,9 @@ def run_local_recovery(args: argparse.Namespace) -> int:
 def main() -> int:
     args = parse_args()
     log_file = configure_logging(args.log_dir)
+    if args.massivo:
+        from medici_massivo import run
+        return run(args)
     if args.offline or args.sources_file:
         return run_local_recovery(args)
 
@@ -4678,7 +4755,7 @@ if __name__ == "__main__":
     startup_log = bootstrap_log_path(early_log_dir)
 
     try:
-        initial_output = (None if ("--offline" in sys.argv or any(arg == "--sources-file" or arg.startswith("--sources-file=") for arg in sys.argv)) else
+        initial_output = (None if ("--massivo" in sys.argv or "--offline" in sys.argv or any(arg == "--sources-file" or arg.startswith("--sources-file=") for arg in sys.argv)) else
                           create_initial_output_copy(early_input, early_output))
         if initial_output:
             write_bootstrap_log(startup_log, f"INFO | Excel iniziale: {initial_output}")

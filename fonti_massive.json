@@ -1,0 +1,139 @@
+{
+  "sources": [
+    {
+      "id": "Humanitas",
+      "type": "sitemap",
+      "hosts": [
+        "www.humanitas.it"
+      ],
+      "urls": [
+        "https://www.humanitas.it/sitemap_index.xml"
+      ],
+      "profile_pattern": "/medici/[^/]+/?$",
+      "sitemap_pattern": "/doctor-sitemap"
+    },
+    {
+      "id": "Gemelli",
+      "type": "sitemap",
+      "hosts": [
+        "www.policlinicogemelli.it"
+      ],
+      "urls": [
+        "https://www.policlinicogemelli.it/sitemap_index.xml"
+      ],
+      "profile_pattern": "/medici/[^/]+/?$",
+      "sitemap_pattern": "/kf_gem_medico-sitemap"
+    },
+    {
+      "id": "Santagostino",
+      "type": "sitemap",
+      "hosts": [
+        "www.santagostino.it"
+      ],
+      "urls": [
+        "https://www.santagostino.it/storage/sitemap-cms.xml"
+      ],
+      "profile_pattern": "/it/persone/[^/]+/?$",
+      "sitemap_pattern": ".*"
+    },
+    {
+      "id": "Maugeri",
+      "type": "sitemap",
+      "hosts": [
+        "www.icsmaugeri.it"
+      ],
+      "urls": [
+        "https://www.icsmaugeri.it/sitemap.xml"
+      ],
+      "profile_pattern": "/pazienti-e-familiari/medici/[^/]+/?$",
+      "sitemap_pattern": ".*"
+    },
+    {
+      "id": "Auxologico",
+      "type": "sitemap",
+      "hosts": [
+        "www.auxologico.it"
+      ],
+      "urls": [
+        "https://www.auxologico.it/sitemap.xml"
+      ],
+      "profile_pattern": "/[a-z-]+/?$",
+      "sitemap_pattern": "sitemap.xml"
+    },
+    {
+      "id": "ASST_Rhodense",
+      "type": "index",
+      "hosts": [
+        "www.asst-rhodense.it"
+      ],
+      "urls": [
+        "https://www.asst-rhodense.it/AmministrazioneTrasparente/Personale/Tassi-assenza-2016/CVDirigenti.html"
+      ],
+      "link_pattern": "(?i)\\.pdf",
+      "documents": true
+    },
+    {
+      "id": "ASST_Bergamo_Ovest",
+      "type": "index",
+      "hosts": [
+        "www.asst-bgovest.it"
+      ],
+      "urls": [
+        "https://www.asst-bgovest.it/452.asp"
+      ],
+      "link_pattern": "docDownload",
+      "documents": true
+    },
+    {
+      "id": "MioDottore",
+      "type": "sitemap",
+      "hosts": [
+        "www.miodottore.it"
+      ],
+      "urls": [
+        "https://www.miodottore.it/sitemap.xml"
+      ],
+      "profile_pattern": "/(?:profilo/)?[a-zA-Z0-9_-]+(?:/[^/?]+)*/?$",
+      "sitemap_pattern": "sitemap\\.doctor",
+      "name_pattern": "^/(?:profilo/)?([^/]+)"
+    },
+    {
+      "id": "Medicitalia",
+      "type": "sitemap",
+      "hosts": [
+        "www.medicitalia.it"
+      ],
+      "urls": [
+        "https://www.medicitalia.it/sitemap/sitemap-specialisti-schede.xml"
+      ],
+      "profile_pattern": "/[a-zA-Z0-9._-]+/?$",
+      "sitemap_pattern": ".*"
+    },
+    {
+      "id": "iDoctors",
+      "type": "sitemap",
+      "hosts": [
+        "www.idoctors.it"
+      ],
+      "urls": [
+        "https://www.idoctors.it/sitemap.xml"
+      ],
+      "profile_pattern": "/medico/",
+      "sitemap_pattern": "sitemap_medico\\.xml",
+      "enabled": false,
+      "note": "Indice con URL numerici: manca un elenco nominativo per l’incrocio senza scaricare ogni profilo."
+    },
+    {
+      "id": "Humanitas_San_Pio_X",
+      "type": "sitemap",
+      "hosts": [
+        "www.humanitas-sanpiox.it"
+      ],
+      "urls": [
+        "https://www.humanitas-sanpiox.it/sitemap_index.xml"
+      ],
+      "profile_pattern": "/medici/[^/]+/?$",
+      "sitemap_pattern": "/doctor-sitemap"
+    }
+  ]
+}
