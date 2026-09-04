@@ -1,0 +1,3 @@
+2026-09-03 16:55:34 | INFO | Excel iniziale: C:\Dev\Niko\scriptRicerca\output\risultatiMedici.xlsx
+2026-09-03 16:55:36 | OK | Dipendenze caricate.
+2026-09-04 08:51:09 | FATAL | PermissionError: [WinError 32] Impossibile accedere al file. Il file è utilizzato da un altro processo: 'C:\\Dev\\Niko\\scriptRicerca\\output\\.risultatiMedici_snhhvpj1.xlsx'
