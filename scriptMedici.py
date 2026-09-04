@@ -470,11 +470,33 @@ def atomic_save(wb, path: Path) -> None:
     fd, tmp_name = tempfile.mkstemp(prefix=f".{path.stem}_", suffix=".xlsx", dir=path.parent)
     os.close(fd)
     tmp = Path(tmp_name)
+    saved = False
     try:
         wb.save(tmp)
-        os.replace(tmp, path)
+        saved = True
+        for attempt in range(3):
+            try:
+                os.replace(tmp, path)
+                return
+            except PermissionError:
+                if attempt == 2:
+                    raise
+                time.sleep(1)
+    except Exception as exc:
+        if saved:
+            logging.error("SALVATAGGIO BLOCCATO | Output: %s | Recupero completo: %s", path, tmp)
+            raise RuntimeError(
+                f"Impossibile sostituire {path}. Chiudi Excel e controlla i permessi. "
+                f"Risultati conservati nel file di recupero: {tmp}"
+            ) from exc
+        raise
     finally:
-        tmp.unlink(missing_ok=True)
+        # Un file completo rimane disponibile se la sostituzione fallisce.
+        if not saved:
+            try:
+                tmp.unlink(missing_ok=True)
+            except OSError:
+                logging.warning("Impossibile eliminare il temporaneo incompleto: %s", tmp)
 
 
 def set_result(ws, headers: dict[str, int], row: int, result: dict[str, Any]) -> None:
@@ -537,6 +559,10 @@ def write_cache(person: Person, cache_dir: Path, result: dict[str, Any]) -> None
 # ============================================================
 # SEARCH API
 # ============================================================
+
+class SearchRequestError(RuntimeError):
+    pass
+
 
 class SearchQuotaError(RuntimeError):
     pass
@@ -615,7 +641,9 @@ class SearchClient:
                 )
 
         if last_error:
-            logging.warning("SEARCH API EMPTY/FAIL | %s", query)
+            raise SearchRequestError(
+                f"Ricerca API fallita; nessun risultato negativo attendibile. {last_error}"
+            ) from last_error
         return []
 
     def _search_provider(self, provider: str, query: str) -> list[WebHit]:
@@ -651,6 +679,18 @@ class SearchClient:
             raise SearchAuthError(
                 f"Serper autenticazione rifiutata HTTP {r.status_code}. "
                 "Controlla che SERPER_API_KEY sia corretta, attiva e associata a un account con accesso API."
+            )
+        if r.status_code >= 400:
+            try:
+                payload = r.json()
+                detail = clean(payload.get("message") or payload.get("error")) if isinstance(payload, dict) else ""
+            except (ValueError, TypeError):
+                detail = ""
+            for secret in (self.serper_key, self.brave_key):
+                if secret:
+                    detail = detail.replace(secret, "[REDACTED]")
+            raise SearchRequestError(
+                f"Search API HTTP {r.status_code}: {detail[:300] or 'nessun dettaglio disponibile'}"
             )
         r.raise_for_status()
 
@@ -692,6 +732,18 @@ class SearchClient:
             raise SearchAuthError(
                 f"Brave Search autenticazione rifiutata HTTP {r.status_code}. "
                 "Controlla BRAVE_SEARCH_API_KEY."
+            )
+        if r.status_code >= 400:
+            try:
+                payload = r.json()
+                detail = clean(payload.get("message") or payload.get("error")) if isinstance(payload, dict) else ""
+            except (ValueError, TypeError):
+                detail = ""
+            for secret in (self.serper_key, self.brave_key):
+                if secret:
+                    detail = detail.replace(secret, "[REDACTED]")
+            raise SearchRequestError(
+                f"Search API HTTP {r.status_code}: {detail[:300] or 'nessun dettaglio disponibile'}"
             )
         r.raise_for_status()
 
@@ -4241,6 +4293,7 @@ def main() -> int:
         return 0
 
     counts = {}
+    exit_code = 0
     start_all = time.perf_counter()
     unsaved = 0
 
@@ -4256,11 +4309,12 @@ def main() -> int:
             result = research_person(
                 person, args, search_client, cv_dir, review_dir, cache_dir
             )
-        except SearchAuthError as exc:
-            logging.error("AUTH SEARCH API | %s", exc)
+        except (SearchAuthError, SearchRequestError) as exc:
+            logging.error("SEARCH API BLOCCATA | %s", exc)
             result = {
                 "row": person.row,
-                "status": "BLOCCATO_AUTENTICAZIONE_API",
+                "status": ("BLOCCATO_AUTENTICAZIONE_API" if isinstance(exc, SearchAuthError)
+                           else "BLOCCATO_ERRORE_API"),
                 "specialty": "",
                 "specialty_confidence": "nessuna",
                 "specialty_evidence": "",
@@ -4271,7 +4325,7 @@ def main() -> int:
                 "cv_review_urls": "",
                 "sources": "",
                 "method": f"Search API V6.0 ({args.provider})",
-                "notes": "Autenticazione Search API rifiutata. Elaborazione interrotta.",
+                "notes": "Errore Search API. Elaborazione interrotta; record da riprovare dopo la risoluzione.",
                 "updated": utc_now(),
                 "error": str(exc),
             }
@@ -4334,12 +4388,13 @@ def main() -> int:
                 i, len(people), rate, eta, counts, search_client.requests_by_provider
             )
 
-        if status in {"BLOCCATO_QUOTA_RICERCA", "BLOCCATO_AUTENTICAZIONE_API"}:
+        if status in {"BLOCCATO_QUOTA_RICERCA", "BLOCCATO_AUTENTICAZIONE_API", "BLOCCATO_ERRORE_API"}:
             atomic_save(wb, output_path)
             if status == "BLOCCATO_QUOTA_RICERCA":
                 logging.error("STOP | Quota Search API esaurita.")
             else:
-                logging.error("STOP | Autenticazione Search API rifiutata.")
+                logging.error("STOP | Search API bloccata: %s", status)
+            exit_code = 1
             break
 
     atomic_save(wb, output_path)
@@ -4358,7 +4413,7 @@ def main() -> int:
     print(f"CV sicuri salvati in: {cv_dir}")
     print(f"CV da verificare salvati in: {review_dir}")
     print(f"Richieste Search API: {search_client.requests_total} | {search_client.requests_by_provider}")
-    return 0
+    return exit_code
 
 
 if __name__ == "__main__":
