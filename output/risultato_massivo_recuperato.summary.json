@@ -1,0 +1,21 @@
+{
+  "total": 81331,
+  "states": {
+    "NON_COPERTO_DALLE_FONTI": 63782,
+    "IN_CODA": 13681,
+    "SPECIALITA_CON_IDENTITA_NOMINALE": 800,
+    "EVIDENZA_NON_CONFERMATA": 875,
+    "FONTE_NON_ACCESSIBILE": 27,
+    "PROFILO_CON_IDENTITA_NOMINALE": 1318,
+    "DISCIPLINA_DICHIARATA_NEL_PROFILO": 834,
+    "IDENTITA_CONFERMATA_SENZA_TITOLO": 7,
+    "SPECIALITA_DOCUMENTATA": 7
+  },
+  "people_with_sources": 17549,
+  "urls": {
+    "done": 3931,
+    "error": 69,
+    "pending": 15547
+  },
+  "updated": "2026-09-07T14:17:11+00:00"
+}

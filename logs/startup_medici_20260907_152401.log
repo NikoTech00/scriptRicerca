@@ -1,0 +1,2 @@
+2026-09-07 15:24:01 | OK | Dipendenze caricate.
+2026-09-07 15:24:14 | FATAL | ValueError: Output esistente non creato dalla modalità massiva: C:\Dev\Niko\Python\scriptRicerca\output\risultati_massivo_recuperato.xlsx. Scegliere un nome nuovo con --output; la run non è stata avviata.
