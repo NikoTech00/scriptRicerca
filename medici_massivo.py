@@ -648,7 +648,8 @@ def save_outcome(store, fetcher, names, url, outcome):
     return added
 
 
-def process_queue(store, fetcher, names, workers=6, max_documents=5000):
+def process_queue(store, fetcher, names, workers=6, max_documents=5000, checkpoint=None,
+                  checkpoint_every=1000):
     processed = 0
     store.db.execute('DELETE FROM evidence WHERE url IN (SELECT url FROM urls WHERE analyzed!=?)', (ANALYZER,))
     store.db.execute("UPDATE urls SET state='pending' WHERE state='done' AND (analyzed!=? OR EXISTS (SELECT 1 FROM candidates c LEFT JOIN evidence e ON e.pid=c.pid AND e.url=c.url WHERE c.url=urls.url AND e.pid IS NULL))", (ANALYZER,))
@@ -701,6 +702,8 @@ def process_queue(store, fetcher, names, workers=6, max_documents=5000):
                 processed += 1
                 if processed % 50 == 0:
                     logging.info('Documenti elaborati in questa esecuzione: %s; richieste HTTP: %s', processed, fetcher.requests)
+                if checkpoint and checkpoint_every and processed % checkpoint_every == 0:
+                    checkpoint(processed)
     return processed
 
 
@@ -740,7 +743,7 @@ def summarize(evidence, pending=False, errors=False):
             '\n'.join(dict.fromkeys(v for e in selected for v in e.get('activity_evidence', [])))]
 
 
-def export_report(store, input_path, sheet, output):
+def validate_output_target(store, input_path, output):
     output = Path(output).resolve()
     if output == Path(input_path).resolve():
         raise ValueError('Il report non può sostituire l’input.')
@@ -749,9 +752,20 @@ def export_report(store, input_path, sheet, output):
         try:
             owner = json.loads(marker.read_text())
         except (OSError, ValueError):
-            raise ValueError('Output esistente non creato da questa modalità: scegliere un nome nuovo.')
+            raise ValueError(
+                f'Output esistente non creato dalla modalità massiva: {output}. '
+                'Scegliere un nome nuovo con --output; la run non è stata avviata.'
+            )
         if owner.get('input') != store.get('input') or owner.get('state') != str(store.folder):
-            raise ValueError('Output appartenente a un altro archivio: scegliere un nome nuovo.')
+            raise ValueError(
+                f'Output appartenente a un altro archivio o stato: {output}. '
+                'Scegliere un nome nuovo con --output; la run non è stata avviata.'
+            )
+    return output, marker
+
+
+def export_report(store, input_path, sheet, output):
+    output, marker = validate_output_target(store, input_path, output)
     evidence = defaultdict(list)
     for row in store.db.execute('SELECT pid,data FROM evidence'):
         evidence[row['pid']].append(json.loads(row['data']))
@@ -838,6 +852,10 @@ def run(args):
         people = {r['pid']: core.Person(**json.loads(r['data'])) for r in store.db.execute('SELECT pid,data FROM people')}
         names = Names(people)
         logging.info('Archivio: %s persone; %s nomi ripetuti', len(people), sum(len(v) - 1 for v in names.full.values()))
+        output = args.output or Path('output/risultati_massivi.xlsx')
+        # Il controllo deve avvenire prima di discovery/download: mai sprecare ore
+        # per scoprire soltanto all'esportazione che il nome è già occupato.
+        validate_output_target(store, args.input, output)
         fetcher = Fetcher(store.folder, args.max_http_requests, args.host_delay)
         if args.retry_errors:
             store.db.execute("UPDATE urls SET state='pending',error='' WHERE state='error'")
@@ -849,11 +867,18 @@ def run(args):
             if not args.export_only:
                 if not args.skip_discovery:
                     discover(store, fetcher, names, args.source_catalog, args.refresh_sources, args.workers)
-                process_queue(store, fetcher, names, args.workers, args.max_documents)
+                def checkpoint(processed):
+                    metrics = export_report(store, args.input, args.sheet, output)
+                    logging.info('CHECKPOINT MASSIVO | documenti=%s | report=%s | stati=%s',
+                                 processed, Path(output).resolve(), metrics['states'])
+                    print(f'Checkpoint salvato: {processed} documenti | {Path(output).resolve()}', flush=True)
+
+                process_queue(store, fetcher, names, args.workers, args.max_documents,
+                              checkpoint=checkpoint,
+                              checkpoint_every=args.mass_checkpoint_every)
         except KeyboardInterrupt:
             interrupted = True
             logging.warning('Interruzione richiesta: esporto i risultati già salvati nella coda.')
-        output = args.output or Path('output/risultati_massivi.xlsx')
         metrics = export_report(store, args.input, args.sheet, output)
         logging.info('MASSIVO: %s; HTTP=%s; Search API=0', metrics, fetcher.requests)
         print(json.dumps(metrics, ensure_ascii=False, indent=2), flush=True)

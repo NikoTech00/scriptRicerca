@@ -23,6 +23,14 @@ Per una sessione più lunga:
 python scriptMedici.py "input/scriptMedici.xlsx" --massivo --max-documents 30000 --max-http-requests 40000 --output "output/risultati_massivi.xlsx"
 ```
 
+Durante una run lunga il report viene aggiornato automaticamente ogni 1.000 documenti.
+Il terminale mostra `Checkpoint salvato` quando il file Excel intermedio è pronto.
+La frequenza si può cambiare, per esempio con `--mass-checkpoint-every 500`.
+
+Il nome indicato con `--output` viene controllato prima dei download. Se esiste già
+un file che non è stato creato dalla modalità massiva, il programma si ferma subito
+e chiede un nome nuovo, senza lavorare inutilmente per ore.
+
 Si può interrompere con Ctrl+C. I documenti completati sono già registrati in SQLite; l'interruzione ordinaria esporta il report dopo la chiusura delle richieste in corso. Dopo una chiusura forzata del PC, rilanciare il comando. Una seconda esecuzione contemporanea sullo stesso stato viene bloccata.
 
 Per esportare lo stato raggiunto senza richieste di rete:

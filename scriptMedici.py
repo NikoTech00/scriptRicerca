@@ -316,6 +316,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--workers", type=int, default=6)
     p.add_argument("--max-http-requests", type=int, default=6000)
     p.add_argument("--max-documents", type=int, default=5000)
+    p.add_argument("--mass-checkpoint-every", type=int, default=1000,
+                   help="Salva un report intermedio ogni N documenti in modalità massiva (default 1000).")
     p.add_argument("--host-delay", type=float, default=0.5)
     p.add_argument("--refresh-sources", action="store_true")
     p.add_argument("--skip-discovery", action="store_true")
@@ -389,7 +391,7 @@ def parse_args() -> argparse.Namespace:
 
     if args.massivo and (args.offline or args.sources_file or args.limit is not None or args.start_row != 2):
         p.error("--massivo lavora sull'intero archivio; non combinare con --offline, --sources-file, --limit o --start-row")
-    if not 1 <= args.workers <= 16 or args.max_http_requests < 1 or args.max_documents < 1 or args.host_delay < 0.2:
+    if not 1 <= args.workers <= 16 or args.max_http_requests < 1 or args.max_documents < 1 or args.mass_checkpoint_every < 1 or args.host_delay < 0.2:
         p.error("workers deve essere 1..16, limiti positivi e host-delay almeno 0.2 secondi")
     if args.offline and args.sources_file:
         p.error("--offline e --sources-file sono modalità alternative")
