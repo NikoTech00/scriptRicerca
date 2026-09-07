@@ -1,0 +1,1 @@
+2026-09-07 08:28:56 | ERRORE | Dipendenze mancanti: requests (No module named 'requests'); beautifulsoup4 (No module named 'bs4'); python-dotenv (No module named 'dotenv'); openpyxl (No module named 'openpyxl'); pypdf (No module named 'pypdf')
