@@ -1,0 +1,58 @@
+2026-09-08 10:56:05 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-08 10:56:07 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-08 10:57:02 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 50
+2026-09-08 10:58:00 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 100
+2026-09-08 10:59:00 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 150
+2026-09-08 11:00:05 | INFO | Documenti elaborati in questa esecuzione: 200; richieste HTTP: 200
+2026-09-08 11:01:04 | INFO | Documenti elaborati in questa esecuzione: 250; richieste HTTP: 250
+2026-09-08 11:02:02 | INFO | Documenti elaborati in questa esecuzione: 300; richieste HTTP: 300
+2026-09-08 11:03:05 | INFO | Documenti elaborati in questa esecuzione: 350; richieste HTTP: 350
+2026-09-08 11:04:03 | INFO | Documenti elaborati in questa esecuzione: 400; richieste HTTP: 400
+2026-09-08 11:05:02 | INFO | Documenti elaborati in questa esecuzione: 450; richieste HTTP: 450
+2026-09-08 11:05:57 | INFO | Documenti elaborati in questa esecuzione: 500; richieste HTTP: 500
+2026-09-08 11:06:32 | INFO | CHECKPOINT MASSIVO | documenti=500 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 63782, 'IN_CODA': 13199, 'SPECIALITA_CON_IDENTITA_NOMINALE': 911, 'EVIDENZA_NON_CONFERMATA': 951, 'FONTE_NON_ACCESSIBILE': 27, 'PROFILO_CON_IDENTITA_NOMINALE': 1393, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 1054, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 7, 'SPECIALITA_DOCUMENTATA': 7}
+2026-09-08 11:07:35 | INFO | Documenti elaborati in questa esecuzione: 550; richieste HTTP: 550
+2026-09-08 11:08:44 | INFO | Documenti elaborati in questa esecuzione: 600; richieste HTTP: 600
+2026-09-08 11:09:46 | INFO | Documenti elaborati in questa esecuzione: 650; richieste HTTP: 650
+2026-09-08 11:10:45 | INFO | Documenti elaborati in questa esecuzione: 700; richieste HTTP: 700
+2026-09-08 11:11:45 | INFO | Documenti elaborati in questa esecuzione: 750; richieste HTTP: 750
+2026-09-08 11:12:48 | INFO | Documenti elaborati in questa esecuzione: 800; richieste HTTP: 800
+2026-09-08 11:13:46 | INFO | Documenti elaborati in questa esecuzione: 850; richieste HTTP: 850
+2026-09-08 11:14:47 | INFO | Documenti elaborati in questa esecuzione: 900; richieste HTTP: 900
+2026-09-08 11:15:54 | INFO | Documenti elaborati in questa esecuzione: 950; richieste HTTP: 950
+2026-09-08 11:16:53 | INFO | Documenti elaborati in questa esecuzione: 1000; richieste HTTP: 1000
+2026-09-08 11:17:28 | INFO | CHECKPOINT MASSIVO | documenti=1000 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 63782, 'IN_CODA': 12738, 'EVIDENZA_NON_CONFERMATA': 979, 'SPECIALITA_CON_IDENTITA_NOMINALE': 1028, 'FONTE_NON_ACCESSIBILE': 27, 'PROFILO_CON_IDENTITA_NOMINALE': 1498, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 1263, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 8, 'SPECIALITA_DOCUMENTATA': 8}
+2026-09-08 11:18:30 | INFO | Documenti elaborati in questa esecuzione: 1050; richieste HTTP: 1050
+2026-09-08 11:19:33 | INFO | Documenti elaborati in questa esecuzione: 1100; richieste HTTP: 1100
+2026-09-08 11:20:32 | INFO | Documenti elaborati in questa esecuzione: 1150; richieste HTTP: 1150
+2026-09-08 11:21:33 | INFO | Documenti elaborati in questa esecuzione: 1200; richieste HTTP: 1200
+2026-09-08 11:22:30 | INFO | Documenti elaborati in questa esecuzione: 1250; richieste HTTP: 1250
+2026-09-08 11:23:34 | INFO | Documenti elaborati in questa esecuzione: 1300; richieste HTTP: 1300
+2026-09-08 11:24:33 | INFO | Documenti elaborati in questa esecuzione: 1350; richieste HTTP: 1350
+2026-09-08 11:25:28 | INFO | Documenti elaborati in questa esecuzione: 1400; richieste HTTP: 1400
+2026-09-08 11:26:27 | INFO | Documenti elaborati in questa esecuzione: 1450; richieste HTTP: 1450
+2026-09-08 11:27:24 | INFO | Documenti elaborati in questa esecuzione: 1500; richieste HTTP: 1500
+2026-09-08 11:27:58 | INFO | CHECKPOINT MASSIVO | documenti=1500 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 63782, 'IN_CODA': 12269, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 1419, 'EVIDENZA_NON_CONFERMATA': 1073, 'SPECIALITA_CON_IDENTITA_NOMINALE': 1124, 'FONTE_NON_ACCESSIBILE': 27, 'PROFILO_CON_IDENTITA_NOMINALE': 1621, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 8, 'SPECIALITA_DOCUMENTATA': 8}
+2026-09-08 11:28:56 | INFO | Documenti elaborati in questa esecuzione: 1550; richieste HTTP: 1550
+2026-09-08 11:29:49 | INFO | Documenti elaborati in questa esecuzione: 1600; richieste HTTP: 1600
+2026-09-08 11:30:56 | INFO | Documenti elaborati in questa esecuzione: 1650; richieste HTTP: 1650
+2026-09-08 11:31:56 | INFO | Documenti elaborati in questa esecuzione: 1700; richieste HTTP: 1700
+2026-09-08 11:32:58 | INFO | Documenti elaborati in questa esecuzione: 1750; richieste HTTP: 1750
+2026-09-08 11:34:04 | INFO | Documenti elaborati in questa esecuzione: 1800; richieste HTTP: 1800
+2026-09-08 11:35:05 | INFO | Documenti elaborati in questa esecuzione: 1850; richieste HTTP: 1850
+2026-09-08 11:36:06 | INFO | Documenti elaborati in questa esecuzione: 1900; richieste HTTP: 1900
+2026-09-08 11:37:07 | INFO | Documenti elaborati in questa esecuzione: 1950; richieste HTTP: 1950
+2026-09-08 11:38:08 | INFO | Documenti elaborati in questa esecuzione: 2000; richieste HTTP: 2000
+2026-09-08 11:38:43 | INFO | CHECKPOINT MASSIVO | documenti=2000 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 63782, 'IN_CODA': 11808, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 1664, 'EVIDENZA_NON_CONFERMATA': 1099, 'SPECIALITA_CON_IDENTITA_NOMINALE': 1225, 'FONTE_NON_ACCESSIBILE': 27, 'PROFILO_CON_IDENTITA_NOMINALE': 1710, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 8, 'SPECIALITA_DOCUMENTATA': 8}
+2026-09-08 11:39:43 | INFO | Documenti elaborati in questa esecuzione: 2050; richieste HTTP: 2050
+2026-09-08 11:40:47 | INFO | Documenti elaborati in questa esecuzione: 2100; richieste HTTP: 2100
+2026-09-08 11:41:52 | INFO | Documenti elaborati in questa esecuzione: 2150; richieste HTTP: 2150
+2026-09-08 11:43:05 | INFO | Documenti elaborati in questa esecuzione: 2200; richieste HTTP: 2200
+2026-09-08 11:44:08 | INFO | Documenti elaborati in questa esecuzione: 2250; richieste HTTP: 2250
+2026-09-08 11:45:16 | INFO | Documenti elaborati in questa esecuzione: 2300; richieste HTTP: 2300
+2026-09-08 11:46:22 | INFO | Documenti elaborati in questa esecuzione: 2350; richieste HTTP: 2350
+2026-09-08 11:47:45 | INFO | Documenti elaborati in questa esecuzione: 2400; richieste HTTP: 2400
+2026-09-08 11:48:49 | INFO | Documenti elaborati in questa esecuzione: 2450; richieste HTTP: 2450
+2026-09-08 11:49:49 | INFO | Documenti elaborati in questa esecuzione: 2500; richieste HTTP: 2500
+2026-09-08 11:50:24 | INFO | CHECKPOINT MASSIVO | documenti=2500 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 63782, 'IN_CODA': 11342, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 1866, 'EVIDENZA_NON_CONFERMATA': 1138, 'SPECIALITA_CON_IDENTITA_NOMINALE': 1367, 'FONTE_NON_ACCESSIBILE': 28, 'PROFILO_CON_IDENTITA_NOMINALE': 1790, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 8, 'SPECIALITA_DOCUMENTATA': 10}
+2026-09-08 11:51:00 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 63782, 'IN_CODA': 11342, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 1866, 'EVIDENZA_NON_CONFERMATA': 1138, 'SPECIALITA_CON_IDENTITA_NOMINALE': 1367, 'FONTE_NON_ACCESSIBILE': 28, 'PROFILO_CON_IDENTITA_NOMINALE': 1790, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 8, 'SPECIALITA_DOCUMENTATA': 10}, 'people_with_sources': 17549, 'urls': {'done': 6514, 'error': 70, 'pending': 12963}, 'updated': '2026-09-08T09:51:00+00:00'}; HTTP=2500; Search API=0
