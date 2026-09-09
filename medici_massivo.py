@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import sqlite3
 import tempfile
 import threading
@@ -70,6 +71,48 @@ def atomic_text(path, value):
         os.replace(name, path)
     finally:
         Path(name).unlink(missing_ok=True)
+
+
+def readable_cv_path(source, person, cv_dir, url=''):
+    """Copia un CV verificato fuori dalla cache usando Pers_Id, cognome e nome."""
+    source = Path(source)
+    cv_dir = Path(cv_dir)
+    cv_dir.mkdir(parents=True, exist_ok=True)
+    ext = source.suffix.lower() if source.suffix.lower() in {'.pdf', '.doc', '.docx', '.html'} else '.bin'
+    base = '_'.join((core.safe_part(person.pers_id), core.safe_part(person.surname), core.safe_part(person.name)))
+    target = cv_dir / f'{base}{ext}'
+    if target.exists():
+        if sha_file(target) == sha_file(source):
+            return target
+        digest = hashlib.sha1((url or str(source)).encode('utf-8')).hexdigest()[:10]
+        target = cv_dir / f'{base}_{digest}{ext}'
+    if not target.exists() or sha_file(target) != sha_file(source):
+        shutil.copy2(source, target)
+    return target
+
+
+def materialize_verified_cvs(store, cv_dir):
+    """Rende leggibili anche i CV acquisiti nei cicli massivi precedenti."""
+    people = {row['pid']: core.Person(**json.loads(row['data'])) for row in store.db.execute('SELECT pid,data FROM people')}
+    changed = 0
+    for row in store.db.execute('SELECT pid,url,data FROM evidence').fetchall():
+        data = json.loads(row['data'])
+        if not data.get('cv') or data.get('identity') not in ('anagrafica_concordante', 'solo_nome_completo'):
+            continue
+        source = Path(data.get('path', ''))
+        person = people.get(row['pid'])
+        if not person or not source.is_file():
+            continue
+        target = readable_cv_path(source, person, cv_dir, data.get('url', row['url']))
+        if str(target) != data.get('path'):
+            data['path'] = str(target.resolve())
+            store.db.execute('UPDATE evidence SET data=? WHERE pid=? AND url=?',
+                             (json.dumps(data, ensure_ascii=False), row['pid'], row['url']))
+            changed += 1
+    if changed:
+        store.db.commit()
+        logging.info('CV rinominati e copiati in %s: %s', Path(cv_dir).resolve(), changed)
+    return changed
 
 
 class RunLock:
@@ -796,8 +839,9 @@ def validate_output_target(store, input_path, output):
     return output, marker
 
 
-def export_report(store, input_path, sheet, output):
+def export_report(store, input_path, sheet, output, cv_dir=Path('cv_medici')):
     output, marker = validate_output_target(store, input_path, output)
+    materialize_verified_cvs(store, cv_dir)
     evidence = defaultdict(list)
     for row in store.db.execute('SELECT pid,data FROM evidence'):
         evidence[row['pid']].append(json.loads(row['data']))
@@ -900,7 +944,7 @@ def run(args):
                 if not args.skip_discovery:
                     discover(store, fetcher, names, args.source_catalog, args.refresh_sources, args.workers)
                 def checkpoint(processed):
-                    metrics = export_report(store, args.input, args.sheet, output)
+                    metrics = export_report(store, args.input, args.sheet, output, args.cv_dir)
                     logging.info('CHECKPOINT MASSIVO | documenti=%s | report=%s | stati=%s',
                                  processed, Path(output).resolve(), metrics['states'])
                     print(f'Checkpoint salvato: {processed} documenti | {Path(output).resolve()}', flush=True)
@@ -911,7 +955,7 @@ def run(args):
         except KeyboardInterrupt:
             interrupted = True
             logging.warning('Interruzione richiesta: esporto i risultati già salvati nella coda.')
-        metrics = export_report(store, args.input, args.sheet, output)
+        metrics = export_report(store, args.input, args.sheet, output, args.cv_dir)
         logging.info('MASSIVO: %s; HTTP=%s; Search API=0', metrics, fetcher.requests)
         print(json.dumps(metrics, ensure_ascii=False, indent=2), flush=True)
         print(f'Report completo: {Path(output).resolve()}\nRipetere lo stesso comando per continuare dalla coda salvata. Search API: 0.')

@@ -2,6 +2,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from openpyxl import Workbook, load_workbook
@@ -13,6 +14,17 @@ def person(pid='1', name='Anna', surname='Rossi', dob='03/04/1980'):
 
 
 class MassivoTests(unittest.TestCase):
+    def test_readable_cv_path_uses_person_code_surname_and_name(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            source = root / 'cache' / 'abc.pdf'
+            source.parent.mkdir()
+            source.write_bytes(b'%PDF-test')
+            person = SimpleNamespace(pers_id='123', surname='De Rossi', name='Anna Maria')
+            target = m.readable_cv_path(source, person, root / 'cv', 'https://example.test/cv.pdf')
+            self.assertEqual(target.name, '123_De_Rossi_Anna_Maria.pdf')
+            self.assertEqual(target.read_bytes(), source.read_bytes())
+
     def test_numeric_profile_is_queued_then_matched_from_title(self):
         names = m.Names({'1': person()})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medico/123/0</loc></url></urlset>'
