@@ -137,6 +137,44 @@
       "name_pattern": "^/dottor/([^/]+)"
     },
     {
+      "id": "Doctolib",
+      "type": "sitemap",
+      "hosts": [
+        "www.doctolib.it"
+      ],
+      "urls": [
+        "https://www.doctolib.it/sitemap.xml"
+      ],
+      "profile_pattern": "^https://www\\.doctolib\\.it/[^/]+/[^/]+/[^/]+/?$",
+      "sitemap_pattern": "/sitemap_practitioner_doctors/[0-9]+\\.xml$",
+      "name_pattern": "^/[^/]+/[^/]+/([^/]+)$",
+      "max_index_pages": 45,
+      "indexed_activity": true,
+      "activity_pattern": "^/([^/]+)/",
+      "activity_map": {
+        "ortopedico-traumatologo": "Ortopedia e Traumatologia",
+        "ginecologo-ostetrico": "Ginecologia e Ostetricia",
+        "specialista-in-igiene-e-medicina-preventiva": "Igiene e Medicina Preventiva",
+        "specialista-in-medicina-d-emergenza-urgenza": "Medicina d'Emergenza-Urgenza",
+        "dermatologo-venereologo": "Dermatologia e Venereologia",
+        "radioterapista": "Radioterapia",
+        "chirurgo-plastico": "Chirurgia Plastica, Ricostruttiva ed Estetica",
+        "radiologo-diagnostico": "Radiodiagnostica",
+        "allergologo-immunologo": "Allergologia e Immunologia Clinica",
+        "farmacologo-tossicologo": "Farmacologia e Tossicologia Clinica",
+        "chirurgo-toracico": "Chirurgia Toracica",
+        "patologo-clinico": "Patologia Clinica",
+        "cardiochirurgo": "Cardiochirurgia",
+        "chirurgo-pediatrico": "Chirurgia Pediatrica",
+        "microbiologo-virologo": "Microbiologia e Virologia",
+        "chirurgo-maxillo-faciale": "Chirurgia Maxillo-Facciale",
+        "medico-nucleare": "Medicina Nucleare",
+        "genetista": "Genetica Medica",
+        "audiologo": "Audiologia e Foniatria"
+      },
+      "note": "Nome e disciplina sono ricavati dalla sitemap pubblica; la disciplina resta distinta da una specializzazione documentata."
+    },
+    {
       "id": "Humanitas_San_Pio_X",
       "type": "sitemap",
       "hosts": [

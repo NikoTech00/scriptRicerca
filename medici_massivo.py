@@ -488,7 +488,7 @@ def discover_one(spec, fetcher, names, refresh=False):
                     else:
                         label = path.rsplit('/', 1)[-1]
                     for pid in names.match(label):
-                        found.add((pid, link, 'profile'))
+                        found.add((pid, link, 'indexed_activity' if spec.get('indexed_activity') else 'profile'))
             else:
                 soup = BeautifulSoup(raw, 'html.parser')
                 for a in soup.select('a[href]'):
@@ -516,6 +516,33 @@ def discover_one(spec, fetcher, names, refresh=False):
     return found, errors
 
 
+def indexed_activity_result(spec, person, url, ambiguous):
+    """Crea evidenza nominale dalla categoria professionale esplicita nell'URL indicizzato."""
+    path = unquote(urlparse(url).path).rstrip('/')
+    match = re.search(spec.get('activity_pattern', r'^/([^/]+)/'), path)
+    slug = match[1].casefold() if match else ''
+    label = spec.get('activity_map', {}).get(slug, '')
+    if not label:
+        raw = slug.replace('-', ' ')
+        aliases = {key(k): v for k, v in core.SPECIALTY_ALIASES.items()}
+        label = aliases.get(key(raw), '')
+    identity = 'omonimia' if ambiguous else 'solo_nome_completo'
+    reason = ('Più persone nell’input con lo stesso nome: manca un discriminante anagrafico'
+              if ambiguous else 'Nome completo concordante con il profilo indicizzato; identità anagrafica non confermata dalla fonte')
+    return {
+        'identity': identity,
+        'specialties': [],
+        'evidence': [],
+        'activities': [label] if label and not ambiguous else [],
+        'activity_evidence': [f"Categoria pubblica {spec['id']}: {label}"] if label and not ambiguous else [],
+        'cv': False,
+        'reason': reason if label else reason + '; categoria non inclusa nella tassonomia medica',
+        'path': '',
+        'kind': 'Profilo pubblico indicizzato',
+        'url': url,
+    }
+
+
 def discover(store, fetcher, names, catalog, refresh=False, workers=6):
     specs = json.loads(Path(catalog).read_text(encoding='utf-8'))['sources']
     def signature(spec):
@@ -541,6 +568,17 @@ def discover(store, fetcher, names, catalog, refresh=False, workers=6):
                     store.add_probe(url, spec['id'])
                 else:
                     store.add(pid, url, spec['id'], kind)
+                    if kind == 'indexed_activity':
+                        person = names.people[pid]
+                        result = indexed_activity_result(spec, person, url, names.ambiguous(person))
+                        store.db.execute(
+                            "UPDATE urls SET state='done',error='',path='',final_url=?,sha=?,text='',analyzed=? WHERE url=?",
+                            (url, hashlib.sha256(url.encode()).hexdigest(), ANALYZER, url),
+                        )
+                        store.db.execute(
+                            'INSERT OR REPLACE INTO evidence VALUES (?,?,?)',
+                            (pid, url, json.dumps(result, ensure_ascii=False)),
+                        )
             store.db.execute('INSERT OR REPLACE INTO sources VALUES (?,?,?,?,?)',
                 (spec['id'], 'partial' if errors else 'done', len(found), '\n'.join(errors), core.utc_now()))
             store.db.commit()

@@ -26,6 +26,25 @@ class MassivoTests(unittest.TestCase):
             self.assertTrue(target.is_absolute())
             self.assertEqual(target.read_bytes(), source.read_bytes())
 
+    def test_indexed_activity_is_nominal_and_not_a_documented_specialty(self):
+        p = person()
+        spec = {'id': 'Doctolib', 'activity_pattern': r'^/([^/]+)/', 'activity_map': {}}
+        result = m.indexed_activity_result(
+            spec, p, 'https://www.doctolib.it/cardiologo/roma/anna-rossi', False
+        )
+        self.assertEqual(result['identity'], 'solo_nome_completo')
+        self.assertEqual(result['specialties'], [])
+        self.assertEqual(result['activities'], ['Cardiologia'])
+        self.assertIn('Categoria pubblica Doctolib', result['activity_evidence'][0])
+
+    def test_indexed_activity_rejects_ambiguous_name(self):
+        spec = {'id': 'Doctolib', 'activity_pattern': r'^/([^/]+)/', 'activity_map': {}}
+        result = m.indexed_activity_result(
+            spec, person(), 'https://www.doctolib.it/pediatra/roma/anna-rossi', True
+        )
+        self.assertEqual(result['identity'], 'omonimia')
+        self.assertEqual(result['activities'], [])
+
     def test_numeric_profile_is_queued_then_matched_from_title(self):
         names = m.Names({'1': person()})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medico/123/0</loc></url></urlset>'
