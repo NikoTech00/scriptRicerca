@@ -1,0 +1,4 @@
+2026-09-09 16:34:59 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-09 16:35:01 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-09 16:35:41 | INFO | FONTE Doctolib: 38702 associazioni, 0 problemi
+2026-09-09 16:36:24 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 46225, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23342, 'PROFILO_CON_IDENTITA_NOMINALE': 3043, 'EVIDENZA_NON_CONFERMATA': 3536, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5065, 'FONTE_NON_ACCESSIBILE': 81, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35106, 'urls': {'done': 72285, 'error': 620}, 'updated': '2026-09-09T14:36:24+00:00'}; HTTP=42; Search API=0
