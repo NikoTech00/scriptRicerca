@@ -120,8 +120,21 @@
       ],
       "profile_pattern": "/medico/",
       "sitemap_pattern": "sitemap_medico\\.xml",
-      "enabled": false,
-      "note": "Indice con URL numerici: manca un elenco nominativo per l’incrocio senza scaricare ogni profilo."
+      "content_match": true,
+      "note": "Gli URL sono numerici: il motore associa il nome letto dall'intestazione della scheda."
+    },
+    {
+      "id": "TopDoctors",
+      "type": "sitemap",
+      "hosts": [
+        "www.topdoctors.it"
+      ],
+      "urls": [
+        "https://www.topdoctors.it/sitemap.xml"
+      ],
+      "profile_pattern": "^/dottor/[^/]+/?$",
+      "sitemap_pattern": "(?:doctors\\.xml|doctors-all\\.xml)$",
+      "name_pattern": "^/dottor/([^/]+)"
     },
     {
       "id": "Humanitas_San_Pio_X",

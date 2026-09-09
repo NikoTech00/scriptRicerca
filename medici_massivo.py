@@ -35,7 +35,7 @@ import scriptMedici as core
 
 SCHEMA = 1
 ANALYZER = 5
-DISCOVERY_VERSION = 2
+DISCOVERY_VERSION = 3
 UA = 'MediciResearch/1.0'
 MAX_BYTES = 25 * 1024 * 1024
 EXTRA_COLUMNS = [
@@ -114,6 +114,7 @@ class Store:
           CREATE TABLE IF NOT EXISTS people (pid TEXT PRIMARY KEY, input_row INTEGER, data TEXT NOT NULL, name_key TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS urls (url TEXT PRIMARY KEY, kind TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'pending', error TEXT NOT NULL DEFAULT '', path TEXT, final_url TEXT, sha TEXT, text TEXT, analyzed INTEGER DEFAULT 0);
           CREATE TABLE IF NOT EXISTS candidates (pid TEXT, url TEXT, source TEXT, PRIMARY KEY(pid,url));
+          CREATE TABLE IF NOT EXISTS probes (url TEXT PRIMARY KEY, source TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS evidence (pid TEXT, url TEXT, data TEXT, PRIMARY KEY(pid,url));
           CREATE TABLE IF NOT EXISTS sources (id TEXT PRIMARY KEY, state TEXT, count INTEGER, error TEXT, updated TEXT);
           CREATE INDEX IF NOT EXISTS candidate_url ON candidates(url);
@@ -176,6 +177,14 @@ class Store:
             return
         self.db.execute('INSERT OR IGNORE INTO urls(url,kind) VALUES (?,?)', (url, kind))
         self.db.execute('INSERT OR IGNORE INTO candidates VALUES (?,?,?)', (pid, url, source))
+
+    def add_probe(self, url, source):
+        """Accoda una scheda con URL numerico; il nome verrà letto dall'intestazione."""
+        url = urldefrag(url)[0]
+        if urlparse(url).scheme not in ('http', 'https'):
+            return
+        self.db.execute("INSERT OR IGNORE INTO urls(url,kind) VALUES (?,'profile')", (url,))
+        self.db.execute('INSERT OR REPLACE INTO probes VALUES (?,?)', (url, source))
 
     def close(self):
         self.db.close()
@@ -424,6 +433,9 @@ def discover_one(spec, fetcher, names, refresh=False):
                         link = 'https://' + link[7:]
                     if urlparse(link).hostname not in spec['hosts'] or not re.search(spec['profile_pattern'], link):
                         continue
+                    if spec.get('content_match'):
+                        found.add(('', link, 'probe'))
+                        continue
                     path = unquote(urlparse(link).path).rstrip('/')
                     if spec.get('name_pattern'):
                         match = re.search(spec['name_pattern'], path)
@@ -476,9 +488,16 @@ def discover(store, fetcher, names, catalog, refresh=False, workers=6):
                 stale = [(row['pid'], row['url']) for row in store.db.execute('SELECT pid,url FROM candidates WHERE source=?', (spec['id'],)) if (row['pid'], row['url']) not in fresh]
                 store.db.executemany('DELETE FROM candidates WHERE pid=? AND url=?', stale)
                 store.db.execute('DELETE FROM evidence WHERE NOT EXISTS (SELECT 1 FROM candidates c WHERE c.pid=evidence.pid AND c.url=evidence.url)')
-                store.db.execute('DELETE FROM urls WHERE NOT EXISTS (SELECT 1 FROM candidates c WHERE c.url=urls.url)')
+                fresh_probes = {url for pid, url, kind in found if not pid and kind == 'probe'}
+                if spec.get('content_match'):
+                    stale_probes = [(row['url'],) for row in store.db.execute('SELECT url FROM probes WHERE source=?', (spec['id'],)) if row['url'] not in fresh_probes]
+                    store.db.executemany('DELETE FROM probes WHERE url=?', stale_probes)
+                store.db.execute('DELETE FROM urls WHERE NOT EXISTS (SELECT 1 FROM candidates c WHERE c.url=urls.url) AND NOT EXISTS (SELECT 1 FROM probes p WHERE p.url=urls.url)')
             for pid, url, kind in sorted(found, key=lambda item: (item[1], item[0])):
-                store.add(pid, url, spec['id'], kind)
+                if kind == 'probe':
+                    store.add_probe(url, spec['id'])
+                else:
+                    store.add(pid, url, spec['id'], kind)
             store.db.execute('INSERT OR REPLACE INTO sources VALUES (?,?,?,?,?)',
                 (spec['id'], 'partial' if errors else 'done', len(found), '\n'.join(errors), core.utc_now()))
             store.db.commit()
@@ -512,10 +531,15 @@ def import_local_documents(store, names, folders):
 
 def visible_profile(raw):
     soup = BeautifulSoup(raw, 'html.parser')
+    seo_title = soup.title.get_text(' ', strip=True) if soup.title else ''
     title = ' '.join(x.get_text(' ', strip=True) for x in soup.select('h1'))
-    if not title and soup.title:
-        title = soup.title.get_text(' ', strip=True)
+    if not title:
+        title = seo_title
     roles = [a.get_text(' ', strip=True) for a in soup.select('[data-test-id=doctor-specializations] a[title]')]
+    # Alcune directory espongono la disciplina soltanto nel titolo SEO.
+    match = re.search(r'(?i)specialista\s+in\s+(.+?)(?=\s+(?:a|in)\s+[^|]+(?:\||$))', seo_title)
+    if match:
+        roles.append(match.group(1).strip())
     for item in soup.select('script,style,noscript,nav,footer,header,aside,form,#profile-reviews,[itemprop=review]'):
         item.decompose()
     main = soup.select_one('main') or soup.select_one('article') or soup.body or soup
@@ -633,6 +657,12 @@ def save_outcome(store, fetcher, names, url, outcome):
         path = fetcher.folder / info['file']
         store.db.execute("UPDATE urls SET state='done',error='',path=?,final_url=?,sha=?,text=?,analyzed=? WHERE url=?", (str(path), info['final_url'], info['sha'], outcome['text'], ANALYZER, url))
         ids = [r[0] for r in store.db.execute('SELECT pid FROM candidates WHERE url=?', (url,))]
+        if not ids:
+            probe = store.db.execute('SELECT source FROM probes WHERE url=?', (url,)).fetchone()
+            if probe:
+                ids = sorted(names.match(outcome['title']))
+                for pid in ids:
+                    store.db.execute('INSERT OR IGNORE INTO candidates VALUES (?,?,?)', (pid, url, probe['source']))
         for pid in ids:
             person = names.people[pid]
             result = analyze_content(person, outcome['text'], outcome['cv'], outcome['title'], names.ambiguous(person))

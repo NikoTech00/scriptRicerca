@@ -13,6 +13,37 @@ def person(pid='1', name='Anna', surname='Rossi', dob='03/04/1980'):
 
 
 class MassivoTests(unittest.TestCase):
+    def test_numeric_profile_is_queued_then_matched_from_title(self):
+        names = m.Names({'1': person()})
+        raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medico/123/0</loc></url></urlset>'
+        spec = {'id': 'numeric', 'type': 'sitemap', 'urls': ['https://example.org/sitemap.xml'],
+                'hosts': ['example.org'], 'profile_pattern': '/medico/', 'content_match': True}
+        from unittest.mock import Mock
+        fetcher = Mock(); fetcher.get.return_value = ({'final_url': spec['urls'][0]}, raw)
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(found, {('', 'https://example.org/medico/123/0', 'probe')})
+        self.assertEqual(errors, [])
+        with tempfile.TemporaryDirectory() as folder:
+            store = m.Store(folder)
+            try:
+                fetcher.folder = Path(folder)
+                url = 'https://example.org/medico/123/0'; store.add_probe(url, 'numeric'); store.db.commit()
+                info = {'file': 'fake.html', 'final_url': url, 'sha': 'hash'}
+                outcome = {'info': info, 'text': 'Specializzata in Cardiologia.', 'cv': False,
+                           'title': 'Dott.ssa Anna Rossi', 'links': []}
+                m.save_outcome(store, fetcher, names, url, outcome)
+                self.assertEqual(store.db.execute('SELECT pid FROM candidates').fetchone()[0], '1')
+                self.assertEqual(store.db.execute('SELECT COUNT(*) FROM evidence').fetchone()[0], 1)
+            finally:
+                store.close()
+
+    def test_seo_title_exposes_declared_specialty(self):
+        title, text, _ = m.visible_profile(
+            b'<title>Dott. Anna Rossi: specialista in Oftalmologia a Roma | Directory</title>'
+              b'<main><h1>Dott. Anna Rossi</h1></main>')
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['activities'], ['Oftalmologia'])
+
     def test_sitemap_names_use_slug_not_parent_directory(self):
         names = m.Names({'1': person('1', 'Federica', 'Medici')})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medici/federica-de-matteis</loc></url></urlset>'

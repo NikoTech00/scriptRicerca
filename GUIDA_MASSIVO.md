@@ -31,6 +31,23 @@ Il nome indicato con `--output` viene controllato prima dei download. Se esiste 
 un file che non è stato creato dalla modalità massiva, il programma si ferma subito
 e chiede un nome nuovo, senza lavorare inutilmente per ore.
 
+## Seconda fase: Top Doctors e iDoctors
+
+Il catalogo include anche Top Doctors e iDoctors. Top Doctors permette l'incrocio
+diretto del nome dalla sitemap. Su iDoctors gli URL sono numerici: la pagina viene
+prima scaricata e poi collegata soltanto quando l'intestazione contiene esattamente
+un nome dell'archivio. Le schede non corrispondenti non generano risultati.
+
+Dopo aver aggiornato il codice, il primo ciclo della seconda fase va eseguito senza
+`--skip-discovery`:
+
+```powershell
+python .\scriptMedici.py "input\scriptMedici.xlsx" --massivo --max-documents 2500 --max-http-requests 3000 --mass-checkpoint-every 500 --output "output\risultato_massivo_recuperato.xlsx"
+```
+
+Nei cicli successivi si può aggiungere `--skip-discovery`. La coda SQLite consente
+di distribuire il lavoro su più sessioni senza ripetere le schede completate.
+
 Si può interrompere con Ctrl+C. I documenti completati sono già registrati in SQLite; l'interruzione ordinaria esporta il report dopo la chiusura delle richieste in corso. Dopo una chiusura forzata del PC, rilanciare il comando. Una seconda esecuzione contemporanea sullo stesso stato viene bloccata.
 
 Per esportare lo stato raggiunto senza richieste di rete:
