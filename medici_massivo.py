@@ -76,7 +76,7 @@ def atomic_text(path, value):
 def readable_cv_path(source, person, cv_dir, url=''):
     """Copia un CV verificato fuori dalla cache usando Pers_Id, cognome e nome."""
     source = Path(source)
-    cv_dir = Path(cv_dir)
+    cv_dir = Path(cv_dir).resolve()
     cv_dir.mkdir(parents=True, exist_ok=True)
     ext = source.suffix.lower() if source.suffix.lower() in {'.pdf', '.doc', '.docx', '.html'} else '.bin'
     base = '_'.join((core.safe_part(person.pers_id), core.safe_part(person.surname), core.safe_part(person.name)))

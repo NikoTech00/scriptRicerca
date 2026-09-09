@@ -23,6 +23,7 @@ class MassivoTests(unittest.TestCase):
             person = SimpleNamespace(pers_id='123', surname='De Rossi', name='Anna Maria')
             target = m.readable_cv_path(source, person, root / 'cv', 'https://example.test/cv.pdf')
             self.assertEqual(target.name, '123_De_Rossi_Anna_Maria.pdf')
+            self.assertTrue(target.is_absolute())
             self.assertEqual(target.read_bytes(), source.read_bytes())
 
     def test_numeric_profile_is_queued_then_matched_from_title(self):
