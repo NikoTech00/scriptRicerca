@@ -132,7 +132,7 @@
       "urls": [
         "https://www.topdoctors.it/sitemap.xml"
       ],
-      "profile_pattern": "^/dottor/[^/]+/?$",
+      "profile_pattern": "/dottor/[^/]+/?$",
       "sitemap_pattern": "(?:doctors\\.xml|doctors-all\\.xml)$",
       "name_pattern": "^/dottor/([^/]+)"
     },

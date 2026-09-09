@@ -55,6 +55,18 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(found, set())
         self.assertEqual(errors, [])
 
+    def test_topdoctors_full_url_matches_profile_pattern(self):
+        names = m.Names({'1': person()})
+        raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.topdoctors.it/dottor/anna-rossi/</loc></url></urlset>'
+        spec = {'type': 'sitemap', 'urls': ['https://www.topdoctors.it/doctors.xml'],
+                'hosts': ['www.topdoctors.it'], 'profile_pattern': '/dottor/[^/]+/?$',
+                'name_pattern': '^/dottor/([^/]+)'}
+        from unittest.mock import Mock
+        fetcher = Mock(); fetcher.get.return_value = ({'final_url': spec['urls'][0]}, raw)
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(found, {('1', 'https://www.topdoctors.it/dottor/anna-rossi/', 'profile')})
+        self.assertEqual(errors, [])
+
     def test_html_title_when_heading_is_missing(self):
         title, text, _ = m.visible_profile(b'<title>Anna Rossi - Ospedale</title><main>Specializzata in Cardiologia</main>')
         self.assertEqual(m.analyze_content(person(), text, False, title, False)['specialties'], ['Cardiologia'])

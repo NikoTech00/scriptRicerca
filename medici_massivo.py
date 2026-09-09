@@ -690,7 +690,9 @@ def process_queue(store, fetcher, names, workers=6, max_documents=5000, checkpoi
         if row['url'] not in known:
             known.add(row['url'])
             buckets[urlparse(row['url']).hostname or '_local'].append(row)
-    for row in store.db.execute("SELECT url,kind,path FROM urls WHERE state='pending' ORDER BY rowid"):
+    # Prima le URL già associate per nome (resa alta), poi le sonde numeriche
+    # che richiedono il download per scoprire a chi appartiene la scheda.
+    for row in store.db.execute("SELECT url,kind,path FROM urls WHERE state='pending' ORDER BY EXISTS(SELECT 1 FROM candidates c WHERE c.url=urls.url) DESC, rowid"):
         enqueue(row)
     active, busy = {}, set()
     host_order = deque(sorted(buckets))
