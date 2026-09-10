@@ -3156,6 +3156,10 @@ SPECIALTY_ALIASES = {
     "neuropsichiatra infantile": "Neuropsichiatria Infantile",
     "neuropsichiatria infantile": "Neuropsichiatria Infantile",
     "fisiatra": "Medicina Fisica e Riabilitativa",
+    "dentista": "Odontoiatria e Stomatologia",
+    "odontoiatra": "Odontoiatria e Stomatologia",
+    "odontoiatria": "Odontoiatria e Stomatologia",
+    "odontoiatria e stomatologia": "Odontoiatria e Stomatologia",
 }
 
 

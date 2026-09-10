@@ -590,11 +590,28 @@ def discover(store, fetcher, names, catalog, refresh=False, workers=6):
             # Una modifica mirata al parser di una fonte deve rianalizzare solo
             # le sue pagine già in cache, senza rimettere in coda l'intero archivio.
             if spec.get('reanalyze_on_change'):
-                store.db.execute(
-                    "UPDATE urls SET state='pending',analyzed=0,error='' "
-                    "WHERE url IN (SELECT url FROM candidates WHERE source=?)",
-                    (spec['id'],),
-                )
+                if spec.get('reanalyze_empty_only'):
+                    urls = set()
+                    for row in store.db.execute(
+                        'SELECT c.url,e.data FROM candidates c JOIN evidence e '
+                        'ON e.pid=c.pid AND e.url=c.url WHERE c.source=?',
+                        (spec['id'],),
+                    ):
+                        evidence = json.loads(row['data'])
+                        if (evidence.get('identity') == 'solo_nome_completo'
+                                and not evidence.get('specialties')
+                                and not evidence.get('activities')):
+                            urls.add(row['url'])
+                    store.db.executemany(
+                        "UPDATE urls SET state='pending',analyzed=0,error='' WHERE url=?",
+                        ((url,) for url in urls),
+                    )
+                else:
+                    store.db.execute(
+                        "UPDATE urls SET state='pending',analyzed=0,error='' "
+                        "WHERE url IN (SELECT url FROM candidates WHERE source=?)",
+                        (spec['id'],),
+                    )
             store.db.execute('INSERT OR REPLACE INTO sources VALUES (?,?,?,?,?)',
                 (spec['id'], 'partial' if errors else 'done', len(found), '\n'.join(errors), core.utc_now()))
             store.db.commit()

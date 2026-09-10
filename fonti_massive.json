@@ -95,7 +95,10 @@
       ],
       "profile_pattern": "/(?:profilo/)?[a-zA-Z0-9_-]+(?:/[^/?]+)*/?$",
       "sitemap_pattern": "sitemap\\.doctor",
-      "name_pattern": "^/(?:profilo/)?([^/]+)"
+      "name_pattern": "^/(?:profilo/)?([^/]+)",
+      "reanalyze_on_change": true,
+      "reanalyze_empty_only": true,
+      "reanalyze_revision": 1
     },
     {
       "id": "Medicitalia",
@@ -170,7 +173,8 @@
         "chirurgo-maxillo-faciale": "Chirurgia Maxillo-Facciale",
         "medico-nucleare": "Medicina Nucleare",
         "genetista": "Genetica Medica",
-        "audiologo": "Audiologia e Foniatria"
+        "audiologo": "Audiologia e Foniatria",
+        "odontoiatra": "Odontoiatria e Stomatologia"
       },
       "note": "Nome e disciplina sono ricavati dalla sitemap pubblica; la disciplina resta distinta da una specializzazione documentata."
     },

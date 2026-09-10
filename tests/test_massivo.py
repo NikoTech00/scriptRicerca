@@ -45,6 +45,15 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['identity'], 'omonimia')
         self.assertEqual(result['activities'], [])
 
+    def test_dentist_role_is_a_declared_discipline(self):
+        spec = {'id': 'Doctolib', 'activity_pattern': r'^/([^/]+)/',
+                'activity_map': {'odontoiatra': 'Odontoiatria e Stomatologia'}}
+        result = m.indexed_activity_result(
+            spec, person(), 'https://www.doctolib.it/odontoiatra/roma/anna-rossi', False
+        )
+        self.assertEqual(result['specialties'], [])
+        self.assertEqual(result['activities'], ['Odontoiatria e Stomatologia'])
+
     def test_numeric_profile_is_queued_then_matched_from_title(self):
         names = m.Names({'1': person()})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medico/123/0</loc></url></urlset>'
