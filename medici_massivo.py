@@ -476,6 +476,14 @@ def discover_one(spec, fetcher, names, refresh=False):
                         link = 'https://' + link[7:]
                     if urlparse(link).hostname not in spec['hosts'] or not re.search(spec['profile_pattern'], link):
                         continue
+                    # Alcune sitemap pubblicano un vecchio dominio che reindirizza al
+                    # dominio canonico. Usare subito l'host canonico evita un secondo
+                    # controllo robots ambiguo e conserva lo stesso percorso pubblico.
+                    host_rewrite = spec.get('host_rewrite', {})
+                    parsed_link = urlparse(link)
+                    canonical_host = host_rewrite.get(parsed_link.hostname)
+                    if canonical_host:
+                        link = parsed_link._replace(netloc=canonical_host).geturl()
                     if spec.get('content_match'):
                         found.add(('', link, 'probe'))
                         continue
@@ -617,6 +625,13 @@ def visible_profile(raw):
     if not title:
         title = seo_title
     roles = [a.get_text(' ', strip=True) for a in soup.select('[data-test-id=doctor-specializations] a[title]')]
+    # Schema.org medicalSpecialty è un'affermazione esplicita della scheda e
+    # rimane disponibile anche quando il dettaglio visibile è fuori da <main>.
+    structured_specialties = [
+        node.get('content', '').strip()
+        for node in soup.select('[itemprop=medicalSpecialty][content]')
+        if node.get('content', '').strip()
+    ]
     # Alcune directory espongono la disciplina soltanto nel titolo SEO.
     match = re.search(r'(?i)specialista\s+in\s+(.+?)(?=\s+(?:a|in)\s+[^|]+(?:\||$))', seo_title)
     if match:
@@ -625,6 +640,8 @@ def visible_profile(raw):
         item.decompose()
     main = soup.select_one('main') or soup.select_one('article') or soup.body or soup
     text = main.get_text('\n', strip=True)
+    if structured_specialties:
+        text = '\n'.join('Specialista in ' + value for value in structured_specialties) + '\n' + text
     if roles:
         text = '\n'.join('Disciplina dichiarata: ' + role for role in roles) + '\n' + text
     return title, text, main

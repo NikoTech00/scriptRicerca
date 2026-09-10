@@ -175,6 +175,23 @@
       "note": "Nome e disciplina sono ricavati dalla sitemap pubblica; la disciplina resta distinta da una specializzazione documentata."
     },
     {
+      "id": "PagineMediche_Visitami",
+      "type": "sitemap",
+      "hosts": [
+        "www.visitamiapp.com"
+      ],
+      "urls": [
+        "https://visitami.paginemediche.it/sitemap.xml"
+      ],
+      "profile_pattern": "^https://www\\.visitamiapp\\.com/[0-9]+/[a-zA-Z0-9_-]+/?$",
+      "sitemap_pattern": ".*",
+      "name_pattern": "^/[0-9]+/([^/]+)$",
+      "host_rewrite": {
+        "www.visitamiapp.com": "visitami.paginemediche.it"
+      },
+      "note": "La sitemap espone nome e identificativo del profilo; disciplina e specializzazione vengono lette dalla scheda pubblica canonica Paginemediche."
+    },
+    {
       "id": "Humanitas_San_Pio_X",
       "type": "sitemap",
       "hosts": [

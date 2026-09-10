@@ -76,6 +76,14 @@ class MassivoTests(unittest.TestCase):
         result = m.analyze_content(person(), text, False, title, False)
         self.assertEqual(result['activities'], ['Oftalmologia'])
 
+    def test_schema_org_medical_specialty_outside_main_is_extracted(self):
+        raw = (b'<title>D.ssa Anna Rossi - Directory</title><main><h1>D.ssa Anna Rossi</h1></main>'
+               b'<meta itemprop="medicalSpecialty" content="cardiologia">')
+        title, text, _ = m.visible_profile(raw)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['specialties'], ['Cardiologia'])
+        self.assertEqual(result['evidence'], ['Specialista in cardiologia'])
+
     def test_sitemap_names_use_slug_not_parent_directory(self):
         names = m.Names({'1': person('1', 'Federica', 'Medici')})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medici/federica-de-matteis</loc></url></urlset>'
@@ -97,6 +105,20 @@ class MassivoTests(unittest.TestCase):
         fetcher = Mock(); fetcher.get.return_value = ({'final_url': spec['urls'][0]}, raw)
         found, errors = m.discover_one(spec, fetcher, names)
         self.assertEqual(found, {('1', 'https://www.topdoctors.it/dottor/anna-rossi/', 'profile')})
+        self.assertEqual(errors, [])
+
+    def test_sitemap_legacy_host_is_rewritten_to_canonical_profile(self):
+        names = m.Names({'1': person()})
+        raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.legacy.test/123/anna-rossi</loc></url></urlset>'
+        spec = {'id': 'canonical', 'type': 'sitemap', 'urls': ['https://canonical.test/sitemap.xml'],
+                'hosts': ['www.legacy.test'],
+                'profile_pattern': r'^https://www\.legacy\.test/[0-9]+/[a-z-]+$',
+                'name_pattern': r'^/[0-9]+/([^/]+)$',
+                'host_rewrite': {'www.legacy.test': 'canonical.test'}}
+        from unittest.mock import Mock
+        fetcher = Mock(); fetcher.get.return_value = ({'final_url': spec['urls'][0]}, raw)
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(found, {('1', 'https://canonical.test/123/anna-rossi', 'profile')})
         self.assertEqual(errors, [])
 
     def test_html_title_when_heading_is_missing(self):
