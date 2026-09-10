@@ -84,6 +84,17 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['specialties'], ['Cardiologia'])
         self.assertEqual(result['evidence'], ['Specialista in cardiologia'])
 
+    def test_jsonld_physician_medical_specialty_is_extracted(self):
+        raw = (b'<title>Dott.ssa Anna Rossi | Directory</title><main><h1>Dott.ssa Anna Rossi</h1></main>'
+               b'<script type="application/ld+json">'
+               b'{"@context":"https://schema.org","@type":"Physician","name":"Anna Rossi",'
+               b'"medicalSpecialty":"Cardiologia"}</script>')
+        title, text, _ = m.visible_profile(raw)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['specialties'], [])
+        self.assertEqual(result['activities'], ['Cardiologia'])
+        self.assertEqual(result['activity_evidence'], ['Disciplina dichiarata: Cardiologia'])
+
     def test_sitemap_names_use_slug_not_parent_directory(self):
         names = m.Names({'1': person('1', 'Federica', 'Medici')})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medici/federica-de-matteis</loc></url></urlset>'

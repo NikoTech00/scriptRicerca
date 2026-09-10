@@ -192,6 +192,20 @@
       "note": "La sitemap espone nome e identificativo del profilo; disciplina e specializzazione vengono lette dalla scheda pubblica canonica Paginemediche."
     },
     {
+      "id": "MiAgenda",
+      "type": "sitemap",
+      "hosts": [
+        "www.miagenda.it"
+      ],
+      "urls": [
+        "https://www.miagenda.it/sitemap.xml"
+      ],
+      "profile_pattern": "^https://www\\.miagenda\\.it/prenota-visita-medica/[^/]+/[0-9]+/?$",
+      "sitemap_pattern": "/sitemap-doctors\\.xml$",
+      "name_pattern": "^/prenota-visita-medica/([^/]+)/[0-9]+$",
+      "note": "Nome e disciplina provengono dalla scheda pubblica Physician e dai dati strutturati Schema.org."
+    },
+    {
       "id": "Humanitas_San_Pio_X",
       "type": "sitemap",
       "hosts": [

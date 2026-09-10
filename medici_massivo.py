@@ -632,6 +632,31 @@ def visible_profile(raw):
         for node in soup.select('[itemprop=medicalSpecialty][content]')
         if node.get('content', '').strip()
     ]
+    # I portali moderni spesso pubblicano la disciplina nel profilo Physician
+    # Schema.org anziché in un elemento HTML con itemprop.
+    def jsonld_specialties(value):
+        found = []
+        if isinstance(value, dict):
+            specialty = value.get('medicalSpecialty')
+            if isinstance(specialty, str) and specialty.strip():
+                found.append(specialty.strip())
+            elif isinstance(specialty, list):
+                found.extend(item.strip() for item in specialty if isinstance(item, str) and item.strip())
+            for child in value.values():
+                found.extend(jsonld_specialties(child))
+        elif isinstance(value, list):
+            for child in value:
+                found.extend(jsonld_specialties(child))
+        return found
+    structured_roles = []
+    for node in soup.select('script[type="application/ld+json"]'):
+        try:
+            structured_roles.extend(jsonld_specialties(json.loads(node.string or node.get_text())))
+        except (TypeError, ValueError, json.JSONDecodeError):
+            continue
+    structured_specialties = list(dict.fromkeys(structured_specialties))
+    roles.extend(structured_roles)
+    roles = list(dict.fromkeys(roles))
     # Alcune directory espongono la disciplina soltanto nel titolo SEO.
     match = re.search(r'(?i)specialista\s+in\s+(.+?)(?=\s+(?:a|in)\s+[^|]+(?:\||$))', seo_title)
     if match:
@@ -691,6 +716,7 @@ def analyze_content(person, text, is_cv, title, ambiguous):
     aliases = {key(label): value for label, value in core.SPECIALTY_ALIASES.items()}
     aliases.update({key(value): value for value in core.SPECIALTY_ALIASES.values()})
     aliases['medico di medicina generale'] = 'Medicina generale (attività dichiarata)'
+    aliases['medico generale'] = 'Medicina generale (attività dichiarata)'
     if not is_cv:
         for match in re.finditer(r'(?im)^(?:Disciplina dichiarata: *|(?:Specializzazion[ei]|Area Medica) *:?\s*\n)([^\n]{3,90})', cleaned):
             label = match[1].strip()
