@@ -296,6 +296,44 @@
       ],
       "link_pattern": "(?i)/PNA/Trova-Medico/[^/?]+-[0-9A-F]+/?$",
       "note": "Schede nominali istituzionali dell’Istituto Europeo di Oncologia; la disciplina clinica è dichiarata nella pagina del medico."
+    },
+    {
+      "id": "MultiMedica",
+      "type": "index",
+      "hosts": [
+        "multimedica.it",
+        "www.multimedica.it"
+      ],
+      "urls": [
+        "https://multimedica.it/medici-multimedica/?iniziale=A",
+        "https://multimedica.it/medici-multimedica/?iniziale=B",
+        "https://multimedica.it/medici-multimedica/?iniziale=C",
+        "https://multimedica.it/medici-multimedica/?iniziale=D",
+        "https://multimedica.it/medici-multimedica/?iniziale=E",
+        "https://multimedica.it/medici-multimedica/?iniziale=F",
+        "https://multimedica.it/medici-multimedica/?iniziale=G",
+        "https://multimedica.it/medici-multimedica/?iniziale=H",
+        "https://multimedica.it/medici-multimedica/?iniziale=I",
+        "https://multimedica.it/medici-multimedica/?iniziale=J",
+        "https://multimedica.it/medici-multimedica/?iniziale=K",
+        "https://multimedica.it/medici-multimedica/?iniziale=L",
+        "https://multimedica.it/medici-multimedica/?iniziale=M",
+        "https://multimedica.it/medici-multimedica/?iniziale=N",
+        "https://multimedica.it/medici-multimedica/?iniziale=O",
+        "https://multimedica.it/medici-multimedica/?iniziale=P",
+        "https://multimedica.it/medici-multimedica/?iniziale=Q",
+        "https://multimedica.it/medici-multimedica/?iniziale=R",
+        "https://multimedica.it/medici-multimedica/?iniziale=S",
+        "https://multimedica.it/medici-multimedica/?iniziale=T",
+        "https://multimedica.it/medici-multimedica/?iniziale=U",
+        "https://multimedica.it/medici-multimedica/?iniziale=V",
+        "https://multimedica.it/medici-multimedica/?iniziale=W",
+        "https://multimedica.it/medici-multimedica/?iniziale=X",
+        "https://multimedica.it/medici-multimedica/?iniziale=Y",
+        "https://multimedica.it/medici-multimedica/?iniziale=Z"
+      ],
+      "link_pattern": "(?i)^https://(?:www\\.)?multimedica\\.it/medici/[^/?]+/?$",
+      "note": "Schede nominali istituzionali del Gruppo MultiMedica; unità operativa e formazione vengono mantenute distinte dai titoli di specializzazione espliciti."
     }
   ]
 }
