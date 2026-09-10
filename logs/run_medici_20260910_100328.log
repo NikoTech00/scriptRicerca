@@ -1,0 +1,23 @@
+2026-09-10 10:03:28 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-10 10:03:31 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-10 10:03:34 | INFO | FONTE Istituto_Ortopedico_Rizzoli: 81 associazioni, 0 problemi
+2026-09-10 10:03:38 | INFO | FONTE San_Raffaele: 101 associazioni, 0 problemi
+2026-09-10 10:03:44 | INFO | FONTE Gruppo_San_Donato: 321 associazioni, 0 problemi
+2026-09-10 10:03:52 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 62
+2026-09-10 10:04:01 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 112
+2026-09-10 10:04:06 | INFO | CV rinominati e copiati in C:\Dev\Niko\Python\scriptRicerca\cv_medici: 78
+2026-09-10 10:04:43 | INFO | CHECKPOINT MASSIVO | documenti=100 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45912, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22962, 'PROFILO_CON_IDENTITA_NOMINALE': 3118, 'EVIDENZA_NON_CONFERMATA': 3546, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5576, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 75}
+2026-09-10 10:04:51 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 162
+2026-09-10 10:05:00 | INFO | Documenti elaborati in questa esecuzione: 200; richieste HTTP: 212
+2026-09-10 10:05:10 | INFO | CV rinominati e copiati in C:\Dev\Niko\Python\scriptRicerca\cv_medici: 85
+2026-09-10 10:05:47 | INFO | CHECKPOINT MASSIVO | documenti=200 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45912, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22951, 'PROFILO_CON_IDENTITA_NOMINALE': 3139, 'EVIDENZA_NON_CONFERMATA': 3547, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5596, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 44}
+2026-09-10 10:06:04 | INFO | Documenti elaborati in questa esecuzione: 250; richieste HTTP: 260
+2026-09-10 10:06:29 | INFO | Documenti elaborati in questa esecuzione: 300; richieste HTTP: 310
+2026-09-10 10:06:42 | INFO | CV rinominati e copiati in C:\Dev\Niko\Python\scriptRicerca\cv_medici: 83
+2026-09-10 10:07:18 | INFO | CHECKPOINT MASSIVO | documenti=300 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45912, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22936, 'PROFILO_CON_IDENTITA_NOMINALE': 3145, 'EVIDENZA_NON_CONFERMATA': 3555, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5618, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 23}
+2026-09-10 10:07:43 | INFO | Documenti elaborati in questa esecuzione: 350; richieste HTTP: 360
+2026-09-10 10:08:08 | INFO | Documenti elaborati in questa esecuzione: 400; richieste HTTP: 410
+2026-09-10 10:08:21 | INFO | CV rinominati e copiati in C:\Dev\Niko\Python\scriptRicerca\cv_medici: 89
+2026-09-10 10:08:59 | INFO | CHECKPOINT MASSIVO | documenti=400 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45912, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22917, 'PROFILO_CON_IDENTITA_NOMINALE': 3152, 'EVIDENZA_NON_CONFERMATA': 3555, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5648, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 5}
+2026-09-10 10:09:21 | INFO | CV rinominati e copiati in C:\Dev\Niko\Python\scriptRicerca\cv_medici: 18
+2026-09-10 10:09:59 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45912, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22915, 'PROFILO_CON_IDENTITA_NOMINALE': 3154, 'EVIDENZA_NON_CONFERMATA': 3555, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5653, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35419, 'urls': {'done': 73748, 'error': 776}, 'updated': '2026-09-10T08:09:59+00:00'}; HTTP=431; Search API=0
