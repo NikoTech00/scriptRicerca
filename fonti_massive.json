@@ -259,6 +259,43 @@
       ],
       "profile_pattern": "/medici/[^/]+/?$",
       "sitemap_pattern": "/doctor-sitemap"
+    },
+    {
+      "id": "IEO",
+      "type": "index",
+      "hosts": [
+        "www.ieo.it"
+      ],
+      "urls": [
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=A",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=B",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=C",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=D",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=E",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=F",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=G",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=H",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=I",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=J",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=K",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=L",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=M",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=N",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=O",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=P",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=Q",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=R",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=S",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=T",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=U",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=V",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=W",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=X",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=Y",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=Z"
+      ],
+      "link_pattern": "(?i)/PNA/Trova-Medico/[^/?]+-[0-9A-F]+/?$",
+      "note": "Schede nominali istituzionali dell’Istituto Europeo di Oncologia; la disciplina clinica è dichiarata nella pagina del medico."
     }
   ]
 }
