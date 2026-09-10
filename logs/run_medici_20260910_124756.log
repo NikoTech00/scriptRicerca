@@ -1,0 +1,8 @@
+2026-09-10 12:47:57 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-10 12:47:59 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-10 12:48:00 | INFO | FONTE Policlinico_San_Matteo: 189 associazioni, 0 problemi
+2026-09-10 12:48:02 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 0
+2026-09-10 12:48:03 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 0
+2026-09-10 12:48:45 | INFO | CHECKPOINT MASSIVO | documenti=100 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22965, 'PROFILO_CON_IDENTITA_NOMINALE': 3299, 'EVIDENZA_NON_CONFERMATA': 3554, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5662, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 46}
+2026-09-10 12:48:46 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 0
+2026-09-10 12:49:29 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23009, 'PROFILO_CON_IDENTITA_NOMINALE': 3299, 'EVIDENZA_NON_CONFERMATA': 3556, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5662, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35669, 'urls': {'done': 74184, 'error': 776}, 'updated': '2026-09-10T10:49:29+00:00'}; HTTP=0; Search API=0
