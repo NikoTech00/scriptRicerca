@@ -1,0 +1,29 @@
+2026-09-10 08:45:34 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-10 08:45:36 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-10 08:45:41 | INFO | FONTE PagineMediche_Visitami: 1250 associazioni, 0 problemi
+2026-09-10 08:46:11 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 59
+2026-09-10 08:46:37 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 110
+2026-09-10 08:47:03 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 162
+2026-09-10 08:47:29 | INFO | Documenti elaborati in questa esecuzione: 200; richieste HTTP: 213
+2026-09-10 08:47:55 | INFO | Documenti elaborati in questa esecuzione: 250; richieste HTTP: 263
+2026-09-10 08:51:28 | INFO | CHECKPOINT MASSIVO | documenti=250 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 46016, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23238, 'PROFILO_CON_IDENTITA_NOMINALE': 3060, 'EVIDENZA_NON_CONFERMATA': 3536, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5188, 'FONTE_NON_ACCESSIBILE': 83, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'IN_CODA': 171, 'SPECIALITA_DOCUMENTATA': 18}
+2026-09-10 08:51:54 | INFO | Documenti elaborati in questa esecuzione: 300; richieste HTTP: 314
+2026-09-10 08:52:21 | INFO | Documenti elaborati in questa esecuzione: 350; richieste HTTP: 367
+2026-09-10 08:52:49 | INFO | Documenti elaborati in questa esecuzione: 400; richieste HTTP: 423
+2026-09-10 08:53:15 | INFO | Documenti elaborati in questa esecuzione: 450; richieste HTTP: 474
+2026-09-10 08:53:41 | INFO | Documenti elaborati in questa esecuzione: 500; richieste HTTP: 527
+2026-09-10 08:54:23 | INFO | CHECKPOINT MASSIVO | documenti=500 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 46016, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23147, 'PROFILO_CON_IDENTITA_NOMINALE': 3065, 'EVIDENZA_NON_CONFERMATA': 3540, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5307, 'FONTE_NON_ACCESSIBILE': 88, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'IN_CODA': 129, 'SPECIALITA_DOCUMENTATA': 18}
+2026-09-10 08:54:48 | INFO | Documenti elaborati in questa esecuzione: 550; richieste HTTP: 578
+2026-09-10 08:55:15 | INFO | Documenti elaborati in questa esecuzione: 600; richieste HTTP: 628
+2026-09-10 08:55:43 | INFO | Documenti elaborati in questa esecuzione: 650; richieste HTTP: 680
+2026-09-10 08:56:09 | INFO | Documenti elaborati in questa esecuzione: 700; richieste HTTP: 733
+2026-09-10 08:56:37 | INFO | Documenti elaborati in questa esecuzione: 750; richieste HTTP: 787
+2026-09-10 08:57:18 | INFO | CHECKPOINT MASSIVO | documenti=750 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 46016, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23071, 'PROFILO_CON_IDENTITA_NOMINALE': 3083, 'EVIDENZA_NON_CONFERMATA': 3541, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5409, 'FONTE_NON_ACCESSIBILE': 93, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 79}
+2026-09-10 08:57:46 | INFO | Documenti elaborati in questa esecuzione: 800; richieste HTTP: 842
+2026-09-10 08:58:12 | INFO | Documenti elaborati in questa esecuzione: 850; richieste HTTP: 895
+2026-09-10 08:58:38 | INFO | Documenti elaborati in questa esecuzione: 900; richieste HTTP: 946
+2026-09-10 08:59:07 | INFO | Documenti elaborati in questa esecuzione: 950; richieste HTTP: 1002
+2026-09-10 08:59:36 | INFO | Documenti elaborati in questa esecuzione: 1000; richieste HTTP: 1059
+2026-09-10 09:00:17 | INFO | CHECKPOINT MASSIVO | documenti=1000 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 46016, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22990, 'PROFILO_CON_IDENTITA_NOMINALE': 3088, 'EVIDENZA_NON_CONFERMATA': 3540, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5530, 'FONTE_NON_ACCESSIBILE': 107, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 21}
+2026-09-10 09:00:44 | INFO | Documenti elaborati in questa esecuzione: 1050; richieste HTTP: 1113
+2026-09-10 09:01:48 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 46016, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22971, 'PROFILO_CON_IDENTITA_NOMINALE': 3095, 'EVIDENZA_NON_CONFERMATA': 3542, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5559, 'FONTE_NON_ACCESSIBILE': 109, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 21, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35315, 'urls': {'done': 73222, 'error': 776}, 'updated': '2026-09-10T07:01:48+00:00'}; HTTP=1160; Search API=0
