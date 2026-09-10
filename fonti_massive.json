@@ -206,6 +206,49 @@
       "note": "Nome e disciplina provengono dalla scheda pubblica Physician e dai dati strutturati Schema.org."
     },
     {
+      "id": "Gruppo_San_Donato",
+      "type": "sitemap",
+      "hosts": [
+        "www.grupposandonato.it"
+      ],
+      "urls": [
+        "https://www.grupposandonato.it/sitemap.xml"
+      ],
+      "profile_pattern": "^https://www\\.grupposandonato\\.it/dottori/[^/]+/?$",
+      "sitemap_pattern": ".*",
+      "name_pattern": "^/dottori/([^/]+)$",
+      "note": "Profili istituzionali del Gruppo San Donato; il motore estrae specializzazioni esplicite e sezioni curriculari."
+    },
+    {
+      "id": "San_Raffaele",
+      "type": "sitemap",
+      "hosts": [
+        "www.hsr.it"
+      ],
+      "urls": [
+        "https://www.hsr.it/sitemap.xml"
+      ],
+      "profile_pattern": "^https://www\\.hsr\\.it/dottori/[^/]+/?$",
+      "sitemap_pattern": ".*",
+      "name_pattern": "^/dottori/([^/]+)$",
+      "note": "Profili istituzionali dell'Ospedale San Raffaele con curriculum e titoli di specializzazione."
+    },
+    {
+      "id": "Istituto_Ortopedico_Rizzoli",
+      "type": "sitemap",
+      "hosts": [
+        "www.ior.it",
+        "drs.ior.it"
+      ],
+      "urls": [
+        "https://www.ior.it/sitemap.xml"
+      ],
+      "profile_pattern": "^https://(?:www|drs)\\.ior\\.it/curarsi-al-rizzoli/(?:dr|drssa|prof|profssa)-[^/]+/?$",
+      "sitemap_pattern": "^https://drs\\.ior\\.it/sitemap\\.xml\\?page=[0-9]+$",
+      "name_pattern": "^/curarsi-al-rizzoli/(?:dr|drssa|prof|profssa)-(.+)$",
+      "note": "Schede mediche istituzionali italiane dell'Istituto Ortopedico Rizzoli."
+    },
+    {
       "id": "Humanitas_San_Pio_X",
       "type": "sitemap",
       "hosts": [

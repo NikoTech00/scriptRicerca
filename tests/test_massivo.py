@@ -118,6 +118,19 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(found, {('1', 'https://www.topdoctors.it/dottor/anna-rossi/', 'profile')})
         self.assertEqual(errors, [])
 
+    def test_institutional_profile_with_title_prefix_matches_name(self):
+        names = m.Names({'1': person('1', 'Stefano', 'Bandiera')})
+        raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.ior.it/curarsi-al-rizzoli/dr-stefano-bandiera</loc></url></urlset>'
+        spec = {'type': 'sitemap', 'urls': ['https://www.ior.it/people.xml'],
+                'hosts': ['www.ior.it'],
+                'profile_pattern': r'^https://www\.ior\.it/curarsi-al-rizzoli/(?:dr|drssa)-[^/]+$',
+                'name_pattern': r'^/curarsi-al-rizzoli/(?:dr|drssa)-(.+)$'}
+        from unittest.mock import Mock
+        fetcher = Mock(); fetcher.get.return_value = ({'final_url': spec['urls'][0]}, raw)
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(found, {('1', 'https://www.ior.it/curarsi-al-rizzoli/dr-stefano-bandiera', 'profile')})
+        self.assertEqual(errors, [])
+
     def test_sitemap_legacy_host_is_rewritten_to_canonical_profile(self):
         names = m.Names({'1': person()})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://www.legacy.test/123/anna-rossi</loc></url></urlset>'
