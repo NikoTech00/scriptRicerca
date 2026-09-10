@@ -1,0 +1,7 @@
+2026-09-10 10:29:11 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-10 10:29:13 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-10 10:29:27 | INFO | FONTE IEO: 128 associazioni, 0 problemi
+2026-09-10 10:29:53 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 77
+2026-09-10 10:30:18 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 127
+2026-09-10 10:30:37 | INFO | CV rinominati e copiati in C:\Dev\Niko\Python\scriptRicerca\cv_medici: 6
+2026-09-10 10:31:14 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45837, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22913, 'PROFILO_CON_IDENTITA_NOMINALE': 3227, 'EVIDENZA_NON_CONFERMATA': 3555, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5656, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35494, 'urls': {'done': 73874, 'error': 776}, 'updated': '2026-09-10T08:31:14+00:00'}; HTTP=153; Search API=0
