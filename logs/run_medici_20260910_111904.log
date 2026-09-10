@@ -1,0 +1,7 @@
+2026-09-10 11:19:04 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-10 11:19:06 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-10 11:19:12 | INFO | FONTE Policlinico_San_Matteo: 189 associazioni, 0 problemi
+2026-09-10 11:19:44 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 55
+2026-09-10 11:20:14 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 105
+2026-09-10 11:20:45 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 155
+2026-09-10 11:25:00 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22913, 'PROFILO_CON_IDENTITA_NOMINALE': 3395, 'EVIDENZA_NON_CONFERMATA': 3556, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5662, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35669, 'urls': {'done': 74184, 'error': 776}, 'updated': '2026-09-10T09:25:00+00:00'}; HTTP=182; Search API=0
