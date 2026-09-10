@@ -664,6 +664,14 @@ def visible_profile(raw):
             continue
     structured_specialties = list(dict.fromkeys(structured_specialties))
     roles.extend(structured_roles)
+    # Alcuni siti istituzionali collocano la disciplina nell'header interno
+    # della scheda, che viene poi rimosso insieme alla navigazione. Acquisirla
+    # prima della pulizia evita di perdere righe come "Specialità: Urologia".
+    for node in soup.select('p,li'):
+        value = node.get_text(' ', strip=True)
+        match = re.fullmatch(r'(?i)specialit[aà]\s*:\s*(.{3,160})', value)
+        if match:
+            roles.extend(part.strip() for part in re.split(r'\s*[,;]\s*', match[1]) if part.strip())
     roles = list(dict.fromkeys(roles))
     # Alcune directory espongono la disciplina soltanto nel titolo SEO.
     match = re.search(r'(?i)specialista\s+in\s+(.+?)(?=\s+(?:a|in)\s+[^|]+(?:\||$))', seo_title)

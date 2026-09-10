@@ -96,6 +96,16 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['activities'], ['Radiodiagnostica'])
         self.assertIn('Specialità:', result['activity_evidence'][0])
 
+    def test_specialty_inside_profile_header_survives_navigation_cleanup(self):
+        raw = (b'<html><body><main><header><h1>Dott.ssa Anna Rossi</h1>'
+               b'<p><strong>Specialit\xc3\xa0:</strong> Urologia</p></header>'
+               b'<article>Ruolo: dirigente medico</article></main></body></html>')
+        title, text, _ = m.visible_profile(raw)
+        self.assertNotIn('Specialità:', text)
+        self.assertIn('Disciplina dichiarata: Urologia', text)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['activities'], ['Urologia'])
+
     def test_jsonld_physician_medical_specialty_is_extracted(self):
         raw = (b'<title>Dott.ssa Anna Rossi | Directory</title><main><h1>Dott.ssa Anna Rossi</h1></main>'
                b'<script type="application/ld+json">'
