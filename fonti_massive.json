@@ -347,6 +347,7 @@
       "profile_pattern": "^https://www\\.sanmatteo\\.org/persone/[^/?]+/?$",
       "sitemap_pattern": "^https://www\\.sanmatteo\\.org/sitemap\\.xml\\?page=[0-9]+$",
       "name_pattern": "^/persone/(.+)$",
+      "reanalyze_on_change": true,
       "note": "Profili istituzionali IRCCS Policlinico San Matteo: specialità, titoli professionali e, quando pubblicata, data di nascita permettono una verifica anagrafica forte."
     }
   ]

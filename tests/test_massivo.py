@@ -84,6 +84,18 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['specialties'], ['Cardiologia'])
         self.assertEqual(result['evidence'], ['Specialista in cardiologia'])
 
+    def test_institutional_specialty_label_is_declared_activity(self):
+        result = m.analyze_content(
+            person(),
+            'Specialità: Radiodiagnostica, Radiologia',
+            False,
+            'Dott.ssa Anna Rossi',
+            False,
+        )
+        self.assertEqual(result['specialties'], [])
+        self.assertEqual(result['activities'], ['Radiodiagnostica'])
+        self.assertIn('Specialità:', result['activity_evidence'][0])
+
     def test_jsonld_physician_medical_specialty_is_extracted(self):
         raw = (b'<title>Dott.ssa Anna Rossi | Directory</title><main><h1>Dott.ssa Anna Rossi</h1></main>'
                b'<script type="application/ld+json">'

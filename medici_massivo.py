@@ -587,6 +587,14 @@ def discover(store, fetcher, names, catalog, refresh=False, workers=6):
                             'INSERT OR REPLACE INTO evidence VALUES (?,?,?)',
                             (pid, url, json.dumps(result, ensure_ascii=False)),
                         )
+            # Una modifica mirata al parser di una fonte deve rianalizzare solo
+            # le sue pagine già in cache, senza rimettere in coda l'intero archivio.
+            if spec.get('reanalyze_on_change'):
+                store.db.execute(
+                    "UPDATE urls SET state='pending',analyzed=0,error='' "
+                    "WHERE url IN (SELECT url FROM candidates WHERE source=?)",
+                    (spec['id'],),
+                )
             store.db.execute('INSERT OR REPLACE INTO sources VALUES (?,?,?,?,?)',
                 (spec['id'], 'partial' if errors else 'done', len(found), '\n'.join(errors), core.utc_now()))
             store.db.commit()
@@ -718,11 +726,19 @@ def analyze_content(person, text, is_cv, title, ambiguous):
     aliases['medico di medicina generale'] = 'Medicina generale (attività dichiarata)'
     aliases['medico generale'] = 'Medicina generale (attività dichiarata)'
     if not is_cv:
-        for match in re.finditer(r'(?im)^(?:Disciplina dichiarata: *|(?:Specializzazion[ei]|Area Medica) *:?\s*\n)([^\n]{3,90})', cleaned):
-            label = match[1].strip()
-            if key(label) in aliases:
-                result['activities'].append(aliases[key(label)])
-                result['activity_evidence'].append(match[0])
+        for match in re.finditer(
+            r'(?im)^(?:Disciplina dichiarata: *|Specialit[aà] *: *|(?:Specializzazion[ei]|Area Medica) *:?\s*\n)([^\n]{3,120})',
+            cleaned,
+        ):
+            # Le schede istituzionali possono pubblicare più discipline nella
+            # stessa riga (es. "Specialità: Radiodiagnostica, Radiologia").
+            for raw_label in re.split(r'\s*[,;]\s*', match[1]):
+                label = raw_label.strip()
+                if key(label) in aliases:
+                    normalized = aliases[key(label)]
+                    if normalized not in result['activities']:
+                        result['activities'].append(normalized)
+                        result['activity_evidence'].append(match[0])
     return result
 
 
