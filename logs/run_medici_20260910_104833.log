@@ -1,0 +1,6 @@
+2026-09-10 10:48:33 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-10 10:48:36 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-10 10:49:10 | INFO | FONTE MultiMedica: 143 associazioni, 0 problemi
+2026-09-10 10:49:35 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 77
+2026-09-10 10:50:01 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 127
+2026-09-10 10:50:59 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45767, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 22913, 'PROFILO_CON_IDENTITA_NOMINALE': 3292, 'EVIDENZA_NON_CONFERMATA': 3554, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5662, 'FONTE_NON_ACCESSIBILE': 103, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35564, 'urls': {'done': 74007, 'error': 776}, 'updated': '2026-09-10T08:50:59+00:00'}; HTTP=160; Search API=0
