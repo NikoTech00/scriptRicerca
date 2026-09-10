@@ -1,0 +1,13 @@
+2026-09-10 15:01:05 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-10 15:01:07 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-10 15:01:28 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 0
+2026-09-10 15:01:47 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 0
+2026-09-10 15:02:06 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 0
+2026-09-10 15:02:25 | INFO | Documenti elaborati in questa esecuzione: 200; richieste HTTP: 0
+2026-09-10 15:02:43 | INFO | Documenti elaborati in questa esecuzione: 250; richieste HTTP: 0
+2026-09-10 15:03:02 | INFO | Documenti elaborati in questa esecuzione: 300; richieste HTTP: 0
+2026-09-10 15:03:21 | INFO | Documenti elaborati in questa esecuzione: 350; richieste HTTP: 0
+2026-09-10 15:03:41 | INFO | Documenti elaborati in questa esecuzione: 400; richieste HTTP: 0
+2026-09-10 15:04:00 | INFO | Documenti elaborati in questa esecuzione: 450; richieste HTTP: 0
+2026-09-10 15:04:20 | INFO | Documenti elaborati in questa esecuzione: 500; richieste HTTP: 0
+2026-09-10 15:05:01 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23374, 'EVIDENZA_NON_CONFERMATA': 3574, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5667, 'FONTE_NON_ACCESSIBILE': 103, 'PROFILO_CON_IDENTITA_NOMINALE': 1551, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'IN_CODA': 1360, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35669, 'urls': {'done': 71158, 'error': 776, 'pending': 3026}, 'updated': '2026-09-10T13:05:01+00:00'}; HTTP=0; Search API=0
