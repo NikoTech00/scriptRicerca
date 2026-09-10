@@ -334,6 +334,20 @@
       ],
       "link_pattern": "(?i)^https://(?:www\\.)?multimedica\\.it/medici/[^/?]+/?$",
       "note": "Schede nominali istituzionali del Gruppo MultiMedica; unità operativa e formazione vengono mantenute distinte dai titoli di specializzazione espliciti."
+    },
+    {
+      "id": "Policlinico_San_Matteo",
+      "type": "sitemap",
+      "hosts": [
+        "www.sanmatteo.org"
+      ],
+      "urls": [
+        "https://www.sanmatteo.org/sitemap.xml"
+      ],
+      "profile_pattern": "^https://www\\.sanmatteo\\.org/persone/[^/?]+/?$",
+      "sitemap_pattern": "^https://www\\.sanmatteo\\.org/sitemap\\.xml\\?page=[0-9]+$",
+      "name_pattern": "^/persone/(.+)$",
+      "note": "Profili istituzionali IRCCS Policlinico San Matteo: specialità, titoli professionali e, quando pubblicata, data di nascita permettono una verifica anagrafica forte."
     }
   ]
 }
