@@ -1,1 +1,1 @@
-#python main.py input/Cognome_Nome_Data_di_Nascita.xlsx --output output/risultati.xlsx --limit 1 --retry-errors
+python .\scriptMedici.py "input\scriptMedici.xlsx" --massivo --skip-discovery --max-documents 5000 --max-http-requests 500 --mass-checkpoint-every 1000 --output "output\risultato_massivo_recuperato.xlsx"
