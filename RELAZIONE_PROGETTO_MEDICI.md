@@ -2,7 +2,7 @@
 
 **Progetto:** arricchimento dell’archivio aziendale dei medici  
 **Versione applicativa:** V6.0  
-**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 12:37
+**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 12:56
 **Archivio analizzato:** 81.331 persone
 
 ## 1. Scopo del progetto
@@ -24,27 +24,27 @@ Alla data della relazione, l’elaborazione dell’intero archivio ha prodotto:
 | Indicatore | Record | Quota sull’archivio |
 |---|---:|---:|
 | Archivio originale | 81.331 | 100,0% |
-| Record con specialità o disciplina utilizzabile | 29.448 | 36,2% |
-| Disciplina dichiarata in un profilo pubblico | 23.752 | 29,2% |
-| Specialità con identità nominale | 5.678 | 7,0% |
+| Record con specialità o disciplina utilizzabile | 29.546 | 36,3% |
+| Disciplina dichiarata in un profilo pubblico | 23.816 | 29,3% |
+| Specialità con identità nominale | 5.712 | 7,0% |
 | Specialità documentata con identità anagrafica forte | 18 | 0,02% |
-| Persone collegate ad almeno una fonte candidata | 35.669 | 43,9% |
-| Profili nominali senza titolo sufficiente | 2.540 | 3,1% |
-| Evidenze non confermate | 3.556 | 4,4% |
-| Fonti non accessibili | 103 | 0,1% |
-| Record non coperti dalle fonti integrate | 45.662 | 56,1% |
+| Persone collegate ad almeno una fonte candidata | 35.748 | 44,0% |
+| Profili nominali senza titolo sufficiente | 2.519 | 3,1% |
+| Evidenze non confermate | 3.559 | 4,4% |
+| Fonti non accessibili | 102 | 0,1% |
+| Record non coperti dalle fonti integrate | 45.583 | 56,0% |
 
-Sono stati elaborati e memorizzati 74.184 URL; 776 URL risultano in errore. Sono inoltre disponibili 2.111 CV associati a record con specialità o disciplina. Il flusso massivo non consuma crediti Serper o di altre Search API. I risultati sopra riportati sono categorie distinte e non devono essere sommati nuovamente tra loro.
+Sono stati elaborati e memorizzati 74.335 URL; 776 URL risultano in errore. Sono inoltre disponibili 2.111 CV associati a record con specialità o disciplina. Il flusso massivo non consuma crediti Serper o di altre Search API. I risultati sopra riportati sono categorie distinte e non devono essere sommati nuovamente tra loro.
 
 ## 3. Ultimo controllo operativo
 
-L’acquisizione più recente è dell’**11 settembre 2026 alle ore 12:37**. Il recupero mirato di Gemelli, IEO e MultiMedica si è concluso senza errori sulle fonti: 582 associazioni complessive, 59 richieste HTTP e circa 407 documenti riesaminati.
+L’acquisizione più recente è dell’**11 settembre 2026 alle ore 12:56**. L’integrazione dell’elenco istituzionale dell’Ospedale Niguarda si è conclusa senza problemi: 171 associazioni, 153 richieste HTTP e 151 nuovi URL elaborati.
 
-La run ha aggiunto **152 record con disciplina dichiarata**, portando i risultati utilizzabili da 29.296 a **29.448** e la copertura dal 36,0% al **36,2%**. I profili nominali ancora privi di titolo sufficiente sono scesi da 2.692 a **2.540**. I CV utili sono aumentati da 2.110 a **2.111**.
+La run ha aggiunto **98 risultati utilizzabili**, portando il totale da 29.448 a **29.546** e la copertura dal 36,2% al **36,3%**. I record completamente non coperti sono diminuiti di 79, da 45.662 a **45.583**. Niguarda contribuisce ora a 129 risultati utili: 79 discipline dichiarate e 50 specialità già sostenute anche da altre evidenze nominali. I CV utili rimangono **2.111**.
 
-Nel risultato corrente, le tre fonti contribuiscono complessivamente a 158 record utili per Gemelli, 81 per IEO e 110 per MultiMedica. Questi valori comprendono anche risultati già presenti prima del recupero e non rappresentano da soli l’incremento della run.
+Il primo tentativo delle 12:51, avviato con il precedente catalogo istituzionale, è stato interrotto. Il ciclo Niguarda delle 12:53 è invece terminato correttamente e senza elementi in coda.
 
-Per evitare errori di trascrizione su Windows resta disponibile `avvia_recupero_istituzionale.bat`. Il log registra catalogo, limiti e opzioni effettivamente ricevute.
+Per evitare errori di trascrizione su Windows sono disponibili avviatori `.bat` dedicati. Il log registra catalogo, limiti e opzioni effettivamente ricevute.
 
 ## 4. Funzionamento generale
 
@@ -71,10 +71,10 @@ flowchart LR
 
 ## 5. Fonti integrate
 
-Il catalogo massivo contiene attualmente 22 fonti. Comprende strutture sanitarie e portali professionali pubblici:
+Il catalogo massivo contiene attualmente 23 fonti. Comprende strutture sanitarie e portali professionali pubblici:
 
 - Humanitas, Humanitas San Pio X, Policlinico Gemelli, IEO e MultiMedica;
-- Gruppo San Donato, Ospedale San Raffaele, Ospedale Niguarda e Policlinico San Matteo;
+- Gruppo San Donato, Ospedale San Raffaele, Ospedale Niguarda, Policlinico San Matteo e Policlinico Campus Bio-Medico;
 - Istituto Ortopedico Rizzoli, Auxologico, Maugeri e Santagostino;
 - ASST Rhodense e ASST Bergamo Ovest;
 - MioDottore, iDoctors, Top Doctors, Doctolib, Medicitalia, PagineMediche/Visitami e MiAgenda.
@@ -166,7 +166,7 @@ Verifica automatica del software:
 python -B -m unittest discover -s tests -q
 ```
 
-La suite corrente comprende 71 test e copre, tra gli altri aspetti, gestione della coda, ripresa, errori di rete, salvataggio atomico, omonimie, normalizzazione delle discipline, fonti istituzionali e denominazione dei CV.
+La suite corrente comprende 74 test e copre, tra gli altri aspetti, gestione della coda, ripresa, errori di rete, salvataggio atomico, omonimie, normalizzazione delle discipline, fonti istituzionali e denominazione dei CV.
 
 ## 11. Protezione e trattamento dei dati
 
@@ -176,7 +176,7 @@ Il progetto raccoglie esclusivamente informazioni professionali rese pubbliche d
 
 ## 12. Limiti attuali
 
-Il principale limite non è la capacità di elaborazione, ma la disponibilità di fonti pubbliche indicizzabili e sufficientemente strutturate. I 45.662 record non coperti non rappresentano medici inesistenti o privi di specialità: indicano che le fonti attualmente integrate non hanno prodotto un candidato associabile.
+Il principale limite non è la capacità di elaborazione, ma la disponibilità di fonti pubbliche indicizzabili e sufficientemente strutturate. I 45.583 record non coperti non rappresentano medici inesistenti o privi di specialità: indicano che le fonti attualmente integrate non hanno prodotto un candidato associabile.
 
 Altri limiti materiali sono:
 
@@ -202,6 +202,6 @@ Le attività con il miglior rapporto tra tempo e risultato sono:
 
 ## 14. Conclusione
 
-Il progetto ha trasformato una ricerca manuale non sostenibile su 81.331 nominativi in una pipeline ripetibile, tracciabile e senza costi di Search API. Il risultato corrente rende disponibili specialità o discipline per 29.448 persone, conserva l’origine di ogni informazione e mantiene separati i casi che richiedono verifica.
+Il progetto ha trasformato una ricerca manuale non sostenibile su 81.331 nominativi in una pipeline ripetibile, tracciabile e senza costi di Search API. Il risultato corrente rende disponibili specialità o discipline per 29.546 persone, conserva l’origine di ogni informazione e mantiene separati i casi che richiedono verifica.
 
 Il software è già utilizzabile per produrre report aziendali e proseguire l’arricchimento incrementale. Il prossimo aumento significativo della copertura dipenderà soprattutto dall’integrazione di nuove fonti pubbliche e dalla risoluzione controllata dei casi nominali, mantenendo gli attuali criteri di qualità.

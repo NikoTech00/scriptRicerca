@@ -14,6 +14,33 @@ def person(pid='1', name='Anna', surname='Rossi', dob='03/04/1980'):
 
 
 class MassivoTests(unittest.TestCase):
+    def test_wordpress_api_discovers_structured_doctor(self):
+        names = m.Names({'1': person()})
+        payload = {'0': {'id': 42, 'title': {'rendered': 'Dott.ssa Anna Rossi'},
+                         'acf': {'nome': 'Anna', 'cognome': 'Rossi'}}}
+        spec = {'id': 'campus', 'type': 'wordpress_api', 'urls': ['https://api.example.test/doctors'],
+                'hosts': ['api.example.test'], 'item_url': 'https://api.example.test/doctors/{id}'}
+        from unittest.mock import Mock
+        fetcher = Mock(); fetcher.get.return_value = (
+            {'final_url': spec['urls'][0]}, json.dumps(payload).encode())
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(found, {('1', 'https://api.example.test/doctors/42', 'profile')})
+        self.assertEqual(errors, [])
+
+    def test_campus_api_extracts_fiscal_code_and_documented_specialty(self):
+        payload = {'type': 'medici-e-specialisti', 'title': {'rendered': 'Dott.ssa Anna Rossi'},
+                   'acf': {'codice_fiscale': 'RSSNNA80D43H501X', 'sezioni': [
+                       {'acf_fc_layout': 'biografia', 'biografia': [
+                           {'attivita': 'Diploma di Specializzazione in Cardiologia, Università di Roma'}]}]}}
+        text, is_cv, title, main = m.extract(json.dumps(payload).encode(), {'final_url': 'https://example.test/42'})
+        self.assertEqual(title, 'Dott.ssa Anna Rossi')
+        self.assertIn('RSSNNA80D43H501X', text)
+        target = m.core.Person(2, '1', '', 'Rossi', 'Anna', '03/04/1980', 'RSSNNA80D43H501X', 'Roma', '')
+        result = m.analyze_content(target, text, is_cv, title, False)
+        self.assertEqual(result['identity'], 'anagrafica_concordante')
+        self.assertEqual(result['specialties'], ['Cardiologia'])
+        self.assertIsNone(main)
+
     def test_readable_cv_path_uses_person_code_surname_and_name(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

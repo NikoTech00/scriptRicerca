@@ -376,6 +376,23 @@
       "reanalyze_on_change": true,
       "reanalyze_revision": 2,
       "note": "Profili istituzionali IRCCS Policlinico San Matteo: specialità, titoli professionali e, quando pubblicata, data di nascita permettono una verifica anagrafica forte."
+    },
+    {
+      "id": "Campus_Bio_Medico",
+      "type": "wordpress_api",
+      "hosts": [
+        "admin.policlinicocampusbiomedico.it"
+      ],
+      "urls": [
+        "https://admin.policlinicocampusbiomedico.it/wp-json/wp/v2/medici-e-specialisti?per_page=100&page=1",
+        "https://admin.policlinicocampusbiomedico.it/wp-json/wp/v2/medici-e-specialisti?per_page=100&page=2",
+        "https://admin.policlinicocampusbiomedico.it/wp-json/wp/v2/medici-e-specialisti?per_page=100&page=3",
+        "https://admin.policlinicocampusbiomedico.it/wp-json/wp/v2/medici-e-specialisti?per_page=100&page=4",
+        "https://admin.policlinicocampusbiomedico.it/wp-json/wp/v2/medici-e-specialisti?per_page=100&page=5"
+      ],
+      "item_url": "https://admin.policlinicocampusbiomedico.it/wp-json/wp/v2/medici-e-specialisti/{id}",
+      "max_index_pages": 5,
+      "note": "API pubblica istituzionale del Policlinico Campus Bio-Medico: nome e codice fiscale verificano l’identità; le specializzazioni sono estratte soltanto quando dichiarate esplicitamente nella biografia."
     }
   ]
 }

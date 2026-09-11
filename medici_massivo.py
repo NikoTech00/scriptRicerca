@@ -462,7 +462,32 @@ def discover_one(spec, fetcher, names, refresh=False):
         seen.add(url)
         try:
             info, raw = fetcher.get(url, refresh=refresh)
-            if spec['type'] == 'sitemap':
+            if spec['type'] == 'wordpress_api':
+                payload = json.loads(raw.decode('utf-8-sig'))
+                if isinstance(payload, dict) and payload.get('id'):
+                    items = [payload]
+                elif isinstance(payload, dict):
+                    items = list(payload.values())
+                elif isinstance(payload, list):
+                    items = payload
+                else:
+                    raise ValueError('Risposta API WordPress non riconosciuta')
+                for item in items:
+                    if not isinstance(item, dict) or not item.get('id'):
+                        continue
+                    acf = item.get('acf') or {}
+                    label = ' '.join((core.clean(acf.get('nome')), core.clean(acf.get('cognome')))).strip()
+                    if not label:
+                        label = BeautifulSoup((item.get('title') or {}).get('rendered', ''), 'html.parser').get_text(' ', strip=True)
+                    ids = names.match(label)
+                    if len({key(names.people[pid].full_name) for pid in ids}) > 1:
+                        continue
+                    item_url = spec['item_url'].format(id=item['id'])
+                    if urlparse(item_url).hostname not in spec['hosts']:
+                        continue
+                    for pid in ids:
+                        found.add((pid, item_url, 'profile'))
+            elif spec['type'] == 'sitemap':
                 is_index, links = sitemap_entries(raw)
                 if is_index:
                     for link in links:
@@ -810,6 +835,25 @@ def analyze_content(person, text, is_cv, title, ambiguous):
 
 
 def extract(raw, info):
+    if raw.lstrip().startswith(b'{'):
+        payload = json.loads(raw.decode('utf-8-sig'))
+        if payload.get('type') == 'medici-e-specialisti':
+            acf = payload.get('acf') or {}
+            title = BeautifulSoup((payload.get('title') or {}).get('rendered', ''), 'html.parser').get_text(' ', strip=True)
+            parts = [title]
+            fiscal_code = core.clean(acf.get('codice_fiscale'))
+            if fiscal_code:
+                parts.append(f'Codice fiscale: {fiscal_code}')
+            for section in acf.get('sezioni') or []:
+                if not isinstance(section, dict) or section.get('acf_fc_layout') != 'biografia':
+                    continue
+                for entry in section.get('biografia') or []:
+                    if isinstance(entry, dict):
+                        activity = BeautifulSoup(str(entry.get('attivita') or ''), 'html.parser').get_text(' ', strip=True)
+                        if activity:
+                            parts.append(activity)
+            text = '\n'.join(parts)[:120000]
+            return text, core.looks_like_cv(text)[0], title, None
     if raw.startswith(b'%PDF'):
         reader = PdfReader(io.BytesIO(raw))
         text = '\n'.join(p.extract_text() or '' for p in reader.pages[:100])[:120000]
