@@ -681,6 +681,13 @@ def visible_profile(raw):
             continue
     structured_specialties = list(dict.fromkeys(structured_specialties))
     roles.extend(structured_roles)
+    # Niguarda espone la disciplina nominale in un campo dedicato sia
+    # nell'elenco sia nella scheda del professionista.
+    roles.extend(
+        node.get_text(' ', strip=True)
+        for node in soup.select('.label-disciplina strong')
+        if node.get_text(' ', strip=True)
+    )
     # Profili istituzionali: la disciplina e' spesso pubblicata in componenti
     # strutturati senza Schema.org. Limitiamo i selettori ai contenitori specifici
     # per non confondere menu, prestazioni o medici correlati con il profilo.

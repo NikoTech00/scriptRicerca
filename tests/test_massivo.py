@@ -150,6 +150,14 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['activities'], ["Medicina d'Emergenza-Urgenza"])
         self.assertNotIn('Ospedale', text.split('Disciplina dichiarata:')[1].splitlines()[0])
 
+    def test_niguarda_declared_discipline_is_extracted(self):
+        raw = (b'<main><h1>Anna Rossi</h1><span class="small-label label-disciplina">'
+               b'Disciplina: <strong>Cardiologia pediatrica</strong></span></main>')
+        title, text, _ = m.visible_profile(raw)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['activities'], ['Cardiologia'])
+        self.assertEqual(result['activity_evidence'], ['Disciplina dichiarata: Cardiologia pediatrica'])
+
     def test_sitemap_names_use_slug_not_parent_directory(self):
         names = m.Names({'1': person('1', 'Federica', 'Medici')})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medici/federica-de-matteis</loc></url></urlset>'

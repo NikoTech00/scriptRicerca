@@ -349,6 +349,19 @@
       "reanalyze_revision": 2
     },
     {
+      "id": "Niguarda_Visite_Private",
+      "type": "index",
+      "hosts": [
+        "visiteprivate.ospedaleniguarda.it"
+      ],
+      "urls": [
+        "https://visiteprivate.ospedaleniguarda.it/medici"
+      ],
+      "link_pattern": "(?i)^https://visiteprivate\\.ospedaleniguarda\\.it/medici/dettaglio/[^/?]+/?$",
+      "name_pattern": "(?i)^/medici/dettaglio/(.+)$",
+      "note": "Elenco istituzionale dell’attività privata dell’Ospedale Niguarda; ogni scheda riporta nome e disciplina dichiarata."
+    },
+    {
       "id": "Policlinico_San_Matteo",
       "type": "sitemap",
       "hosts": [

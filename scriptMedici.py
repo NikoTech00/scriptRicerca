@@ -3166,6 +3166,16 @@ SPECIALTY_ALIASES = {
     "chirurgia del peritoneo e retroperitoneo": "Chirurgia Generale",
     "pronto soccorso": "Medicina d'Emergenza-Urgenza",
     "cure palliative e terapia del dolore": "Medicina e Cure Palliative",
+    "anestesia": "Anestesia e Rianimazione",
+    "cardiologia pediatrica": "Cardiologia",
+    "chirurgia pediatria": "Chirurgia Pediatrica",
+    "diabetologia": "Endocrinologia",
+    "epatologia": "Gastroenterologia",
+    "immunologia": "Allergologia e Immunologia Clinica",
+    "neuroradiologia": "Radiodiagnostica",
+    "oculistica pediatrica": "Oftalmologia",
+    "recupero e riabilitazione funzionale": "Medicina Fisica e Riabilitativa",
+    "terapia del dolore": "Anestesia e Rianimazione",
 }
 
 
