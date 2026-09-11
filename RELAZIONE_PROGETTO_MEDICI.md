@@ -2,7 +2,7 @@
 
 **Progetto:** arricchimento dell’archivio aziendale dei medici  
 **Versione applicativa:** V6.0  
-**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 12:56
+**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 13:58
 **Archivio analizzato:** 81.331 persone
 
 ## 1. Scopo del progetto
@@ -24,27 +24,27 @@ Alla data della relazione, l’elaborazione dell’intero archivio ha prodotto:
 | Indicatore | Record | Quota sull’archivio |
 |---|---:|---:|
 | Archivio originale | 81.331 | 100,0% |
-| Record con specialità o disciplina utilizzabile | 29.546 | 36,3% |
-| Disciplina dichiarata in un profilo pubblico | 23.816 | 29,3% |
-| Specialità con identità nominale | 5.712 | 7,0% |
-| Specialità documentata con identità anagrafica forte | 18 | 0,02% |
-| Persone collegate ad almeno una fonte candidata | 35.748 | 44,0% |
-| Profili nominali senza titolo sufficiente | 2.519 | 3,1% |
-| Evidenze non confermate | 3.559 | 4,4% |
+| Record con specialità o disciplina utilizzabile | 29.565 | 36,4% |
+| Disciplina dichiarata in un profilo pubblico | 23.804 | 29,3% |
+| Specialità con identità nominale | 5.715 | 7,0% |
+| Specialità documentata con identità anagrafica forte | 46 | 0,06% |
+| Persone collegate ad almeno una fonte candidata | 35.775 | 44,0% |
+| Profili nominali senza titolo sufficiente | 2.520 | 3,1% |
+| Evidenze non confermate | 3.560 | 4,4% |
 | Fonti non accessibili | 102 | 0,1% |
-| Record non coperti dalle fonti integrate | 45.583 | 56,0% |
+| Record non coperti dalle fonti integrate | 45.556 | 56,0% |
 
-Sono stati elaborati e memorizzati 74.335 URL; 776 URL risultano in errore. Sono inoltre disponibili 2.111 CV associati a record con specialità o disciplina. Il flusso massivo non consuma crediti Serper o di altre Search API. I risultati sopra riportati sono categorie distinte e non devono essere sommati nuovamente tra loro.
+Sono stati elaborati e memorizzati 74.422 URL; 776 URL risultano in errore. Sono inoltre disponibili 2.109 CV associati a record con specialità o disciplina. Il flusso massivo non consuma crediti Serper o di altre Search API. I risultati sopra riportati sono categorie distinte e non devono essere sommati nuovamente tra loro.
 
 ## 3. Ultimo controllo operativo
 
-L’acquisizione più recente è dell’**11 settembre 2026 alle ore 12:56**. L’integrazione dell’elenco istituzionale dell’Ospedale Niguarda si è conclusa senza problemi: 171 associazioni, 153 richieste HTTP e 151 nuovi URL elaborati.
+L’acquisizione più recente è dell’**11 settembre 2026 alle ore 13:58**. L’integrazione dell’API istituzionale del Policlinico Campus Bio-Medico si è conclusa senza problemi: 94 associazioni, 93 richieste HTTP e 87 nuovi URL elaborati.
 
-La run ha aggiunto **98 risultati utilizzabili**, portando il totale da 29.448 a **29.546** e la copertura dal 36,2% al **36,3%**. I record completamente non coperti sono diminuiti di 79, da 45.662 a **45.583**. Niguarda contribuisce ora a 129 risultati utili: 79 discipline dichiarate e 50 specialità già sostenute anche da altre evidenze nominali. I CV utili rimangono **2.111**.
+La run ha aggiunto **19 risultati utilizzabili**, portando il totale da 29.546 a **29.565** e la copertura dal 36,3% al **36,4%**. I record completamente non coperti sono diminuiti di 27, da 45.583 a **45.556**. Grazie al codice fiscale pubblicato nelle schede istituzionali, le specialità documentate con identità forte sono aumentate da 18 a **46**. Nel risultato corrente sono associati **2.109 CV** a record utili.
 
-Il primo tentativo delle 12:51, avviato con il precedente catalogo istituzionale, è stato interrotto. Il ciclo Niguarda delle 12:53 è invece terminato correttamente e senza elementi in coda.
+Il ciclo Campus Bio-Medico ha elaborato 50 documenti e non ha consumato crediti di Search API. La riduzione delle discipline dichiarate riflette il passaggio di alcuni record a categorie più forti e non una perdita di risultati.
 
-Per evitare errori di trascrizione su Windows sono disponibili avviatori `.bat` dedicati. Il log registra catalogo, limiti e opzioni effettivamente ricevute.
+Per evitare duplicazioni e confusione, è disponibile un solo avviatore Windows, `avvia_recupero.bat`, riutilizzabile dopo ogni aggiornamento delle fonti. Il log registra catalogo, limiti e opzioni effettivamente ricevute.
 
 ## 4. Funzionamento generale
 
@@ -176,7 +176,7 @@ Il progetto raccoglie esclusivamente informazioni professionali rese pubbliche d
 
 ## 12. Limiti attuali
 
-Il principale limite non è la capacità di elaborazione, ma la disponibilità di fonti pubbliche indicizzabili e sufficientemente strutturate. I 45.583 record non coperti non rappresentano medici inesistenti o privi di specialità: indicano che le fonti attualmente integrate non hanno prodotto un candidato associabile.
+Il principale limite non è la capacità di elaborazione, ma la disponibilità di fonti pubbliche indicizzabili e sufficientemente strutturate. I 45.556 record non coperti non rappresentano medici inesistenti o privi di specialità: indicano che le fonti attualmente integrate non hanno prodotto un candidato associabile.
 
 Altri limiti materiali sono:
 
@@ -202,6 +202,6 @@ Le attività con il miglior rapporto tra tempo e risultato sono:
 
 ## 14. Conclusione
 
-Il progetto ha trasformato una ricerca manuale non sostenibile su 81.331 nominativi in una pipeline ripetibile, tracciabile e senza costi di Search API. Il risultato corrente rende disponibili specialità o discipline per 29.546 persone, conserva l’origine di ogni informazione e mantiene separati i casi che richiedono verifica.
+Il progetto ha trasformato una ricerca manuale non sostenibile su 81.331 nominativi in una pipeline ripetibile, tracciabile e senza costi di Search API. Il risultato corrente rende disponibili specialità o discipline per 29.565 persone, conserva l’origine di ogni informazione e mantiene separati i casi che richiedono verifica.
 
 Il software è già utilizzabile per produrre report aziendali e proseguire l’arricchimento incrementale. Il prossimo aumento significativo della copertura dipenderà soprattutto dall’integrazione di nuove fonti pubbliche e dalla risoluzione controllata dei casi nominali, mantenendo gli attuali criteri di qualità.

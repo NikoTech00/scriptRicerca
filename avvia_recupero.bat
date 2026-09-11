@@ -2,16 +2,14 @@
 setlocal
 cd /d "%~dp0"
 
-echo Recupero istituzionale: Gemelli, IEO e MultiMedica
+echo Recupero incrementale di tutte le fonti configurate
 echo Cartella progetto: %CD%
 echo.
 
 python .\scriptMedici.py "input\scriptMedici.xlsx" ^
   --massivo ^
-  --source-catalog ".\fonti_recupero_istituzionali.json" ^
-  --refresh-sources ^
   --max-documents 1000 ^
-  --max-http-requests 1000 ^
+  --max-http-requests 2000 ^
   --mass-checkpoint-every 100 ^
   --output "output\risultato_massivo_recuperato.xlsx"
 
