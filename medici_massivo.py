@@ -24,7 +24,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COM
 from dataclasses import asdict
 from datetime import date, datetime
 from pathlib import Path
-from urllib.parse import unquote, urljoin, urlparse, urldefrag
+from urllib.parse import parse_qs, quote, unquote, urljoin, urlparse, urldefrag
 
 import requests
 from bs4 import BeautifulSoup
@@ -462,7 +462,40 @@ def discover_one(spec, fetcher, names, refresh=False):
         seen.add(url)
         try:
             info, raw = fetcher.get(url, refresh=refresh)
-            if spec['type'] == 'wordpress_api':
+            if spec['type'] == 'pdf_activity_roster':
+                aliases = {key(label): value for label, value in core.SPECIALTY_ALIASES.items()}
+                aliases.update({key(value): value for value in core.SPECIALTY_ALIASES.values()})
+                current = ''
+                reader = PdfReader(io.BytesIO(raw))
+                for page in reader.pages:
+                    lines = (page.extract_text() or '').splitlines()
+                    for line in lines:
+                        line_key = key(line)
+                        if line_key in aliases:
+                            current = aliases[line_key]
+                            continue
+                        if not current or not line_key:
+                            continue
+                        ids = names.match(line)
+                        leading = []
+                        for pid in ids:
+                            person = names.people[pid]
+                            labels = (key(f'{person.surname} {person.name}'), key(person.full_name))
+                            if any(line_key.startswith(label + ' ') or line_key == label for label in labels):
+                                leading.append(pid)
+                        if not leading:
+                            continue
+                        longest = max(max(len(key(f'{names.people[pid].surname} {names.people[pid].name}').split()),
+                                          len(key(names.people[pid].full_name).split())) for pid in leading)
+                        leading = [pid for pid in leading if max(
+                            len(key(f'{names.people[pid].surname} {names.people[pid].name}').split()),
+                            len(key(names.people[pid].full_name).split())) == longest]
+                        if len({key(names.people[pid].full_name) for pid in leading}) > 1:
+                            continue
+                        for pid in leading:
+                            tagged = url + ('&' if '?' in url else '?') + '_massivo_disciplina=' + quote(current)
+                            found.add((pid, tagged, 'indexed_activity'))
+            elif spec['type'] == 'wordpress_api':
                 payload = json.loads(raw.decode('utf-8-sig'))
                 if isinstance(payload, dict) and payload.get('id'):
                     items = [payload]
@@ -551,10 +584,15 @@ def discover_one(spec, fetcher, names, refresh=False):
 
 def indexed_activity_result(spec, person, url, ambiguous):
     """Crea evidenza nominale dalla categoria professionale esplicita nell'URL indicizzato."""
-    path = unquote(urlparse(url).path).rstrip('/')
+    parsed = urlparse(url)
+    if spec.get('type') == 'pdf_activity_roster':
+        label = core.clean((parse_qs(parsed.query).get('_massivo_disciplina') or [''])[0])
+    else:
+        label = ''
+    path = unquote(parsed.path).rstrip('/')
     match = re.search(spec.get('activity_pattern', r'^/([^/]+)/'), path)
     slug = match[1].casefold() if match else ''
-    label = spec.get('activity_map', {}).get(slug, '')
+    label = label or spec.get('activity_map', {}).get(slug, '')
     if not label:
         raw = slug.replace('-', ' ')
         aliases = {key(k): v for k, v in core.SPECIALTY_ALIASES.items()}
@@ -562,17 +600,20 @@ def indexed_activity_result(spec, person, url, ambiguous):
     identity = 'omonimia' if ambiguous else 'solo_nome_completo'
     reason = ('Più persone nell’input con lo stesso nome: manca un discriminante anagrafico'
               if ambiguous else 'Nome completo concordante con il profilo indicizzato; identità anagrafica non confermata dalla fonte')
+    evidence_label = (f"Disciplina nell’elenco istituzionale {spec['id']}: {label}"
+                      if spec.get('type') == 'pdf_activity_roster'
+                      else f"Categoria pubblica {spec['id']}: {label}")
     return {
         'identity': identity,
         'specialties': [],
         'evidence': [],
         'activities': [label] if label and not ambiguous else [],
-        'activity_evidence': [f"Categoria pubblica {spec['id']}: {label}"] if label and not ambiguous else [],
+        'activity_evidence': [evidence_label] if label and not ambiguous else [],
         'cv': False,
         'reason': reason if label else reason + '; categoria non inclusa nella tassonomia medica',
         'path': '',
         'kind': 'Profilo pubblico indicizzato',
-        'url': url,
+        'url': spec['urls'][0] if spec.get('type') == 'pdf_activity_roster' else url,
     }
 
 

@@ -27,6 +27,26 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(found, {('1', 'https://api.example.test/doctors/42', 'profile')})
         self.assertEqual(errors, [])
 
+    def test_pdf_roster_maps_leading_name_to_declared_discipline(self):
+        names = m.Names({'1': person()})
+        spec = {'id': 'Torino', 'type': 'pdf_activity_roster',
+                'urls': ['https://example.test/elenco.pdf'], 'hosts': ['example.test']}
+        from unittest.mock import Mock
+        page = Mock(); page.extract_text.return_value = (
+            'Documento in aggiornamento\nCARDIOLOGIA\nROSSI ANNA ROSSI ANNA POLIAMBULATORIO')
+        reader = Mock(); reader.pages = [page]
+        fetcher = Mock(); fetcher.get.return_value = (
+            {'final_url': spec['urls'][0]}, b'%PDF-fake')
+        with patch.object(m, 'PdfReader', return_value=reader):
+            found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(errors, [])
+        self.assertEqual(len(found), 1)
+        pid, url, kind = next(iter(found))
+        self.assertEqual((pid, kind), ('1', 'indexed_activity'))
+        result = m.indexed_activity_result(spec, person(), url, False)
+        self.assertEqual(result['activities'], ['Cardiologia'])
+        self.assertEqual(result['url'], spec['urls'][0])
+
     def test_campus_api_extracts_fiscal_code_and_documented_specialty(self):
         payload = {'type': 'medici-e-specialisti', 'title': {'rendered': 'Dott.ssa Anna Rossi'},
                    'acf': {'codice_fiscale': 'RSSNNA80D43H501X', 'sezioni': [
