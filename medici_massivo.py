@@ -520,7 +520,9 @@ def discover_one(spec, fetcher, names, refresh=False):
                         continue
                     for pid in ids:
                         found.add((pid, item_url, 'profile'))
-            elif spec['type'] == 'sitemap':
+            elif (spec['type'] == 'sitemap' or
+                  (spec['type'] == 'linked_sitemap' and re.match(
+                      br'\s*(?:<\?xml[^>]*>\s*)?<(?:\w+:)?(?:urlset|sitemapindex)\b', raw))):
                 is_index, links = sitemap_entries(raw)
                 if is_index:
                     for link in links:
@@ -532,6 +534,11 @@ def discover_one(spec, fetcher, names, refresh=False):
                 for link in links:
                     if link.startswith('http://') and url.startswith('https://'):
                         link = 'https://' + link[7:]
+                    if spec['type'] == 'linked_sitemap':
+                        if (urlparse(link).hostname in spec['hosts']
+                                and re.search(spec.get('index_pattern', '.*'), link)):
+                            queue.append(link)
+                        continue
                     if urlparse(link).hostname not in spec['hosts'] or not re.search(spec['profile_pattern'], link):
                         continue
                     # Alcune sitemap pubblicano un vecchio dominio che reindirizza al
@@ -774,6 +781,18 @@ def visible_profile(raw):
         value = label.find_next_sibling('div')
         if value:
             roles.extend(node.get_text(' ', strip=True) for node in value.select('a') if node.get_text(' ', strip=True))
+    for item in soup.select('.doctor-card-role li'):
+        label = item.select_one('span')
+        value = item.select_one('p')
+        if not label or not value:
+            continue
+        field = key(label.get_text(' ', strip=True))
+        content = value.get_text(' ', strip=True)
+        if field == 'disciplina' and content:
+            roles.append(content)
+        elif field == 'unita operativa' and content:
+            content = re.sub(r'(?i)^\s*(?:UOC|UOD|UOSD?|SSD?|SC)\s+', '', content).strip()
+            roles.append(content)
     # Alcuni siti istituzionali collocano la disciplina nell'header interno
     # della scheda, che viene poi rimosso insieme alla navigazione. Acquisirla
     # prima della pulizia evita di perdere righe come "Specialità: Urologia".

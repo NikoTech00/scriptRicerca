@@ -47,6 +47,31 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['activities'], ['Cardiologia'])
         self.assertEqual(result['url'], spec['urls'][0])
 
+    def test_linked_sitemap_queues_indexes_and_discovers_profiles(self):
+        names = m.Names({'1': person()})
+        sitemap = (b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+                   b'<url><loc>https://example.test/reparto-cardiologia</loc></url></urlset>')
+        page = b'<a href="/unita-operative/cardiologia/anna-rossi">Anna Rossi</a>'
+        spec = {'id': 'linked', 'type': 'linked_sitemap', 'urls': ['https://example.test/sitemap.xml'],
+                'hosts': ['example.test'], 'index_pattern': r'/reparto-',
+                'link_pattern': r'/unita-operative/.+/.+$', 'max_index_pages': 5}
+        from unittest.mock import Mock
+        fetcher = Mock(); fetcher.get.side_effect = [
+            ({'final_url': spec['urls'][0]}, sitemap),
+            ({'final_url': 'https://example.test/reparto-cardiologia'}, page)]
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(errors, [])
+        self.assertEqual(found, {('1', 'https://example.test/unita-operative/cardiologia/anna-rossi', 'profile')})
+
+    def test_santandrea_unit_is_a_declared_discipline(self):
+        raw = (b'<main><div class="doctor-card"><h1>Anna Rossi</h1>'
+               b'<div class="doctor-card-role"><ul><li><span>Unita operativa:</span>'
+               b'<p>UOC Cardiologia</p></li><li><span>Ruolo in ospedale:</span>'
+               b'<p>Medico</p></li></ul></div></div></main>')
+        title, text, _ = m.visible_profile(raw)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['activities'], ['Cardiologia'])
+
     def test_campus_api_extracts_fiscal_code_and_documented_specialty(self):
         payload = {'type': 'medici-e-specialisti', 'title': {'rendered': 'Dott.ssa Anna Rossi'},
                    'acf': {'codice_fiscale': 'RSSNNA80D43H501X', 'sezioni': [

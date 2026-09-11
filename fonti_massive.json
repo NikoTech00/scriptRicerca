@@ -406,6 +406,20 @@
       ],
       "max_index_pages": 1,
       "note": "Fonte automatica sospesa: robots.txt vieta l’accesso alla cartella del PDF. Conservata per una futura importazione locale autorizzata."
+    },
+    {
+      "id": "Ospedale_Sant_Andrea_Roma",
+      "type": "linked_sitemap",
+      "hosts": [
+        "ospedalesantandrea.it"
+      ],
+      "urls": [
+        "https://ospedalesantandrea.it/sitemap-pages.xml"
+      ],
+      "index_pattern": ".*",
+      "link_pattern": "(?i)^https://ospedalesantandrea\\.it/unita-operative/[^/?#]+/[^/?#]+/?$",
+      "max_index_pages": 400,
+      "note": "Profili istituzionali dell’Azienda ospedaliero-universitaria Sant’Andrea di Roma, enumerati dalle pagine pubbliche della sitemap; unità operativa e disciplina restano classificate come attività dichiarate."
     }
   ]
 }

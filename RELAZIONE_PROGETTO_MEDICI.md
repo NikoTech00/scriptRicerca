@@ -71,10 +71,10 @@ flowchart LR
 
 ## 5. Fonti integrate
 
-Il catalogo massivo contiene attualmente 24 fonti. Comprende strutture sanitarie e portali professionali pubblici:
+Il catalogo massivo contiene attualmente 25 fonti, di cui 24 attive. Comprende strutture sanitarie e portali professionali pubblici:
 
 - Humanitas, Humanitas San Pio X, Policlinico Gemelli, IEO e MultiMedica;
-- Gruppo San Donato, Ospedale San Raffaele, Ospedale Niguarda, Policlinico San Matteo, Policlinico Campus Bio-Medico e Città della Salute di Torino;
+- Gruppo San Donato, Ospedale San Raffaele, Ospedale Niguarda, Policlinico San Matteo, Policlinico Campus Bio-Medico, Ospedale Sant’Andrea e Città della Salute di Torino;
 - Istituto Ortopedico Rizzoli, Auxologico, Maugeri e Santagostino;
 - ASST Rhodense e ASST Bergamo Ovest;
 - MioDottore, iDoctors, Top Doctors, Doctolib, Medicitalia, PagineMediche/Visitami e MiAgenda.
@@ -166,7 +166,7 @@ Verifica automatica del software:
 python -B -m unittest discover -s tests -q
 ```
 
-La suite corrente comprende 75 test e copre, tra gli altri aspetti, gestione della coda, ripresa, errori di rete, salvataggio atomico, omonimie, normalizzazione delle discipline, fonti istituzionali e denominazione dei CV.
+La suite corrente comprende 77 test e copre, tra gli altri aspetti, gestione della coda, ripresa, errori di rete, salvataggio atomico, omonimie, normalizzazione delle discipline, fonti istituzionali e denominazione dei CV.
 
 ## 11. Protezione e trattamento dei dati
 
