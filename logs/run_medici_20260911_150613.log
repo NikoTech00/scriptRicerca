@@ -1,0 +1,6 @@
+2026-09-11 15:06:13 | INFO | PARAMETRI MASSIVO | catalogo=C:\Dev\Niko\Python\scriptRicerca\fonti_massive.json | export_only=False | skip_discovery=False | refresh_sources=False | max_documents=1000 | max_http_requests=2000 | state_dir=stato_massivo | output=output\risultato_massivo_recuperato.xlsx
+2026-09-11 15:06:13 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-11 15:06:15 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-11 15:06:17 | INFO | FONTE Ospedale_Sant_Andrea_Roma: 0 associazioni, 1 problemi
+2026-09-11 15:06:17 | WARNING | FONTE Ospedale_Sant_Andrea_Roma DETTAGLIO PROBLEMI: https://ospedalesantandrea.it/sitemap-pages.xml: FetchError: SSLError
+2026-09-11 15:06:58 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45556, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23804, 'EVIDENZA_NON_CONFERMATA': 3560, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5715, 'FONTE_NON_ACCESSIBILE': 102, 'PROFILO_CON_IDENTITA_NOMINALE': 2520, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 28, 'SPECIALITA_DOCUMENTATA': 46}, 'people_with_sources': 35775, 'urls': {'done': 74422, 'error': 776}, 'updated': '2026-09-11T13:06:58+00:00'}; HTTP=1; Search API=0
