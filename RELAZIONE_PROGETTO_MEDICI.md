@@ -2,7 +2,7 @@
 
 **Progetto:** arricchimento dell’archivio aziendale dei medici  
 **Versione applicativa:** V6.0  
-**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 13:58
+**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 14:13
 **Archivio analizzato:** 81.331 persone
 
 ## 1. Scopo del progetto
@@ -38,11 +38,11 @@ Sono stati elaborati e memorizzati 74.422 URL; 776 URL risultano in errore. Sono
 
 ## 3. Ultimo controllo operativo
 
-L’acquisizione più recente è dell’**11 settembre 2026 alle ore 13:58**. L’integrazione dell’API istituzionale del Policlinico Campus Bio-Medico si è conclusa senza problemi: 94 associazioni, 93 richieste HTTP e 87 nuovi URL elaborati.
+Il controllo più recente è dell’**11 settembre 2026 alle ore 14:13**. L’esecuzione si è conclusa correttamente con **0 richieste HTTP** e senza elementi da elaborare: la coda era già completa e le fonti erano disponibili nella cache locale.
 
 La run ha aggiunto **19 risultati utilizzabili**, portando il totale da 29.546 a **29.565** e la copertura dal 36,3% al **36,4%**. I record completamente non coperti sono diminuiti di 27, da 45.583 a **45.556**. Grazie al codice fiscale pubblicato nelle schede istituzionali, le specialità documentate con identità forte sono aumentate da 18 a **46**. Nel risultato corrente sono associati **2.109 CV** a record utili.
 
-Il ciclo Campus Bio-Medico ha elaborato 50 documenti e non ha consumato crediti di Search API. La riduzione delle discipline dichiarate riflette il passaggio di alcuni record a categorie più forti e non una perdita di risultati.
+L’ultima acquisizione effettiva resta il ciclo Campus Bio-Medico delle 13:58, che ha elaborato 50 documenti e non ha consumato crediti di Search API. La riduzione delle discipline dichiarate riflette il passaggio di alcuni record a categorie più forti e non una perdita di risultati.
 
 Per evitare duplicazioni e confusione, è disponibile un solo avviatore Windows, `avvia_recupero.bat`, riutilizzabile dopo ogni aggiornamento delle fonti. Il log registra catalogo, limiti e opzioni effettivamente ricevute.
 
