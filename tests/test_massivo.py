@@ -14,6 +14,21 @@ def person(pid='1', name='Anna', surname='Rossi', dob='03/04/1980'):
 
 
 class MassivoTests(unittest.TestCase):
+    def test_tls_exception_is_limited_to_santandrea(self):
+        with tempfile.TemporaryDirectory() as folder:
+            fetcher = m.Fetcher(folder, delay=0)
+            response = unittest.mock.MagicMock()
+            response.status_code = 200
+            response.headers = {}
+            response.iter_content.return_value = [b'ok']
+            session = unittest.mock.Mock(); session.get.return_value = response
+            fetcher.local.session = session
+            fetcher._request('https://ospedalesantandrea.it/robots.txt')
+            self.assertFalse(session.get.call_args.kwargs['verify'])
+            session.get.reset_mock()
+            fetcher._request('https://example.test/robots.txt')
+            self.assertNotIn('verify', session.get.call_args.kwargs)
+
     def test_wordpress_api_discovers_structured_doctor(self):
         names = m.Names({'1': person()})
         payload = {'0': {'id': 42, 'title': {'rendered': 'Dott.ssa Anna Rossi'},

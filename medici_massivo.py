@@ -18,6 +18,7 @@ import tempfile
 import threading
 import time
 import unicodedata
+import warnings
 import xml.etree.ElementTree as ET
 from collections import Counter, defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED
@@ -31,6 +32,7 @@ from bs4 import BeautifulSoup
 from openpyxl import Workbook, load_workbook
 from openpyxl.cell import WriteOnlyCell
 from pypdf import PdfReader
+from urllib3.exceptions import InsecureRequestWarning
 
 import scriptMedici as core
 
@@ -39,6 +41,7 @@ ANALYZER = 5
 DISCOVERY_VERSION = 3
 UA = 'MediciResearch/1.0'
 MAX_BYTES = 25 * 1024 * 1024
+TLS_INSECURE_HOSTS = {'ospedalesantandrea.it'}
 EXTRA_COLUMNS = [
     'Massivo_Stato', 'Identita_Verifica', 'Specialita_Documentata',
     'Specialita_Proposta', 'Specialita_Evidenza_Massivo', 'Tipo_Fonte',
@@ -362,7 +365,13 @@ class Fetcher:
                 time.sleep(pause)
             self.last[host] = time.monotonic()
             try:
-                with self.session().get(url, timeout=(8, 18), stream=True, allow_redirects=False) as response:
+                request_options = {'timeout': (8, 18), 'stream': True, 'allow_redirects': False}
+                if urlparse(url).hostname in TLS_INSECURE_HOSTS:
+                    request_options['verify'] = False
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', InsecureRequestWarning)
+                    response = self.session().get(url, **request_options)
+                with response:
                     if response.status_code in (401, 403, 429):
                         self.blocked[host] = f'HTTP_{response.status_code}: host sospeso per questa esecuzione'
                     data = bytearray()
