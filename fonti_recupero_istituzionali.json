@@ -1,0 +1,100 @@
+{
+  "sources": [
+    {
+      "id": "Gemelli",
+      "type": "sitemap",
+      "hosts": [
+        "www.policlinicogemelli.it"
+      ],
+      "urls": [
+        "https://www.policlinicogemelli.it/sitemap_index.xml"
+      ],
+      "profile_pattern": "/medici/[^/]+/?$",
+      "sitemap_pattern": "/kf_gem_medico-sitemap",
+      "reanalyze_on_change": true,
+      "reanalyze_empty_only": true,
+      "reanalyze_revision": 2
+    },
+    {
+      "id": "IEO",
+      "type": "index",
+      "hosts": [
+        "www.ieo.it"
+      ],
+      "urls": [
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=A",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=B",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=C",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=D",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=E",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=F",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=G",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=H",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=I",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=J",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=K",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=L",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=M",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=N",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=O",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=P",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=Q",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=R",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=S",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=T",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=U",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=V",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=W",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=X",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=Y",
+        "https://www.ieo.it/it/PNA/Trova-Medico/?key=Z"
+      ],
+      "link_pattern": "(?i)/PNA/Trova-Medico/[^/?]+-[0-9A-F]+/?$",
+      "note": "Schede nominali istituzionali dell’Istituto Europeo di Oncologia; la disciplina clinica è dichiarata nella pagina del medico.",
+      "reanalyze_on_change": true,
+      "reanalyze_empty_only": true,
+      "reanalyze_revision": 2
+    },
+    {
+      "id": "MultiMedica",
+      "type": "index",
+      "hosts": [
+        "multimedica.it",
+        "www.multimedica.it"
+      ],
+      "urls": [
+        "https://multimedica.it/medici-multimedica/?iniziale=A",
+        "https://multimedica.it/medici-multimedica/?iniziale=B",
+        "https://multimedica.it/medici-multimedica/?iniziale=C",
+        "https://multimedica.it/medici-multimedica/?iniziale=D",
+        "https://multimedica.it/medici-multimedica/?iniziale=E",
+        "https://multimedica.it/medici-multimedica/?iniziale=F",
+        "https://multimedica.it/medici-multimedica/?iniziale=G",
+        "https://multimedica.it/medici-multimedica/?iniziale=H",
+        "https://multimedica.it/medici-multimedica/?iniziale=I",
+        "https://multimedica.it/medici-multimedica/?iniziale=J",
+        "https://multimedica.it/medici-multimedica/?iniziale=K",
+        "https://multimedica.it/medici-multimedica/?iniziale=L",
+        "https://multimedica.it/medici-multimedica/?iniziale=M",
+        "https://multimedica.it/medici-multimedica/?iniziale=N",
+        "https://multimedica.it/medici-multimedica/?iniziale=O",
+        "https://multimedica.it/medici-multimedica/?iniziale=P",
+        "https://multimedica.it/medici-multimedica/?iniziale=Q",
+        "https://multimedica.it/medici-multimedica/?iniziale=R",
+        "https://multimedica.it/medici-multimedica/?iniziale=S",
+        "https://multimedica.it/medici-multimedica/?iniziale=T",
+        "https://multimedica.it/medici-multimedica/?iniziale=U",
+        "https://multimedica.it/medici-multimedica/?iniziale=V",
+        "https://multimedica.it/medici-multimedica/?iniziale=W",
+        "https://multimedica.it/medici-multimedica/?iniziale=X",
+        "https://multimedica.it/medici-multimedica/?iniziale=Y",
+        "https://multimedica.it/medici-multimedica/?iniziale=Z"
+      ],
+      "link_pattern": "(?i)^https://(?:www\\.)?multimedica\\.it/medici/[^/?]+/?$",
+      "note": "Schede nominali istituzionali del Gruppo MultiMedica; unità operativa e formazione vengono mantenute distinte dai titoli di specializzazione espliciti.",
+      "reanalyze_on_change": true,
+      "reanalyze_empty_only": true,
+      "reanalyze_revision": 2
+    }
+  ]
+}
