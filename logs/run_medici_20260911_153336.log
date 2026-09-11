@@ -1,0 +1,7 @@
+2026-09-11 15:33:36 | INFO | PARAMETRI MASSIVO | catalogo=C:\Dev\Niko\Python\scriptRicerca\fonti_massive.json | export_only=False | skip_discovery=False | refresh_sources=False | max_documents=1000 | max_http_requests=2000 | state_dir=stato_massivo | output=output\risultato_massivo_recuperato.xlsx
+2026-09-11 15:33:36 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-11 15:33:38 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-11 15:37:19 | INFO | FONTE Ospedale_Sant_Andrea_Roma: 65 associazioni, 5 problemi
+2026-09-11 15:37:19 | WARNING | FONTE Ospedale_Sant_Andrea_Roma DETTAGLIO PROBLEMI: https://ospedalesantandrea.it/news: FetchError: HTTP_404 | https://ospedalesantandrea.it/eventi: FetchError: HTTP_404 | https://ospedalesantandrea.it/ricerca: FetchError: HTTP_404 | https://ospedalesantandrea.it/contatti: FetchError: HTTP_404 | https://ospedalesantandrea.it/chi-siamo: FetchError: HTTP_404
+2026-09-11 15:37:57 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 355
+2026-09-11 15:38:42 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45530, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23820, 'EVIDENZA_NON_CONFERMATA': 3565, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5719, 'FONTE_NON_ACCESSIBILE': 102, 'PROFILO_CON_IDENTITA_NOMINALE': 2521, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 28, 'SPECIALITA_DOCUMENTATA': 46}, 'people_with_sources': 35801, 'urls': {'done': 74478, 'error': 776}, 'updated': '2026-09-11T13:38:42+00:00'}; HTTP=361; Search API=0
