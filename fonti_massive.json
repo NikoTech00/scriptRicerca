@@ -396,6 +396,7 @@
     },
     {
       "id": "Citta_Salute_Torino_ALPI",
+      "enabled": false,
       "type": "pdf_activity_roster",
       "hosts": [
         "www.cittadellasalute.to.it"
@@ -404,7 +405,7 @@
         "https://www.cittadellasalute.to.it/images/stories/area_utenti/lib_professione/2026/maggio/25082026_Autorizzazioni_AOU_CDSS_-_ordine_per_Specialita.pdf"
       ],
       "max_index_pages": 1,
-      "note": "Elenco istituzionale AOU Città della Salute e della Scienza di Torino, aggiornato al 25/08/2026: associa ogni professionista alla branca specialistica autorizzata per attività intramuraria."
+      "note": "Fonte automatica sospesa: robots.txt vieta l’accesso alla cartella del PDF. Conservata per una futura importazione locale autorizzata."
     }
   ]
 }

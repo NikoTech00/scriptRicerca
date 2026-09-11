@@ -683,6 +683,8 @@ def discover(store, fetcher, names, catalog, refresh=False, workers=6):
             store.db.commit()
             store.put('source:' + spec['id'], signature(spec))
             logging.info('FONTE %s: %s associazioni, %s problemi', spec['id'], len(found), len(errors))
+            if errors:
+                logging.warning('FONTE %s DETTAGLIO PROBLEMI: %s', spec['id'], ' | '.join(errors))
 
 
 def import_manifest(store, path, people):
