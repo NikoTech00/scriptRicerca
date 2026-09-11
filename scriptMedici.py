@@ -3160,6 +3160,12 @@ SPECIALTY_ALIASES = {
     "odontoiatra": "Odontoiatria e Stomatologia",
     "odontoiatria": "Odontoiatria e Stomatologia",
     "odontoiatria e stomatologia": "Odontoiatria e Stomatologia",
+    "ginecologia chirurgica": "Ginecologia e Ostetricia",
+    "chirurgia apparato digerente": "Chirurgia Generale",
+    "chirurgia dell'apparato digerente": "Chirurgia Generale",
+    "chirurgia del peritoneo e retroperitoneo": "Chirurgia Generale",
+    "pronto soccorso": "Medicina d'Emergenza-Urgenza",
+    "cure palliative e terapia del dolore": "Medicina e Cure Palliative",
 }
 
 

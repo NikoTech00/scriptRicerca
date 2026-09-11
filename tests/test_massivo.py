@@ -126,6 +126,30 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['activities'], ['Cardiologia'])
         self.assertEqual(result['activity_evidence'], ['Disciplina dichiarata: Cardiologia'])
 
+    def test_ieo_structured_discipline_is_extracted(self):
+        raw = (b'<main><h1>Anna Rossi</h1><div class="detail"><h3>Medico</h3>'
+               b'<p class="info"><a>Radiologia</a></p></div></main>')
+        title, text, _ = m.visible_profile(raw)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['activities'], ['Radiodiagnostica'])
+
+    def test_gemelli_operating_unit_normalizes_qualified_specialty(self):
+        raw = (b'<main><h1>Dott.ssa Anna Rossi</h1><div class="kf-medico-item">'
+               b'<span class="kf-lbl">Unita Operativa Complessa</span>'
+               b'<span class="kf-val"><h2>Anatomia Patologica Generale</h2></span></div></main>')
+        title, text, _ = m.visible_profile(raw)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['activities'], ['Anatomia Patologica'])
+
+    def test_multimedica_specialty_block_is_extracted(self):
+        raw = (b'<main><h1>Anna Rossi</h1><div><div class="uk-h3">Specialita</div>'
+               b'<div><ul><li><a>PRONTO SOCCORSO</a></li></ul></div>'
+               b'<div class="uk-h3">Strutture</div><div><a>Ospedale</a></div></div></main>')
+        title, text, _ = m.visible_profile(raw)
+        result = m.analyze_content(person(), text, False, title, False)
+        self.assertEqual(result['activities'], ["Medicina d'Emergenza-Urgenza"])
+        self.assertNotIn('Ospedale', text.split('Disciplina dichiarata:')[1].splitlines()[0])
+
     def test_sitemap_names_use_slug_not_parent_directory(self):
         names = m.Names({'1': person('1', 'Federica', 'Medici')})
         raw = b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.org/medici/federica-de-matteis</loc></url></urlset>'

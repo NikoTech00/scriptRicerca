@@ -681,6 +681,24 @@ def visible_profile(raw):
             continue
     structured_specialties = list(dict.fromkeys(structured_specialties))
     roles.extend(structured_roles)
+    # Profili istituzionali: la disciplina e' spesso pubblicata in componenti
+    # strutturati senza Schema.org. Limitiamo i selettori ai contenitori specifici
+    # per non confondere menu, prestazioni o medici correlati con il profilo.
+    for node in soup.select('.detail > p.info'):
+        value = node.get_text(' ', strip=True)
+        if value:
+            roles.append(value)
+    for item in soup.select('.kf-medico-item'):
+        label = item.select_one('.kf-lbl')
+        value = item.select_one('.kf-val')
+        if label and value and re.search(r'(?i)unit[aà] operativa', label.get_text(' ', strip=True)):
+            roles.append(value.get_text(' ', strip=True))
+    for label in soup.select('.uk-h3'):
+        if key(label.get_text(' ', strip=True)) != 'specialita':
+            continue
+        value = label.find_next_sibling('div')
+        if value:
+            roles.extend(node.get_text(' ', strip=True) for node in value.select('a') if node.get_text(' ', strip=True))
     # Alcuni siti istituzionali collocano la disciplina nell'header interno
     # della scheda, che viene poi rimosso insieme alla navigazione. Acquisirla
     # prima della pulizia evita di perdere righe come "Specialità: Urologia".
@@ -759,8 +777,25 @@ def analyze_content(person, text, is_cv, title, ambiguous):
             # stessa riga (es. "Specialità: Radiodiagnostica, Radiologia").
             for raw_label in re.split(r'\s*[,;]\s*', match[1]):
                 label = raw_label.strip()
-                if key(label) in aliases:
-                    normalized = aliases[key(label)]
+                label_key = key(label)
+                normalized_values = []
+                if label_key in aliases:
+                    normalized_values.append(aliases[label_key])
+                else:
+                    # Le unita' ospedaliere aggiungono spesso qualificatori alla
+                    # disciplina (es. "Anatomia Patologica Generale"). Una
+                    # corrispondenza a parole intere conserva solo specialita'
+                    # gia' presenti nella tassonomia e scarta descrizioni vaghe.
+                    contained = []
+                    for alias_key, normalized in aliases.items():
+                        if len(alias_key) < 8:
+                            continue
+                        if re.search(r'(?<![a-z0-9])' + re.escape(alias_key) + r'(?![a-z0-9])', label_key):
+                            contained.append((len(alias_key), normalized))
+                    if contained:
+                        longest = max(size for size, _ in contained)
+                        normalized_values.extend(value for size, value in contained if size == longest)
+                for normalized in dict.fromkeys(normalized_values):
                     if normalized not in result['activities']:
                         result['activities'].append(normalized)
                         result['activity_evidence'].append(match[0])

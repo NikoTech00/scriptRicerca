@@ -22,7 +22,10 @@
         "https://www.policlinicogemelli.it/sitemap_index.xml"
       ],
       "profile_pattern": "/medici/[^/]+/?$",
-      "sitemap_pattern": "/kf_gem_medico-sitemap"
+      "sitemap_pattern": "/kf_gem_medico-sitemap",
+      "reanalyze_on_change": true,
+      "reanalyze_empty_only": true,
+      "reanalyze_revision": 1
     },
     {
       "id": "Santagostino",
@@ -299,7 +302,10 @@
         "https://www.ieo.it/it/PNA/Trova-Medico/?key=Z"
       ],
       "link_pattern": "(?i)/PNA/Trova-Medico/[^/?]+-[0-9A-F]+/?$",
-      "note": "Schede nominali istituzionali dell’Istituto Europeo di Oncologia; la disciplina clinica è dichiarata nella pagina del medico."
+      "note": "Schede nominali istituzionali dell’Istituto Europeo di Oncologia; la disciplina clinica è dichiarata nella pagina del medico.",
+      "reanalyze_on_change": true,
+      "reanalyze_empty_only": true,
+      "reanalyze_revision": 1
     },
     {
       "id": "MultiMedica",
@@ -337,7 +343,10 @@
         "https://multimedica.it/medici-multimedica/?iniziale=Z"
       ],
       "link_pattern": "(?i)^https://(?:www\\.)?multimedica\\.it/medici/[^/?]+/?$",
-      "note": "Schede nominali istituzionali del Gruppo MultiMedica; unità operativa e formazione vengono mantenute distinte dai titoli di specializzazione espliciti."
+      "note": "Schede nominali istituzionali del Gruppo MultiMedica; unità operativa e formazione vengono mantenute distinte dai titoli di specializzazione espliciti.",
+      "reanalyze_on_change": true,
+      "reanalyze_empty_only": true,
+      "reanalyze_revision": 1
     },
     {
       "id": "Policlinico_San_Matteo",
