@@ -1,0 +1,66 @@
+2026-09-11 08:58:36 | INFO | Importazione e controllo di tutto l’archivio: input\scriptMedici.xlsx
+2026-09-11 08:58:38 | INFO | Archivio: 81331 persone; 2378 nomi ripetuti
+2026-09-11 08:59:01 | INFO | Documenti elaborati in questa esecuzione: 50; richieste HTTP: 0
+2026-09-11 08:59:21 | INFO | Documenti elaborati in questa esecuzione: 100; richieste HTTP: 0
+2026-09-11 08:59:41 | INFO | Documenti elaborati in questa esecuzione: 150; richieste HTTP: 0
+2026-09-11 09:00:00 | INFO | Documenti elaborati in questa esecuzione: 200; richieste HTTP: 0
+2026-09-11 09:00:20 | INFO | Documenti elaborati in questa esecuzione: 250; richieste HTTP: 0
+2026-09-11 09:00:40 | INFO | Documenti elaborati in questa esecuzione: 300; richieste HTTP: 0
+2026-09-11 09:01:00 | INFO | Documenti elaborati in questa esecuzione: 350; richieste HTTP: 0
+2026-09-11 09:01:20 | INFO | Documenti elaborati in questa esecuzione: 400; richieste HTTP: 0
+2026-09-11 09:01:38 | INFO | Documenti elaborati in questa esecuzione: 450; richieste HTTP: 0
+2026-09-11 09:01:58 | INFO | Documenti elaborati in questa esecuzione: 500; richieste HTTP: 0
+2026-09-11 09:02:17 | INFO | Documenti elaborati in questa esecuzione: 550; richieste HTTP: 0
+2026-09-11 09:02:37 | INFO | Documenti elaborati in questa esecuzione: 600; richieste HTTP: 0
+2026-09-11 09:02:57 | INFO | Documenti elaborati in questa esecuzione: 650; richieste HTTP: 0
+2026-09-11 09:03:16 | INFO | Documenti elaborati in questa esecuzione: 700; richieste HTTP: 0
+2026-09-11 09:03:35 | INFO | Documenti elaborati in questa esecuzione: 750; richieste HTTP: 0
+2026-09-11 09:03:55 | INFO | Documenti elaborati in questa esecuzione: 800; richieste HTTP: 0
+2026-09-11 09:04:15 | INFO | Documenti elaborati in questa esecuzione: 850; richieste HTTP: 0
+2026-09-11 09:04:34 | INFO | Documenti elaborati in questa esecuzione: 900; richieste HTTP: 0
+2026-09-11 09:04:53 | INFO | Documenti elaborati in questa esecuzione: 950; richieste HTTP: 0
+2026-09-11 09:05:13 | INFO | Documenti elaborati in questa esecuzione: 1000; richieste HTTP: 0
+2026-09-11 09:09:14 | INFO | CHECKPOINT MASSIVO | documenti=1000 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23447, 'EVIDENZA_NON_CONFERMATA': 3567, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5669, 'FONTE_NON_ACCESSIBILE': 103, 'PROFILO_CON_IDENTITA_NOMINALE': 1918, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'IN_CODA': 925, 'SPECIALITA_DOCUMENTATA': 18}
+2026-09-11 09:09:33 | INFO | Documenti elaborati in questa esecuzione: 1050; richieste HTTP: 0
+2026-09-11 09:09:54 | INFO | Documenti elaborati in questa esecuzione: 1100; richieste HTTP: 0
+2026-09-11 09:10:14 | INFO | Documenti elaborati in questa esecuzione: 1150; richieste HTTP: 0
+2026-09-11 09:10:33 | INFO | Documenti elaborati in questa esecuzione: 1200; richieste HTTP: 0
+2026-09-11 09:10:53 | INFO | Documenti elaborati in questa esecuzione: 1250; richieste HTTP: 0
+2026-09-11 09:11:12 | INFO | Documenti elaborati in questa esecuzione: 1300; richieste HTTP: 0
+2026-09-11 09:11:31 | INFO | Documenti elaborati in questa esecuzione: 1350; richieste HTTP: 0
+2026-09-11 09:11:51 | INFO | Documenti elaborati in questa esecuzione: 1400; richieste HTTP: 0
+2026-09-11 09:12:09 | INFO | Documenti elaborati in questa esecuzione: 1450; richieste HTTP: 0
+2026-09-11 09:12:30 | INFO | Documenti elaborati in questa esecuzione: 1500; richieste HTTP: 0
+2026-09-11 09:12:50 | INFO | Documenti elaborati in questa esecuzione: 1550; richieste HTTP: 0
+2026-09-11 09:13:09 | INFO | Documenti elaborati in questa esecuzione: 1600; richieste HTTP: 0
+2026-09-11 09:13:29 | INFO | Documenti elaborati in questa esecuzione: 1650; richieste HTTP: 0
+2026-09-11 09:13:49 | INFO | Documenti elaborati in questa esecuzione: 1700; richieste HTTP: 0
+2026-09-11 09:14:10 | INFO | Documenti elaborati in questa esecuzione: 1750; richieste HTTP: 0
+2026-09-11 09:14:30 | INFO | Documenti elaborati in questa esecuzione: 1800; richieste HTTP: 0
+2026-09-11 09:14:50 | INFO | Documenti elaborati in questa esecuzione: 1850; richieste HTTP: 0
+2026-09-11 09:15:08 | INFO | Documenti elaborati in questa esecuzione: 1900; richieste HTTP: 0
+2026-09-11 09:15:28 | INFO | Documenti elaborati in questa esecuzione: 1950; richieste HTTP: 0
+2026-09-11 09:15:48 | INFO | Documenti elaborati in questa esecuzione: 2000; richieste HTTP: 0
+2026-09-11 09:16:28 | INFO | CHECKPOINT MASSIVO | documenti=2000 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23533, 'EVIDENZA_NON_CONFERMATA': 3565, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5672, 'FONTE_NON_ACCESSIBILE': 103, 'PROFILO_CON_IDENTITA_NOMINALE': 2307, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'IN_CODA': 449, 'SPECIALITA_DOCUMENTATA': 18}
+2026-09-11 09:16:48 | INFO | Documenti elaborati in questa esecuzione: 2050; richieste HTTP: 0
+2026-09-11 09:17:09 | INFO | Documenti elaborati in questa esecuzione: 2100; richieste HTTP: 0
+2026-09-11 09:17:27 | INFO | Documenti elaborati in questa esecuzione: 2150; richieste HTTP: 0
+2026-09-11 09:17:47 | INFO | Documenti elaborati in questa esecuzione: 2200; richieste HTTP: 0
+2026-09-11 09:18:07 | INFO | Documenti elaborati in questa esecuzione: 2250; richieste HTTP: 0
+2026-09-11 09:18:27 | INFO | Documenti elaborati in questa esecuzione: 2300; richieste HTTP: 0
+2026-09-11 09:18:46 | INFO | Documenti elaborati in questa esecuzione: 2350; richieste HTTP: 0
+2026-09-11 09:19:06 | INFO | Documenti elaborati in questa esecuzione: 2400; richieste HTTP: 0
+2026-09-11 09:19:25 | INFO | Documenti elaborati in questa esecuzione: 2450; richieste HTTP: 0
+2026-09-11 09:19:45 | INFO | Documenti elaborati in questa esecuzione: 2500; richieste HTTP: 0
+2026-09-11 09:20:05 | INFO | Documenti elaborati in questa esecuzione: 2550; richieste HTTP: 0
+2026-09-11 09:20:25 | INFO | Documenti elaborati in questa esecuzione: 2600; richieste HTTP: 0
+2026-09-11 09:20:46 | INFO | Documenti elaborati in questa esecuzione: 2650; richieste HTTP: 0
+2026-09-11 09:21:06 | INFO | Documenti elaborati in questa esecuzione: 2700; richieste HTTP: 0
+2026-09-11 09:21:26 | INFO | Documenti elaborati in questa esecuzione: 2750; richieste HTTP: 0
+2026-09-11 09:21:47 | INFO | Documenti elaborati in questa esecuzione: 2800; richieste HTTP: 0
+2026-09-11 09:22:07 | INFO | Documenti elaborati in questa esecuzione: 2850; richieste HTTP: 0
+2026-09-11 09:22:27 | INFO | Documenti elaborati in questa esecuzione: 2900; richieste HTTP: 0
+2026-09-11 09:22:47 | INFO | Documenti elaborati in questa esecuzione: 2950; richieste HTTP: 0
+2026-09-11 09:23:07 | INFO | Documenti elaborati in questa esecuzione: 3000; richieste HTTP: 0
+2026-09-11 09:23:48 | INFO | CHECKPOINT MASSIVO | documenti=3000 | report=C:\Dev\Niko\Python\scriptRicerca\output\risultato_massivo_recuperato.xlsx | stati={'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23594, 'EVIDENZA_NON_CONFERMATA': 3556, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5678, 'FONTE_NON_ACCESSIBILE': 103, 'PROFILO_CON_IDENTITA_NOMINALE': 2680, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'SPECIALITA_DOCUMENTATA': 18, 'IN_CODA': 18}
+2026-09-11 09:24:40 | INFO | MASSIVO: {'total': 81331, 'states': {'NON_COPERTO_DALLE_FONTI': 45662, 'DISCIPLINA_DICHIARATA_NEL_PROFILO': 23600, 'EVIDENZA_NON_CONFERMATA': 3556, 'SPECIALITA_CON_IDENTITA_NOMINALE': 5678, 'FONTE_NON_ACCESSIBILE': 103, 'PROFILO_CON_IDENTITA_NOMINALE': 2692, 'IDENTITA_CONFERMATA_SENZA_TITOLO': 22, 'SPECIALITA_DOCUMENTATA': 18}, 'people_with_sources': 35669, 'urls': {'done': 74184, 'error': 776}, 'updated': '2026-09-11T07:24:40+00:00'}; HTTP=0; Search API=0
