@@ -25,7 +25,7 @@
       "sitemap_pattern": "/kf_gem_medico-sitemap",
       "reanalyze_on_change": true,
       "reanalyze_empty_only": true,
-      "reanalyze_revision": 1
+      "reanalyze_revision": 2
     },
     {
       "id": "Santagostino",
@@ -305,7 +305,7 @@
       "note": "Schede nominali istituzionali dell’Istituto Europeo di Oncologia; la disciplina clinica è dichiarata nella pagina del medico.",
       "reanalyze_on_change": true,
       "reanalyze_empty_only": true,
-      "reanalyze_revision": 1
+      "reanalyze_revision": 2
     },
     {
       "id": "MultiMedica",
@@ -346,7 +346,7 @@
       "note": "Schede nominali istituzionali del Gruppo MultiMedica; unità operativa e formazione vengono mantenute distinte dai titoli di specializzazione espliciti.",
       "reanalyze_on_change": true,
       "reanalyze_empty_only": true,
-      "reanalyze_revision": 1
+      "reanalyze_revision": 2
     },
     {
       "id": "Policlinico_San_Matteo",
