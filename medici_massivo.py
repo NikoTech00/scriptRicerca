@@ -1080,6 +1080,13 @@ def run(args):
     lock = RunLock(args.state_dir)
     store = Store(args.state_dir)
     try:
+        logging.info(
+            'PARAMETRI MASSIVO | catalogo=%s | export_only=%s | skip_discovery=%s | '
+            'refresh_sources=%s | max_documents=%s | max_http_requests=%s | state_dir=%s | output=%s',
+            args.source_catalog, args.export_only, args.skip_discovery,
+            args.refresh_sources, args.max_documents, args.max_http_requests,
+            args.state_dir, args.output,
+        )
         logging.info('Importazione e controllo di tutto l’archivio: %s', args.input)
         store.import_people(args.input, args.sheet)
         people = {r['pid']: core.Person(**json.loads(r['data'])) for r in store.db.execute('SELECT pid,data FROM people')}

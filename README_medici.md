@@ -1,5 +1,7 @@
 # Ricerca medici e recupero CV
 
+La [relazione tecnica e aziendale del progetto](RELAZIONE_PROGETTO_MEDICI.md) descrive obiettivi, architettura, criteri di attendibilità, risultati correnti, limiti e sviluppi consigliati.
+
 Per l’intero archivio usare la nuova modalità **massiva**: [guida operativa](GUIDA_MASSIVO.md).
 
 ```powershell
