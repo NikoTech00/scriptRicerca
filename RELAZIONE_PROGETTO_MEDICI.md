@@ -2,7 +2,7 @@
 
 **Progetto:** arricchimento dell’archivio aziendale dei medici  
 **Versione applicativa:** V6.0  
-**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 15:38
+**Ultimo aggiornamento dei risultati:** 14 settembre 2026, ore 12:09 (verifica; nessun nuovo dato)
 **Archivio analizzato:** 81.331 persone
 
 ## 1. Scopo del progetto
@@ -42,7 +42,9 @@ Il controllo più recente è dell’**11 settembre 2026 alle ore 15:38**. La fon
 
 La run Sant’Andrea ha aggiunto **20 risultati utilizzabili**, portando il totale da 29.565 a **29.585**. I record completamente non coperti sono diminuiti di 26, da 45.556 a **45.530**. Le categorie più forti rimangono 46 specialità documentate e 5.719 specialità nominali; nel risultato corrente sono associati **2.109 CV** a record utili.
 
-Restano da completare al massimo 15 profili Sant’Andrea non compresi nei 50 documenti elaborati dal primo ciclo. Torino resta sospesa per il divieto espresso nel file `robots.txt`.
+I profili Sant’Andrea residui sono stati verificati il 14 settembre 2026 alle ore 12:09: il ciclo (con il lock di processo corretto per Windows, si veda sotto) ha riportato **0 richieste HTTP** e numeri identici al controllo precedente. La coda per le fonti attualmente integrate risulta quindi esaurita: non ci sono più candidati Sant’Andrea da elaborare senza integrare una fonte nuova. Torino resta sospesa per il divieto espresso nel file `robots.txt`.
+
+Lo stesso giorno è stato corretto un problema di locking specifico di Windows: `RunLock` inizializzava il contenuto del file `.run.lock` prima di acquisire il lock, causando `PermissionError` invece del messaggio previsto quando una seconda esecuzione tentava di partire mentre la prima era attiva. Il file di lock viene ora inizializzato solo dopo l’acquisizione del lock; su Linux/macOS il comportamento resta invariato.
 
 Per evitare duplicazioni e confusione, è disponibile un solo avviatore Windows, `avvia_recupero.bat`, riutilizzabile dopo ogni aggiornamento delle fonti. Il log registra catalogo, limiti e opzioni effettivamente ricevute.
 
