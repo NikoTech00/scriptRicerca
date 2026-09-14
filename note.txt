@@ -1,71 +1,56 @@
 python .\scriptMedici.py "input\scriptMedici.xlsx" --massivo --skip-discovery --max-documents 5000 --max-http-requests 500 --mass-checkpoint-every 1000 --output "output\risultato_massivo_recuperato.xlsx"
 
-Scarico: https://www.gaslini.org/wp-content/uploads/2026/04/SITO-Elenco-Medici-Esterno.pdf
-Bytes scaricati: 50142
+PS C:\Dev\Niko\Python\scriptRicerca> python debug_cv_state.py
+--- Conteggi grezzi ---
+candidates totali: 64902
+evidence totali: 63977
+urls totali: 75264
+urls per stato:
+  done 74488
+  error 776
 
---- Pagina 1: 32 righe estratte ---
-  0 | 'Unità Operativa Nominativo Sede attività Note'
-  1 | 'Anestesia e Rianimazione Dato Andrea Genova - Villa Montallegro, Via Monte Zovetto'
-  2 | 'Anestesia e Rianimazione Disma Nicola Genova - Villa Montallegro, Via Monte Zovetto'
-  3 | 'Anestesia e Rianimazione Kotzeva Svetlana Vassileva Genova - Villa Montallegro, Via Monte Zovetto'
-  4 | 'Chirurgia Mazzola Cinzia Sanremo - Mag Medica, Via Canessa'
-  5 | 'Chirurgia Torre Michele Genova - Villa Montallegro, Via Monte Zovetto'
-  6 | 'Endocrinologia Gastaldi Roberto Genova - Laboratorio Albaro, Via Paolo Boselli'
-  7 | 'Genetica Capra Valeria Genova - Laboratorio Albaro, Via Paolo Boselli'
-  8 | 'Ginecologia e Ostetricia Aiello Nicoletta'
-  9 | 'Genova, Laboratorio Albaro-                                 Savona - '
- 10 | 'Omnia Medica, Via Paleocapa'
- 11 | 'Neuropsichiatria Siri Laura Pietra Ligure - Studio Corso Italia n.87'
- 12 | 'Savona- IGEA, Via Paleocapa 23/4'
- 13 | 'Oculistica Capris Elisabetta Genova, Via Trento 5/2'
- 14 | 'Odontoiatria e Ortodonzia Capurro Claudia Rapallo - Studio Via Castruccio 2B'
- 15 | 'Odontoiatria e Ortodonzia Laffi Nicola Genova - Studio Via Montevideo 12 n.6a Direttore'
- 16 | 'Genova - Studio Via Pastorino 100 R'
- 17 | 'Ortopedia Arrigoni Chiara Genova, Villa Montallegro, Via Monte Zovetto'
- 18 | 'Ortopedia Camurri Valentina Tovo San Giacomo (SV), Via Roma 74'
- 19 | 'Ortopedia/Chirurgia della '
- 20 | 'mano Catena Nunzio Genova, Villa Montallegro, Via Monte Zovetto'
- 21 | 'Responsabile '
- 22 | 'UOSD Centro '
- 23 | 'Chirurgia '
- 24 | 'Ricostruttiva e '
- 25 | 'della mano'
- 26 | 'Ortopedia Famà Paolo Loano - Centro Medico San Giovanni'
- 27 | 'Ortopedia Michelis Maria Beatrice Savona - Omnia Medica, Via Paleocapa'
- 28 | 'Otorinolaringoiatria Cacco Tommaso Savona - Omnia Medica, Via Paleocapa'
- 29 | "Otorinolaringoiatria D'Agostino Roberto Genova, Villa Serena, Piazza Leopardi Direttore "
- 30 | 'Otorinolaringoiatria Melagrana Andrea Sestri Levante - Studio Viale Dante Alighieri 49 n.8'
- 31 | 'Pediatria Defilippi Annacarla Asl 1- Imperia'
+--- candidates per source (top 15) ---
+  Doctolib 38702
+  MioDottore 20449
+  PagineMediche_Visitami 1250
+  Medicitalia 735
+  TopDoctors 686
+  Santagostino 429
+  Humanitas 327
+  Gruppo_San_Donato 321
+  Gemelli 311
+  Policlinico_San_Matteo 189
+  Niguarda_Visite_Private 171
+  MiAgenda 150
+  MultiMedica 143
+  ASST_Rhodense 143
+  IEO 128
 
---- Pagina 2: 28 righe estratte ---
- 32 | 'Radiologia Damasio Maria Beatrice'
- 33 | 'Genova - Laboratorio Albaro, Via Paolo Boselli  Genova - '
- 34 | 'Villa Montallegro, Via Monte Zovetto Sanremo - Mag '
- 35 | 'Medica, Via Canessa Direttore '
- 36 | 'Radiologia Rizzo Francesca Sanremo - Mag Medica, Via Canessa'
- 37 | 'Per interventi chirurgici Nominativo Sede attività Note'
- 38 | 'Anestesia e Rianimazione Conti Elisabetta Genova - Villa Montallegro, Via Monte Zovetto'
- 39 | 'Anestesia e Rianimazione Dato Andrea Genova - Villa Montallegro, Via Monte Zovetto'
- 40 | 'Anestesia e Rianimazione Disma Nicola Genova - Villa Montallegro, Via Monte Zovetto'
- 41 | 'Anestesia e Rianimazione Gily Brunella Genova - Villa Montallegro, Via Monte Zovetto'
- 42 | 'Anestesia e Rianimazione Kotzeva Svetlana Genova - Villa Montallegro, Via Monte Zovetto'
- 43 | 'Chirurgia Mattioli Girolamo Genova - Villa Montallegro, Via Monte Zovetto Direttore   '
- 44 | 'Chirurgia Torre Michele Genova - Villa Montallegro, Via Monte Zovetto'
- 45 | 'Oculistica Capris Elisabetta Genova - Villa Montallegro, Via Monte Zovetto'
- 46 | 'Oculistica Massa Luigi Genova - Villa Montallegro, Via Monte Zovetto'
- 47 | 'Oculistica Pagliara Alessandra Genova - Villa Montallegro, Via Monte Zovetto'
- 48 | 'Oculistica Serafino Massimiliano Genova - Villa Montallegro, Via Monte Zovetto Direttore '
- 49 | 'Oculistica Testa Francesca Genova - Villa Montallegro, Via Monte Zovetto'
- 50 | 'Ortopedia Arrigoni Chiara Genova - Villa Montallegro, Via Monte Zovetto'
- 51 | 'Ortopedia/Chirurgia della '
- 52 | 'mano Catena Nunzio Genova - Villa Montallegro, Via Monte Zovetto'
- 53 | 'Responsabile '
- 54 | 'UOSD Centro '
- 55 | 'Chirurgia '
- 56 | 'Ricostruttiva e '
- 57 | 'della mano'
- 58 | 'Ortopedia Famà Paolo Genova - Villa Montallegro, Via Monte Zovetto'
- 59 | 'Ortopedia Marré Brunenghi Giorgio Genova - Villa Montallegro, Via Monte Zovetto'
+candidates source='cv_da_profilo': 31
 
-Totale righe mostrate: 60
-Specialita' note nel catalogo (per confronto): 151
+--- evidence con cv=true (scansione data JSON) ---
+evidence totali scansionate: 63977
+evidence con cv=true: 665
+per source:
+  Gruppo_San_Donato 321
+  ASST_Rhodense 101
+  San_Raffaele 101
+  Istituto_Ortopedico_Rizzoli 81
+  manifest 30
+  cv_locale 16
+  TopDoctors 7
+  cv_da_profilo 7
+  ASST_Bergamo_Ovest 1
+per identity:
+  solo_nome_completo 429
+  omonimia 153
+  non_verificata 54
+  incompatibile 21
+  anagrafica_concordante 8
+
+--- cv_da_profilo: candidates senza evidence corrispondente ---
+candidates cv_da_profilo SENZA riga evidence: 23 / 31
+
+--- cv_da_profilo: stato delle relative urls ---
+  done 8
+  error 23
