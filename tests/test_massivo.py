@@ -64,6 +64,21 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(found, {('1', 'https://api.example.test/doctors/42', 'profile')})
         self.assertEqual(errors, [])
 
+    def test_gaslini_source_is_declared_as_pdf_activity_roster(self):
+        """La fonte Gaslini_Genova_ALP punta a 3 PDF di elenco medici ALPI reali;
+        qui verifichiamo solo che il catalogo sia configurato correttamente (tipo,
+        host, urls). La struttura esatta del testo estratto dai PDF non e' stata
+        verificabile da questa sessione (rete esterna non raggiungibile dal bridge):
+        va confermata dal primo run reale su Windows, come gia' fatto per Napoli."""
+        catalog = json.loads(Path('fonti_massive.json').read_text(encoding='utf-8'))
+        spec = next(s for s in catalog['sources'] if s['id'] == 'Gaslini_Genova_ALP')
+        self.assertEqual(spec['type'], 'pdf_activity_roster')
+        self.assertEqual(spec['hosts'], ['www.gaslini.org'])
+        self.assertEqual(len(spec['urls']), 3)
+        for url in spec['urls']:
+            self.assertTrue(url.startswith('https://www.gaslini.org/wp-content/uploads/'))
+            self.assertTrue(url.lower().endswith('.pdf'))
+
     def test_pdf_roster_maps_leading_name_to_declared_discipline(self):
         names = m.Names({'1': person()})
         spec = {'id': 'Torino', 'type': 'pdf_activity_roster',

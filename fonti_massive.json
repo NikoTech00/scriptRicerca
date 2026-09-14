@@ -437,6 +437,19 @@
       "link_pattern": "(?i)\\.pdf",
       "documents": true,
       "note": "Elenco dirigenti (Amministrazione Trasparente, D.Lgs 33/2013) dell'Azienda Ospedaliera Universitaria Federico II di Napoli, con CV in PDF. Range di lettere coperti: D-G, I-O, P-S, T-Z (IDPagina 1071/1072/1074/1075); il range A-C (IDPagina 1070) risulta attualmente rimosso dal sito ('Pagina non più disponibile') e resta escluso finché non torna disponibile."
+    },
+    {
+      "id": "Gaslini_Genova_ALP",
+      "type": "pdf_activity_roster",
+      "hosts": [
+        "www.gaslini.org"
+      ],
+      "urls": [
+        "https://www.gaslini.org/wp-content/uploads/2026/04/SITO-Elenco-Medici-Interno.pdf",
+        "https://www.gaslini.org/wp-content/uploads/2026/04/SITO-Elenco-Medici-Esterno.pdf",
+        "https://www.gaslini.org/wp-content/uploads/2026/04/SITO-Elenco-Medici-Domiciliari.pdf"
+      ],
+      "note": "Elenchi dei medici in Attivita' Libero-Professionale Intramoenia (interna, presso sedi esterne, e a domicilio) dell'Istituto Giannina Gaslini di Genova, pubblicati sulla pagina istituzionale 'Libera professione'. Ogni riga riporta Unita' Operativa/specialita' + nominativo: circa 130 medici nell'elenco interno e 40-45 nell'elenco esterno (dato da verificare sull'estrazione reale del PDF). robots.txt del dominio non limita /wp-content/uploads/ (solo crawl-delay per MSNBot/bingbot, nessun Disallow) - a differenza del caso Citta_Salute_Torino_ALPI sopra, qui l'accesso e' consentito. Nessuna nota di licenza/copyright trovata sulla pagina."
     }
   ]
 }
