@@ -125,10 +125,6 @@ class RunLock:
         folder.mkdir(parents=True, exist_ok=True)
         self.stream = (folder / '.run.lock').open('a+b')
         self.stream.seek(0)
-        if not self.stream.read(1):
-            self.stream.write(b'0')
-            self.stream.flush()
-        self.stream.seek(0)
         try:
             if os.name == 'nt':
                 import msvcrt
@@ -139,6 +135,14 @@ class RunLock:
         except OSError as exc:
             self.stream.close()
             raise ValueError('Un’altra esecuzione usa questa --state-dir. Attendere che termini.') from exc
+        # Il contenuto va inizializzato SOLO dopo aver acquisito il lock: su Windows
+        # msvcrt.locking blocca in modo mandatorio il byte 0, quindi una lettura
+        # tentata prima del lock da un secondo processo solleverebbe PermissionError
+        # dalla read() stessa invece del ValueError gestito qui sopra.
+        if not self.stream.read(1):
+            self.stream.write(b'0')
+            self.stream.flush()
+        self.stream.seek(0)
 
     def close(self):
         if os.name == 'nt':
