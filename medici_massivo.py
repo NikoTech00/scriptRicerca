@@ -38,7 +38,11 @@ import scriptMedici as core
 
 SCHEMA = 1
 ANALYZER = 5
-DISCOVERY_VERSION = 3
+# v4 (14/09/2026): fix pdf_activity_roster per righe 'Specialita' + Nominativo'
+# sulla stessa riga fisica (formato tabellare, es. Gaslini) - forza la ri-scoperta
+# di tutte le fonti gia' segnate 'done' cosi' anche quelle con 0 associazioni
+# ottenute prima del fix vengono ricontrollate col nuovo algoritmo.
+DISCOVERY_VERSION = 4
 UA = 'MediciResearch/1.0'
 MAX_BYTES = 25 * 1024 * 1024
 TLS_INSECURE_HOSTS = {'ospedalesantandrea.it'}
