@@ -592,6 +592,8 @@ def discover_one(spec, fetcher, names, refresh=False):
                     for pid in ids:
                         found.add((pid, link, 'document' if spec.get('documents') else 'profile'))
         except Exception as exc:
+            if spec.get('type') == 'linked_sitemap' and 'HTTP_404' in str(exc):
+                continue
             errors.append(f'{url}: {type(exc).__name__}: {exc}')
     if queue:
         errors.append('Limite pagine indice raggiunto; aumentare max_index_pages nel catalogo.')

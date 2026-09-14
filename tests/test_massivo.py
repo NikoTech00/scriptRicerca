@@ -78,6 +78,20 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual(found, {('1', 'https://example.test/unita-operative/cardiologia/anna-rossi', 'profile')})
 
+    def test_linked_sitemap_ignores_removed_index_pages(self):
+        names = m.Names({'1': person()})
+        sitemap = (b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+                   b'<url><loc>https://example.test/pagina-rimossa</loc></url></urlset>')
+        spec = {'id': 'linked', 'type': 'linked_sitemap', 'urls': ['https://example.test/sitemap.xml'],
+                'hosts': ['example.test'], 'index_pattern': r'.*', 'link_pattern': r'/medici/',
+                'max_index_pages': 5}
+        from unittest.mock import Mock
+        fetcher = Mock(); fetcher.get.side_effect = [
+            ({'final_url': spec['urls'][0]}, sitemap), m.FetchError('HTTP_404')]
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(found, set())
+        self.assertEqual(errors, [])
+
     def test_santandrea_unit_is_a_declared_discipline(self):
         raw = (b'<main><div class="doctor-card"><h1>Anna Rossi</h1>'
                b'<div class="doctor-card-role"><ul><li><span>Unita operativa:</span>'

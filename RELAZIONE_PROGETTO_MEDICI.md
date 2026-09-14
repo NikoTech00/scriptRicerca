@@ -2,7 +2,7 @@
 
 **Progetto:** arricchimento dell’archivio aziendale dei medici  
 **Versione applicativa:** V6.0  
-**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 15:06
+**Ultimo aggiornamento dei risultati:** 11 settembre 2026, ore 15:38
 **Archivio analizzato:** 81.331 persone
 
 ## 1. Scopo del progetto
@@ -24,25 +24,25 @@ Alla data della relazione, l’elaborazione dell’intero archivio ha prodotto:
 | Indicatore | Record | Quota sull’archivio |
 |---|---:|---:|
 | Archivio originale | 81.331 | 100,0% |
-| Record con specialità o disciplina utilizzabile | 29.565 | 36,4% |
-| Disciplina dichiarata in un profilo pubblico | 23.804 | 29,3% |
-| Specialità con identità nominale | 5.715 | 7,0% |
+| Record con specialità o disciplina utilizzabile | 29.585 | 36,4% |
+| Disciplina dichiarata in un profilo pubblico | 23.820 | 29,3% |
+| Specialità con identità nominale | 5.719 | 7,0% |
 | Specialità documentata con identità anagrafica forte | 46 | 0,06% |
-| Persone collegate ad almeno una fonte candidata | 35.775 | 44,0% |
-| Profili nominali senza titolo sufficiente | 2.520 | 3,1% |
-| Evidenze non confermate | 3.560 | 4,4% |
+| Persone collegate ad almeno una fonte candidata | 35.801 | 44,0% |
+| Profili nominali senza titolo sufficiente | 2.521 | 3,1% |
+| Evidenze non confermate | 3.565 | 4,4% |
 | Fonti non accessibili | 102 | 0,1% |
-| Record non coperti dalle fonti integrate | 45.556 | 56,0% |
+| Record non coperti dalle fonti integrate | 45.530 | 56,0% |
 
-Sono stati elaborati e memorizzati 74.422 URL; 776 URL risultano in errore. Sono inoltre disponibili 2.109 CV associati a record con specialità o disciplina. Il flusso massivo non consuma crediti Serper o di altre Search API. I risultati sopra riportati sono categorie distinte e non devono essere sommati nuovamente tra loro.
+Sono stati elaborati e memorizzati 74.478 URL; 776 URL risultano in errore. Sono inoltre disponibili 2.109 CV associati a record con specialità o disciplina. Il flusso massivo non consuma crediti Serper o di altre Search API. I risultati sopra riportati sono categorie distinte e non devono essere sommati nuovamente tra loro.
 
 ## 3. Ultimo controllo operativo
 
-Il controllo più recente è dell’**11 settembre 2026 alle ore 15:06**. La prima esecuzione della fonte Ospedale Sant’Andrea non ha prodotto associazioni perché il server presenta una catena TLS non riconosciuta. Il client è stato corretto con un’eccezione limitata esclusivamente a quel dominio; la sitemap reale è stata poi acquisita correttamente in prova.
+Il controllo più recente è dell’**11 settembre 2026 alle ore 15:38**. La fonte Ospedale Sant’Andrea ha prodotto 65 associazioni e il ciclo ha elaborato 50 documenti con 361 richieste HTTP complessive. Cinque collegamenti obsoleti della sitemap restituivano HTTP 404; sono stati classificati come pagine rimosse per evitare di ripetere l’intera discovery.
 
-La run ha aggiunto **19 risultati utilizzabili**, portando il totale da 29.546 a **29.565** e la copertura dal 36,3% al **36,4%**. I record completamente non coperti sono diminuiti di 27, da 45.583 a **45.556**. Grazie al codice fiscale pubblicato nelle schede istituzionali, le specialità documentate con identità forte sono aumentate da 18 a **46**. Nel risultato corrente sono associati **2.109 CV** a record utili.
+La run Sant’Andrea ha aggiunto **20 risultati utilizzabili**, portando il totale da 29.565 a **29.585**. I record completamente non coperti sono diminuiti di 26, da 45.556 a **45.530**. Le categorie più forti rimangono 46 specialità documentate e 5.719 specialità nominali; nel risultato corrente sono associati **2.109 CV** a record utili.
 
-L’ultima acquisizione effettiva resta il ciclo Campus Bio-Medico delle 13:58, che ha elaborato 50 documenti e non ha consumato crediti di Search API. Sant’Andrea è pronto per una nuova esecuzione dopo la correzione TLS; Torino resta sospesa per il divieto espresso nel file `robots.txt`.
+Restano da completare al massimo 15 profili Sant’Andrea non compresi nei 50 documenti elaborati dal primo ciclo. Torino resta sospesa per il divieto espresso nel file `robots.txt`.
 
 Per evitare duplicazioni e confusione, è disponibile un solo avviatore Windows, `avvia_recupero.bat`, riutilizzabile dopo ogni aggiornamento delle fonti. Il log registra catalogo, limiti e opzioni effettivamente ricevute.
 
@@ -166,7 +166,7 @@ Verifica automatica del software:
 python -B -m unittest discover -s tests -q
 ```
 
-La suite corrente comprende 78 test e copre, tra gli altri aspetti, gestione della coda, ripresa, errori di rete, salvataggio atomico, omonimie, normalizzazione delle discipline, eccezioni TLS circoscritte, fonti istituzionali e denominazione dei CV.
+La suite corrente comprende 79 test e copre, tra gli altri aspetti, gestione della coda, ripresa, errori di rete, pagine rimosse dagli indici, salvataggio atomico, omonimie, normalizzazione delle discipline, eccezioni TLS circoscritte, fonti istituzionali e denominazione dei CV.
 
 ## 11. Protezione e trattamento dei dati
 
@@ -202,6 +202,6 @@ Le attività con il miglior rapporto tra tempo e risultato sono:
 
 ## 14. Conclusione
 
-Il progetto ha trasformato una ricerca manuale non sostenibile su 81.331 nominativi in una pipeline ripetibile, tracciabile e senza costi di Search API. Il risultato corrente rende disponibili specialità o discipline per 29.565 persone, conserva l’origine di ogni informazione e mantiene separati i casi che richiedono verifica.
+Il progetto ha trasformato una ricerca manuale non sostenibile su 81.331 nominativi in una pipeline ripetibile, tracciabile e senza costi di Search API. Il risultato corrente rende disponibili specialità o discipline per 29.585 persone, conserva l’origine di ogni informazione e mantiene separati i casi che richiedono verifica.
 
 Il software è già utilizzabile per produrre report aziendali e proseguire l’arricchimento incrementale. Il prossimo aumento significativo della copertura dipenderà soprattutto dall’integrazione di nuove fonti pubbliche e dalla risoluzione controllata dei casi nominali, mantenendo gli attuali criteri di qualità.
