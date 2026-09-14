@@ -99,6 +99,36 @@ class MassivoTests(unittest.TestCase):
         self.assertEqual(result['activities'], ['Cardiologia'])
         self.assertEqual(result['url'], spec['urls'][0])
 
+    def test_pdf_roster_maps_specialty_and_name_on_same_table_row(self):
+        """Formato tabellare (es. Gaslini): ogni riga del PDF contiene GIA'
+        "Specialita' Nominativo Sede Note" tutto insieme (pypdf non separa le
+        colonne su righe distinte). Righe reali estratte il 14/09/2026 dal PDF
+        pubblico dell'Istituto Gaslini (elenco medici ALPI esterno)."""
+        names = m.Names({'1': person(name='Andrea', surname='Dato'),
+                          '2': person(pid='2', name='Nicola', surname='Disma')})
+        spec = {'id': 'Gaslini_Genova_ALP', 'type': 'pdf_activity_roster',
+                'urls': ['https://www.gaslini.org/elenco.pdf'], 'hosts': ['www.gaslini.org']}
+        from unittest.mock import Mock
+        page = Mock(); page.extract_text.return_value = (
+            'Unità Operativa Nominativo Sede attività Note\n'
+            'Anestesia e Rianimazione Dato Andrea Genova - Villa Montallegro, Via Monte Zovetto\n'
+            'Anestesia e Rianimazione Disma Nicola Genova - Villa Montallegro, Via Monte Zovetto\n'
+            'Chirurgia Mazzola Cinzia Sanremo - Mag Medica, Via Canessa')
+        reader = Mock(); reader.pages = [page]
+        fetcher = Mock(); fetcher.get.return_value = (
+            {'final_url': spec['urls'][0]}, b'%PDF-fake')
+        with patch.object(m, 'PdfReader', return_value=reader):
+            found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(errors, [])
+        by_pid = {pid: (url, kind) for pid, url, kind in found}
+        self.assertEqual(set(by_pid), {'1', '2'})
+        for pid, expected_person in (('1', person(name='Andrea', surname='Dato')),
+                                      ('2', person(pid='2', name='Nicola', surname='Disma'))):
+            url, kind = by_pid[pid]
+            self.assertEqual(kind, 'indexed_activity')
+            result = m.indexed_activity_result(spec, expected_person, url, False)
+            self.assertEqual(result['activities'], ['Anestesia e Rianimazione'])
+
     def test_linked_sitemap_queues_indexes_and_discovers_profiles(self):
         names = m.Names({'1': person()})
         sitemap = (b'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'

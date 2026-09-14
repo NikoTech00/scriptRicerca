@@ -478,23 +478,40 @@ def discover_one(spec, fetcher, names, refresh=False):
             if spec['type'] == 'pdf_activity_roster':
                 aliases = {key(label): value for label, value in core.SPECIALTY_ALIASES.items()}
                 aliases.update({key(value): value for value in core.SPECIALTY_ALIASES.values()})
+                # Elenchi come Torino: intestazione di specialita' sola su una riga, poi
+                # righe con il nominativo. Elenchi come Gaslini (PDF da tabella Word): ogni
+                # riga fisica contiene GIA' "Specialita' Nominativo Sede Note" insieme,
+                # quindi la specialita' e' un prefisso della riga, non l'intera riga.
+                # Ordinare per numero di parole decrescente fa preferire un prefisso piu'
+                # specifico ("anestesia e rianimazione") a uno piu' corto e generico.
+                alias_keys_by_length = sorted(aliases, key=lambda k: len(k.split()), reverse=True)
                 current = ''
                 reader = PdfReader(io.BytesIO(raw))
                 for page in reader.pages:
                     lines = (page.extract_text() or '').splitlines()
                     for line in lines:
                         line_key = key(line)
+                        if not line_key:
+                            continue
                         if line_key in aliases:
                             current = aliases[line_key]
                             continue
-                        if not current or not line_key:
+                        prefix_key = next((alias_key for alias_key in alias_keys_by_length
+                                            if line_key.startswith(alias_key + ' ')), None)
+                        if prefix_key:
+                            line_specialty = aliases[prefix_key]
+                            remainder_key = line_key[len(prefix_key):].strip()
+                        else:
+                            line_specialty = current
+                            remainder_key = line_key
+                        if not line_specialty or not remainder_key:
                             continue
                         ids = names.match(line)
                         leading = []
                         for pid in ids:
                             person = names.people[pid]
                             labels = (key(f'{person.surname} {person.name}'), key(person.full_name))
-                            if any(line_key.startswith(label + ' ') or line_key == label for label in labels):
+                            if any(remainder_key.startswith(label + ' ') or remainder_key == label for label in labels):
                                 leading.append(pid)
                         if not leading:
                             continue
@@ -506,7 +523,7 @@ def discover_one(spec, fetcher, names, refresh=False):
                         if len({key(names.people[pid].full_name) for pid in leading}) > 1:
                             continue
                         for pid in leading:
-                            tagged = url + ('&' if '?' in url else '?') + '_massivo_disciplina=' + quote(current)
+                            tagged = url + ('&' if '?' in url else '?') + '_massivo_disciplina=' + quote(line_specialty)
                             found.add((pid, tagged, 'indexed_activity'))
             elif spec['type'] == 'wordpress_api':
                 payload = json.loads(raw.decode('utf-8-sig'))
