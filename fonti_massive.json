@@ -420,6 +420,23 @@
       "link_pattern": "(?i)^https://ospedalesantandrea\\.it/unita-operative/[^/?#]+/[^/?#]+/?$",
       "max_index_pages": 400,
       "note": "Profili istituzionali dell’Azienda ospedaliero-universitaria Sant’Andrea di Roma, enumerati dalle pagine pubbliche della sitemap; unità operativa e disciplina restano classificate come attività dichiarate."
+    },
+    {
+      "id": "Policlinico_Federico_II_Napoli",
+      "type": "index",
+      "hosts": [
+        "www.policlinico.unina.it",
+        "policlinico.unina.it"
+      ],
+      "urls": [
+        "https://www.policlinico.unina.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/1071",
+        "https://www.policlinico.unina.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/1072",
+        "https://www.policlinico.unina.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/1074",
+        "https://www.policlinico.unina.it/flex/cm/pages/ServeBLOB.php/L/IT/IDPagina/1075"
+      ],
+      "link_pattern": "(?i)\\.pdf",
+      "documents": true,
+      "note": "Elenco dirigenti (Amministrazione Trasparente, D.Lgs 33/2013) dell'Azienda Ospedaliera Universitaria Federico II di Napoli, con CV in PDF. Range di lettere coperti: D-G, I-O, P-S, T-Z (IDPagina 1071/1072/1074/1075); il range A-C (IDPagina 1070) risulta attualmente rimosso dal sito ('Pagina non più disponibile') e resta escluso finché non torna disponibile."
     }
   ]
 }

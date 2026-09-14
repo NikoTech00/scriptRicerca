@@ -29,6 +29,28 @@ class MassivoTests(unittest.TestCase):
             fetcher._request('https://example.test/robots.txt')
             self.assertNotIn('verify', session.get.call_args.kwargs)
 
+    def test_napoli_index_source_matches_document_across_declared_hosts(self):
+        """La fonte Policlinico_Federico_II_Napoli usa il tipo generico 'index':
+        verifica che il catalogo reale produca un match documento su un CV PDF
+        collegato a una persona nota, su entrambi gli host dichiarati."""
+        names = m.Names({'1': person(name='Maurizio', surname='Iengo')})
+        catalog = json.loads(Path('fonti_massive.json').read_text(encoding='utf-8'))
+        spec = next(s for s in catalog['sources'] if s['id'] == 'Policlinico_Federico_II_Napoli')
+        self.assertEqual(spec['type'], 'index')
+        self.assertTrue(spec.get('documents'))
+        self.assertGreaterEqual(len(spec['urls']), 4)
+        page = ('<table><tr><td>Prof. Iengo Maurizio - UOC Otorinolaringoiatria</td>'
+                '<td><a href="/cv/iengo.pdf">CV</a></td></tr></table>').encode()
+        from unittest.mock import Mock
+        fetcher = Mock()
+        fetcher.get.return_value = ({'final_url': spec['urls'][0]}, page)
+        found, errors = m.discover_one(spec, fetcher, names)
+        self.assertEqual(errors, [])
+        self.assertEqual(len(found), 1)
+        pid, url, kind = next(iter(found))
+        self.assertEqual((pid, kind), ('1', 'document'))
+        self.assertTrue(url.endswith('/cv/iengo.pdf'))
+
     def test_wordpress_api_discovers_structured_doctor(self):
         names = m.Names({'1': person()})
         payload = {'0': {'id': 42, 'title': {'rendered': 'Dott.ssa Anna Rossi'},
